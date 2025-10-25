@@ -46,9 +46,9 @@ function handleRefreshIntervalChange() {
 @use '@/assets/styles/variables.scss' as *;
 
 .config-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 32px;
+  width: 100%;  // 占满主内容区域，不限制最大宽度
+  margin: 0;
+  padding: 32px 0;  // 只保留上下内边距
   position: relative;
 
   &::before {
@@ -141,7 +141,7 @@ function handleRefreshIntervalChange() {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 600px;
+  max-width: 800px;  // 扩大到800px，适应更多配置项
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(248, 250, 252, 0.4) 100%);
   padding: 24px;

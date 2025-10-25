@@ -4,22 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="feat(config): 添加自动刷新间隔配置功能&#10;&#10;- 在配置存储中新增 autoRefreshInterval 状态管理&#10;- 实现刷新间隔的持久化存储和加载&#10;- 在配置页面添加滑块控件用于设置刷新间隔&#10;-限制刷新间隔范围为5-60分钟- 添加刷新间隔设置的实时预览和提示信息&#10;- 更新任务列表页面的轮询逻辑以使用配置的间隔- 监听配置变化并动态调整轮询定时器&#10;- 在布局组件中添加主题切换开关组件- 升级 PrimeVue 组件库相关的类型声明&#10;- 配置 Vite 的 Sass 处理选项以抑制依赖警告">
-      <change beforePath="$PROJECT_DIR$/.claude/settings.local.json" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/settings.local.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/index.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/index.scss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/reset.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/reset.scss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/variables.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/variables.scss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/components.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/components.d.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/components/TaskFilter.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/components/TaskFilter.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/Config/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/Config/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/Home/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/Home/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/Layout.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/Layout.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/TaskDetail/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/TaskDetail/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/TaskList/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/TaskList/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/vite.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/vite.config.ts" afterDir="false" />
-    </list>
+    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="feat(task): 添加任务批量停止功能并优化界面布局- 在任务列表页面新增&quot;停止选中&quot;按钮，支持批量停止运行中的任务&#10;- 实现确认对话框，防止误操作- 添加注入状态列，显示任务是否存在注入情况&#10;-优化任务列表和主页的布局样式，调整宽度和内边距- 增加批量停止任务的API和store方法- 更新扫描URL和主机列支持排序功能&#10;- 调整主内容区域的左右内边距，避免被Dock遮挡" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -226,7 +211,23 @@
       <option name="project" value="LOCAL" />
       <updated>1761407250586</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="feat(styles): 实现3D立体视觉效果和增强样式系统&#10;&#10;- 添加3D立体效果Mixins，包括凸起、凹陷、浮动等视觉效果&#10;- 实现毛玻璃、渐变按钮、3D卡片等高级样式组件&#10;- 新增多种工具类，如间距、布局、文本对齐等&#10;- 增强暗黑模式下的3D视觉效果和颜色适配-优化过渡动画，添加3D翻转、弹性滑动等效果- 改进滚动条样式，支持自定义容器和组件内滚动条&#10;- 增强PrimeVue组件的3D视觉效果，包括按钮、输入框、开关等&#10;- 添加特殊3D效果，如霓虹发光、彩虹边框、粒子背景等&#10;- 实现终极交互动画，包括磁力悬停、能量脉动、数据流动等- 优化移动端3D效果表现，减少性能消耗">
+      <option name="closed" value="true" />
+      <created>1761415357021</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1761415357021</updated>
+    </task>
+    <task id="LOCAL-00013" summary="feat(task): 添加任务批量停止功能并优化界面布局- 在任务列表页面新增&quot;停止选中&quot;按钮，支持批量停止运行中的任务&#10;- 实现确认对话框，防止误操作- 添加注入状态列，显示任务是否存在注入情况&#10;-优化任务列表和主页的布局样式，调整宽度和内边距- 增加批量停止任务的API和store方法- 更新扫描URL和主机列支持排序功能&#10;- 调整主内容区域的左右内边距，避免被Dock遮挡">
+      <option name="closed" value="true" />
+      <created>1761416222297</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1761416222297</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -244,7 +245,9 @@
     <MESSAGE value="chore(frontend): 添加前端.gitignore文件- 添加了依赖管理相关的忽略规则，包括node_modules和各种包管理器日志文件&#10;- 配置了构建产物与缓存的忽略项，如dist目录、Vite缓存等&#10;- 设置了环境变量配置文件的忽略规则，保护本地敏感信息&#10;- 添加了多种编辑器和IDE的配置文件忽略规则- 包含了操作系统生成的元数据文件忽略配置&#10;- 增加了测试覆盖率报告和相关数据文件的忽略规则" />
     <MESSAGE value="feat(frontend): 实现macOS风格Dock布局和错误处理优化&#10;&#10;- 重构前端Layout组件为底部Dock导航布局&#10;- 添加全局错误处理和用户友好提示机制- 实现后端健康检查和智能轮询策略&#10;- 集成PrimeVue Toast组件优化错误提示&#10;- 添加网络状态监听和离线模式处理&#10;- 实现请求重试机制和退避算法&#10;-优化加载状态和空状态用户体验&#10;- 添加页面可见性API集成&#10;- 实现健康检查状态管理和自动恢复- 添加离线Banner提示和重试交互" />
     <MESSAGE value="feat(config): 添加自动刷新间隔配置功能&#10;&#10;- 在配置存储中新增 autoRefreshInterval 状态管理&#10;- 实现刷新间隔的持久化存储和加载&#10;- 在配置页面添加滑块控件用于设置刷新间隔&#10;-限制刷新间隔范围为5-60分钟- 添加刷新间隔设置的实时预览和提示信息&#10;- 更新任务列表页面的轮询逻辑以使用配置的间隔- 监听配置变化并动态调整轮询定时器&#10;- 在布局组件中添加主题切换开关组件- 升级 PrimeVue 组件库相关的类型声明&#10;- 配置 Vite 的 Sass 处理选项以抑制依赖警告" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(config): 添加自动刷新间隔配置功能&#10;&#10;- 在配置存储中新增 autoRefreshInterval 状态管理&#10;- 实现刷新间隔的持久化存储和加载&#10;- 在配置页面添加滑块控件用于设置刷新间隔&#10;-限制刷新间隔范围为5-60分钟- 添加刷新间隔设置的实时预览和提示信息&#10;- 更新任务列表页面的轮询逻辑以使用配置的间隔- 监听配置变化并动态调整轮询定时器&#10;- 在布局组件中添加主题切换开关组件- 升级 PrimeVue 组件库相关的类型声明&#10;- 配置 Vite 的 Sass 处理选项以抑制依赖警告" />
+    <MESSAGE value="feat(styles): 实现3D立体视觉效果和增强样式系统&#10;&#10;- 添加3D立体效果Mixins，包括凸起、凹陷、浮动等视觉效果&#10;- 实现毛玻璃、渐变按钮、3D卡片等高级样式组件&#10;- 新增多种工具类，如间距、布局、文本对齐等&#10;- 增强暗黑模式下的3D视觉效果和颜色适配-优化过渡动画，添加3D翻转、弹性滑动等效果- 改进滚动条样式，支持自定义容器和组件内滚动条&#10;- 增强PrimeVue组件的3D视觉效果，包括按钮、输入框、开关等&#10;- 添加特殊3D效果，如霓虹发光、彩虹边框、粒子背景等&#10;- 实现终极交互动画，包括磁力悬停、能量脉动、数据流动等- 优化移动端3D效果表现，减少性能消耗" />
+    <MESSAGE value="feat(task): 添加任务批量停止功能并优化界面布局- 在任务列表页面新增&quot;停止选中&quot;按钮，支持批量停止运行中的任务&#10;- 实现确认对话框，防止误操作- 添加注入状态列，显示任务是否存在注入情况&#10;-优化任务列表和主页的布局样式，调整宽度和内边距- 增加批量停止任务的API和store方法- 更新扫描URL和主机列支持排序功能&#10;- 调整主内容区域的左右内边距，避免被Dock遮挡" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(task): 添加任务批量停止功能并优化界面布局- 在任务列表页面新增&quot;停止选中&quot;按钮，支持批量停止运行中的任务&#10;- 实现确认对话框，防止误操作- 添加注入状态列，显示任务是否存在注入情况&#10;-优化任务列表和主页的布局样式，调整宽度和内边距- 增加批量停止任务的API和store方法- 更新扫描URL和主机列支持排序功能&#10;- 调整主内容区域的左右内边距，避免被Dock遮挡" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
