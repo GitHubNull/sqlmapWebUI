@@ -1,0 +1,76 @@
+# ====================
+# 依赖管理
+# ====================
+# 依赖包目录
+node_modules/
+
+# 包管理器日志文件
+pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ====================
+# 构建产物与缓存
+# ====================
+# Vite构建输出目录（防御性配置，实际输出到../backEnd/static）
+dist/
+dist-ssr/
+
+# Vite开发服务器缓存
+.vite/
+
+# 本地构建产物
+*.local
+
+# TypeScript增量编译缓存
+*.tsbuildinfo
+
+# ====================
+# 环境变量配置
+# ====================
+# 本地环境变量覆盖文件（可能包含敏感信息）
+.env.local
+.env.*.local
+
+# ====================
+# 编辑器与IDE配置
+# ====================
+# Visual Studio Code配置
+.vscode/*
+# 保留推荐扩展配置以统一团队开发环境
+!.vscode/extensions.json
+
+# JetBrains IDE配置
+.idea/
+
+# Visual Studio配置
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Vim交换文件
+*.sw?
+
+# ====================
+# 操作系统文件
+# ====================
+# macOS元数据
+.DS_Store
+
+# Windows缩略图缓存和文件夹配置
+Thumbs.db
+Desktop.ini
+
+# ====================
+# 测试与覆盖率报告
+# ====================
+# 测试覆盖率报告目录
+coverage/
+
+# 覆盖率数据文件
+*.lcov
+
+# NYC覆盖率工具输出
+.nyc_output/
