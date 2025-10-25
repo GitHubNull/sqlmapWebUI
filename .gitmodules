@@ -1,0 +1,3 @@
+[submodule "src/backEnd/thirdparty/sqlmap"]
+	path = src/backEnd/thirdparty/sqlmap
+	url = https://github.com/sqlmapproject/sqlmap
