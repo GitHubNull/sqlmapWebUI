@@ -1,0 +1,54 @@
+// SCSS全局变量
+
+// 主题色
+$primary-color: #3B82F6;
+$success-color: #22C55E;
+$warning-color: #F59E0B;
+$danger-color: #EF4444;
+$info-color: #3B82F6;
+
+// 文本颜色
+$text-color: #495057;
+$text-color-secondary: #6C757D;
+$text-color-light: #ADB5BD;
+
+// 背景色
+$bg-color: #FFFFFF;
+$bg-color-secondary: #F8F9FA;
+$bg-color-dark: #212529;
+
+// 边框
+$border-color: #DEE2E6;
+$border-radius: 6px;
+$border-radius-sm: 4px;
+$border-radius-lg: 8px;
+
+// 间距
+$spacing-unit: 8px;
+$spacing-xs: $spacing-unit * 0.5; // 4px
+$spacing-sm: $spacing-unit; // 8px
+$spacing-md: $spacing-unit * 2; // 16px
+$spacing-lg: $spacing-unit * 3; // 24px
+$spacing-xl: $spacing-unit * 4; // 32px
+
+// 字体
+$font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+$font-size-base: 14px;
+$font-size-sm: 12px;
+$font-size-lg: 16px;
+$font-size-xl: 18px;
+
+// 阴影
+$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+// 过渡
+$transition-base: all 0.3s ease;
+$transition-fast: all 0.15s ease;
+
+// Z-index层级
+$z-index-dropdown: 1000;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;

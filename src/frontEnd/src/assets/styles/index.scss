@@ -1,0 +1,59 @@
+// 全局样式入口
+@import './variables.scss';
+@import './reset.scss';
+
+// 工具类
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mt-sm { margin-top: $spacing-sm; }
+.mt-md { margin-top: $spacing-md; }
+.mt-lg { margin-top: $spacing-lg; }
+
+.mb-sm { margin-bottom: $spacing-sm; }
+.mb-md { margin-bottom: $spacing-md; }
+.mb-lg { margin-bottom: $spacing-lg; }
+
+.ml-sm { margin-left: $spacing-sm; }
+.ml-md { margin-left: $spacing-md; }
+.ml-lg { margin-left: $spacing-lg; }
+
+.mr-sm { margin-right: $spacing-sm; }
+.mr-md { margin-right: $spacing-md; }
+.mr-lg { margin-right: $spacing-lg; }
+
+.p-sm { padding: $spacing-sm; }
+.p-md { padding: $spacing-md; }
+.p-lg { padding: $spacing-lg; }
+
+// 暗黑模式
+.dark-mode {
+  background-color: $bg-color-dark;
+  color: #E9ECEF;
+
+  .card {
+    background-color: #343A40;
+    color: #E9ECEF;
+  }
+}
