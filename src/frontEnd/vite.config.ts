@@ -46,6 +46,14 @@ export default defineConfig({
       },
     },
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern-compiler',
+        quietDeps: true,
+      },
+    },
+  },
   build: {
     outDir: '../backEnd/static',
     emptyOutDir: true,

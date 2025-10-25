@@ -7,6 +7,17 @@
         <span class="app-name">SqlmapWebUI</span>
       </div>
       <div class="status-bar-right">
+        <!-- 主题切换 -->
+        <div class="theme-switch">
+          <i class="pi pi-sun theme-icon" :class="{ active: configStore.theme === 'light' }"></i>
+          <ToggleSwitch 
+            v-model="isDarkMode" 
+            @change="handleThemeToggle"
+            v-tooltip.bottom="isDarkMode ? '切换到亮色主题' : '切换到暗色主题'"
+          />
+          <i class="pi pi-moon theme-icon" :class="{ active: configStore.theme === 'dark' }"></i>
+        </div>
+        
         <Badge 
           v-if="authStore.isLocalMode" 
           value="本地模式" 
@@ -83,18 +94,27 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useTaskStore } from '@/stores/task'
+import { useConfigStore } from '@/stores/config'
 import { useRouter, useRoute } from 'vue-router'
 import { useSmartPolling } from '@/utils/useSmartPolling'
+import ToggleSwitch from 'primevue/toggleswitch'
 
 // Stores
 const authStore = useAuthStore()
 const taskStore = useTaskStore()
+const configStore = useConfigStore()
 const router = useRouter()
 const route = useRoute()
 
 // 状态
 const currentRoute = ref<string>(route.path)
 const hoveredItem = ref<string | null>(null)
+const isDarkMode = computed({
+  get: () => configStore.theme === 'dark',
+  set: (value: boolean) => {
+    configStore.updateTheme(value ? 'dark' : 'light')
+  }
+})
 
 // Dock项数据结构
 interface DockItem {
@@ -166,6 +186,11 @@ function getTooltipText(item: DockItem): string {
 function handleLogout(): void {
   authStore.logout()
   router.push('/login')
+}
+
+// 主题切换处理
+function handleThemeToggle(): void {
+  configStore.updateTheme(isDarkMode.value ? 'dark' : 'light')
 }
 
 // 键盘快捷键处理
@@ -269,6 +294,26 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.theme-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 20px;
+}
+
+.theme-icon {
+  font-size: 16px;
+  color: #9ca3af;
+  transition: all 0.3s ease;
+  
+  &.active {
+    color: #3b82f6;
+    transform: scale(1.1);
+  }
 }
 
 .mode-badge {

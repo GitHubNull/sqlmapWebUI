@@ -22,12 +22,16 @@ declare module 'vue' {
     Dropdown: typeof import('primevue/dropdown')['default']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
     InputText: typeof import('primevue/inputtext')['default']
+    Message: typeof import('primevue/message')['default']
     OfflineBanner: typeof import('./components/OfflineBanner.vue')['default']
     Password: typeof import('primevue/password')['default']
+    ProgressSpinner: typeof import('primevue/progressspinner')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SelectButton: typeof import('primevue/selectbutton')['default']
+    Slider: typeof import('primevue/slider')['default']
     Tag: typeof import('primevue/tag')['default']
     TaskFilter: typeof import('./components/TaskFilter.vue')['default']
+    ToggleSwitch: typeof import('primevue/toggleswitch')['default']
   }
 }

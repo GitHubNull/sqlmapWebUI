@@ -6,22 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="feat(frontend): 实现macOS风格Dock布局和错误处理优化&#10;&#10;- 重构前端Layout组件为底部Dock导航布局&#10;- 添加全局错误处理和用户友好提示机制- 实现后端健康检查和智能轮询策略&#10;- 集成PrimeVue Toast组件优化错误提示&#10;- 添加网络状态监听和离线模式处理&#10;- 实现请求重试机制和退避算法&#10;-优化加载状态和空状态用户体验&#10;- 添加页面可见性API集成&#10;- 实现健康检查状态管理和自动恢复- 添加离线Banner提示和重试交互">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/static/assets/_plugin-vue_export-helper-DlAUqK2U.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/static/index.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/.env.development" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/.env.development" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/pnpm-lock.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/App.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/App.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/api/request.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/api/request.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/api/task.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/api/task.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/index.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/index.scss" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/frontEnd/src/components.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/components.d.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/primevue.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/primevue.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/stores/auth.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/stores/auth.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/stores/task.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/stores/task.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/style.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/utils/mockData.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/utils/mockData.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/components/TaskFilter.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/components/TaskFilter.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/stores/config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/stores/config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/Config/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/Config/index.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/Layout.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/Layout.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/TaskList/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/TaskList/index.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/frontEnd/vite.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/vite.config.ts" afterDir="false" />
@@ -66,6 +54,7 @@
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "settings.editor.selected.configurable": "http.proxy",
+    "ts.external.directory.path": "E:\\devs\\python-devs\\pycharm-devs\\sqlmapWebUI\\src\\frontEnd\\node_modules\\typescript\\lib",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>

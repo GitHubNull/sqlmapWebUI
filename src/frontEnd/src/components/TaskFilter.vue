@@ -26,7 +26,7 @@
       <!-- 状态筛选 -->
       <div class="filter-item">
         <label class="filter-label">任务状态</label>
-        <Dropdown 
+        <Select 
           v-model="localFilters.status" 
           :options="statusOptions" 
           optionLabel="label" 
@@ -41,7 +41,7 @@
       <!-- 日期范围 -->
       <div class="filter-item">
         <label class="filter-label">创建时间</label>
-        <Calendar 
+        <DatePicker 
           v-model="dateRange" 
           selectionMode="range" 
           :showButtonBar="true"
@@ -90,6 +90,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import Select from 'primevue/select'
+import DatePicker from 'primevue/datepicker'
 import { TaskStatus } from '@/types/task'
 import type { TaskFilters } from '@/types/task'
 

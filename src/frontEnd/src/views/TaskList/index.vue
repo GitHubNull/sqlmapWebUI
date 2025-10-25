@@ -107,6 +107,7 @@ import { useRouter } from 'vue-router'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { useTaskStore } from '@/stores/task'
+import { useConfigStore } from '@/stores/config'
 import { TaskStatus } from '@/types/task'
 import type { Task, TaskFilters } from '@/types/task'
 import { formatDateTime } from '@/utils/format'
@@ -114,6 +115,7 @@ import TaskFilter from '@/components/TaskFilter.vue'
 
 const router = useRouter()
 const taskStore = useTaskStore()
+const configStore = useConfigStore()
 const confirm = useConfirm()
 const toast = useToast()
 
@@ -122,7 +124,8 @@ const selectedTasks = ref<Task[]>([])
 
 // 轮询定时器
 let pollingTimer: number | null = null
-const POLLING_INTERVAL = 5000 // 5秒
+// 从配置读取轮询间隔（毫秒）
+const getPollingInterval = () => configStore.autoRefreshInterval * 60 * 1000
 
 onMounted(() => {
   fetchTasks()
@@ -151,6 +154,20 @@ watch(
   { deep: true }
 )
 
+// 监听刷新间隔配置变化，重启轮询
+watch(
+  () => configStore.autoRefreshInterval,
+  () => {
+    if (pollingTimer) {
+      stopPolling()
+      const hasRunningTasks = taskStore.taskList.some(t => t.status === TaskStatus.RUNNING)
+      if (hasRunningTasks && !document.hidden) {
+        startPolling()
+      }
+    }
+  }
+)
+
 async function fetchTasks() {
   await taskStore.fetchTaskList()
 }
@@ -166,7 +183,7 @@ function startPolling() {
     } catch (error) {
       console.error('Polling error:', error)
     }
-  }, POLLING_INTERVAL)
+  }, getPollingInterval())
 }
 
 // 停止轮询
