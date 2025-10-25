@@ -175,10 +175,33 @@ async function refreshData() {
 </script>
 
 <style scoped lang="scss">
+@use '@/assets/styles/variables.scss' as *;
+@use '@/assets/styles/index.scss' as *;
+
 .home-page {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 32px;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 70% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 .page-header {
@@ -186,94 +209,199 @@ async function refreshData() {
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  margin-bottom: 8px;
 }
 
 .intro-text {
-  margin-bottom: 32px;
-  color: var(--text-color-secondary);
-  font-size: 14px;
-  line-height: 1.6;
+  margin-bottom: 40px;
+  color: $text-color-secondary;
+  font-size: 16px;
+  line-height: 1.7;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(248, 250, 252, 0.4) 100%);
+  padding: 20px 24px;
+  border-radius: $border-radius-lg;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: $shadow-raised;
+  transition: $transition-base;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-elevated;
+    color: $text-color;
+  }
 }
 
 .stats-section {
-  margin-bottom: 32px;
-  
+  margin-bottom: 48px;
+
   &:last-child {
     margin-bottom: 0;
   }
 }
 
 .section-title {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  color: var(--text-color);
+  font-size: 24px;
+  font-weight: $font-weight-bold;
+  margin-bottom: 24px;
+  color: $text-color;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: $gradient-primary;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: $gradient-primary;
+    border-radius: 2px;
+    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
+  }
 }
 
 .stats-grid {
   display: grid;
-  gap: 16px;
-  
+  gap: 24px;
+
   &.status-stats {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    
-    @media (min-width: 1200px) {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+
+    @media (min-width: 1400px) {
       grid-template-columns: repeat(4, 1fr);
     }
-    
-    @media (min-width: 768px) and (max-width: 1199px) {
+
+    @media (min-width: 1200px) and (max-width: 1399px) {
       grid-template-columns: repeat(3, 1fr);
     }
-    
-    @media (max-width: 767px) {
+
+    @media (min-width: 768px) and (max-width: 1199px) {
       grid-template-columns: repeat(2, 1fr);
     }
-  }
-  
-  &.injection-stats {
-    grid-template-columns: repeat(2, 1fr);
-    
+
     @media (max-width: 767px) {
       grid-template-columns: 1fr;
+      gap: 20px;
+    }
+  }
+
+  &.injection-stats {
+    grid-template-columns: repeat(2, 1fr);
+
+    @media (max-width: 767px) {
+      grid-template-columns: 1fr;
+      gap: 20px;
     }
   }
 }
 
 .stat-card {
-  border-radius: 8px;
-  transition: all 0.3s ease;
+  @include card-3d($elevation: high);
+  border-radius: $border-radius-xl;
   cursor: pointer;
-  
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  position: relative;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0.1) 100%);
+    opacity: 0;
+    transition: $transition-base;
   }
-  
+
+  &:hover {
+    transform: translateY(-8px) rotateX(5deg) rotateY(-2deg);
+    box-shadow:
+      $shadow-floating,
+      inset 0 2px 4px rgba(255, 255, 255, 0.4),
+      0 0 40px rgba(139, 92, 246, 0.2);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  &:active {
+    transform: translateY(-4px) rotateX(2deg) rotateY(-1deg);
+    box-shadow: $shadow-elevated;
+  }
+
   :deep(.p-card-body) {
     padding: 0;
+    background: transparent;
   }
-  
+
   :deep(.p-card-content) {
     padding: 0;
+    background: transparent;
   }
 }
 
 .stat-content {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 24px;
+  gap: 20px;
+  padding: 32px;
+  position: relative;
+  z-index: 2;
 }
 
 .stat-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
+  width: 72px;
+  height: 72px;
+  border-radius: $border-radius-lg;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 32px;
   flex-shrink: 0;
+  position: relative;
+  transition: $transition-base;
+  box-shadow:
+    $shadow-elevated,
+    inset 0 2px 4px rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: inherit;
+    border-radius: inherit;
+    filter: blur(1px);
+    opacity: 0.5;
+    z-index: -1;
+  }
+
+  &:hover {
+    transform: scale(1.1) rotateY(15deg);
+    box-shadow:
+      $shadow-floating,
+      inset 0 2px 4px rgba(255, 255, 255, 0.4),
+      0 0 30px currentColor;
+  }
+
+  i {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    transition: $transition-base;
+  }
 }
 
 .stat-info {
@@ -281,82 +409,162 @@ async function refreshData() {
 }
 
 .stat-value {
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1.3;
-  margin-bottom: 4px;
+  font-size: 36px;
+  font-weight: $font-weight-bold;
+  line-height: 1.2;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  transition: $transition-base;
+
+  .stat-card:hover & {
+    transform: scale(1.05);
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
 }
 
 .stat-label {
-  font-size: 14px;
-  color: var(--text-color-secondary);
-  line-height: 1.5;
+  font-size: 16px;
+  color: $text-color-secondary;
+  font-weight: $font-weight-medium;
+  line-height: 1.4;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: $transition-base;
+
+  .stat-card:hover & {
+    color: $text-color;
+    transform: translateX(2px);
+  }
 }
 
-// 状态类卡片颜色
+// ==================== 状态类卡片3D颜色效果 ====================
 .stat-card.total {
   .stat-icon {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: $gradient-ocean;
     color: white;
   }
-  
+
   .stat-value {
-    color: #667eea;
+    background: $gradient-ocean;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  &:hover {
+    box-shadow:
+      $shadow-floating,
+      inset 0 2px 4px rgba(255, 255, 255, 0.4),
+      0 0 40px rgba(102, 126, 234, 0.3);
   }
 }
 
 .stat-card.running {
   .stat-icon {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    background: $gradient-primary;
     color: white;
+
+    i {
+      animation: spin 2s linear infinite;
+    }
   }
-  
+
   .stat-value {
-    color: #6366f1;
+    background: $gradient-primary;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  &:hover {
+    box-shadow:
+      $shadow-floating,
+      inset 0 2px 4px rgba(255, 255, 255, 0.4),
+      0 0 40px rgba(99, 102, 241, 0.4);
   }
 }
 
 .stat-card.pending {
   .stat-icon {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    background: $gradient-warning;
     color: white;
   }
-  
+
   .stat-value {
-    color: #f59e0b;
+    background: $gradient-warning;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  &:hover {
+    box-shadow:
+      $shadow-floating,
+      inset 0 2px 4px rgba(255, 255, 255, 0.4),
+      0 0 40px rgba(245, 158, 11, 0.4);
   }
 }
 
 .stat-card.success {
   .stat-icon {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: $gradient-success;
     color: white;
   }
-  
+
   .stat-value {
-    color: #10b981;
+    background: $gradient-success;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  &:hover {
+    box-shadow:
+      $shadow-floating,
+      inset 0 2px 4px rgba(255, 255, 255, 0.4),
+      0 0 40px rgba(16, 185, 129, 0.4);
   }
 }
 
 .stat-card.failed {
   .stat-icon {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    background: $gradient-danger;
     color: white;
   }
-  
+
   .stat-value {
-    color: #ef4444;
+    background: $gradient-danger;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  &:hover {
+    box-shadow:
+      $shadow-floating,
+      inset 0 2px 4px rgba(255, 255, 255, 0.4),
+      0 0 40px rgba(239, 68, 68, 0.4);
   }
 }
 
 .stat-card.stopped {
   .stat-icon {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    background: $gradient-sunset;
     color: white;
   }
-  
+
   .stat-value {
-    color: #f59e0b;
+    background: $gradient-sunset;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  &:hover {
+    box-shadow:
+      $shadow-floating,
+      inset 0 2px 4px rgba(255, 255, 255, 0.4),
+      0 0 40px rgba(255, 107, 107, 0.3);
   }
 }
 
@@ -365,32 +573,85 @@ async function refreshData() {
     background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
     color: white;
   }
-  
+
   .stat-value {
-    color: #6b7280;
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  &:hover {
+    box-shadow:
+      $shadow-floating,
+      inset 0 2px 4px rgba(255, 255, 255, 0.4),
+      0 0 40px rgba(107, 114, 128, 0.3);
   }
 }
 
-// 注入类卡片颜色
+// ==================== 注入类卡片3D颜色效果 ====================
 .stat-card.injectable {
   .stat-icon {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    background: $gradient-fire;
     color: white;
+
+    &:hover {
+      animation: pulse3d 1.5s ease-in-out infinite;
+    }
   }
-  
+
   .stat-value {
-    color: #ef4444;
+    background: $gradient-fire;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  &:hover {
+    box-shadow:
+      $shadow-floating,
+      inset 0 2px 4px rgba(255, 255, 255, 0.4),
+      0 0 40px rgba(240, 147, 251, 0.4);
   }
 }
 
 .stat-card.non-injectable {
   .stat-icon {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: $gradient-secondary;
     color: white;
   }
-  
+
   .stat-value {
-    color: #10b981;
+    background: $gradient-secondary;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  &:hover {
+    box-shadow:
+      $shadow-floating,
+      inset 0 2px 4px rgba(255, 255, 255, 0.4),
+      0 0 40px rgba(6, 182, 212, 0.4);
+  }
+}
+
+// ==================== 动画效果 ====================
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse3d {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
   }
 }
 </style>

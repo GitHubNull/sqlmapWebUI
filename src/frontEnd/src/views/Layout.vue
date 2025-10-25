@@ -8,10 +8,11 @@
       </div>
       <div class="status-bar-right">
         <!-- 主题切换 -->
+
         <div class="theme-switch">
           <i class="pi pi-sun theme-icon" :class="{ active: configStore.theme === 'light' }"></i>
-          <ToggleSwitch 
-            v-model="isDarkMode" 
+          <ToggleSwitch
+            v-model="isDarkMode"
             @change="handleThemeToggle"
             v-tooltip.bottom="isDarkMode ? '切换到亮色主题' : '切换到暗色主题'"
           />
@@ -245,314 +246,741 @@ onUnmounted(() => {
 </script>
 
 <style scoped lang="scss">
-/* ==================== 全局布局 ==================== */
+@use '@/assets/styles/variables.scss' as *;
+
+/* ==================== 全局布局(3D增强) ==================== */
 .dock-layout {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+  height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 25% 25%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(6, 182, 212, 0.1) 0%, transparent 50%),
+    linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
+  position: relative;
+
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f1f5f9' fill-opacity='0.3'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
-/* ==================== 顶部状态栏 ==================== */
+/* ==================== 顶部状态栏(3D增强) ==================== */
 .status-bar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 56px;
+  height: 64px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 24px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 0 32px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%),
+    $gradient-primary;
+  background-blend-mode: overlay;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 2px solid rgba(139, 92, 246, 0.2);
+  box-shadow:
+    $shadow-elevated,
+    inset 0 1px 2px rgba(255, 255, 255, 0.4),
+    0 0 40px rgba(139, 92, 246, 0.1);
   z-index: 1000;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 100%);
+    animation: shimmer-bar 3s ease-in-out infinite;
+  }
+}
+
+@keyframes shimmer-bar {
+  0%, 100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(100%);
+    opacity: 1;
+  }
 }
 
 .status-bar-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+  position: relative;
+  z-index: 2;
 }
 
 .app-logo {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: $gradient-primary;
   color: white;
+  box-shadow:
+    $shadow-raised,
+    inset 0 1px 2px rgba(255, 255, 255, 0.3),
+    0 0 20px rgba(99, 102, 241, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+  transition: $transition-base;
+
+  &:hover {
+    transform: scale(1.2) rotate(5deg);
+    box-shadow:
+      $shadow-floating,
+      inset 0 1px 2px rgba(255, 255, 255, 0.4),
+      0 0 30px rgba(99, 102, 241, 0.6);
+  }
 }
 
 .app-name {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1f2937;
+  font-size: 22px;
+  font-weight: $font-weight-bold;
+  background: $gradient-primary;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   letter-spacing: -0.02em;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: $gradient-primary;
+    border-radius: 1px;
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: $transition-base;
+  }
+
+  &:hover::after {
+    transform: scaleX(1);
+  }
 }
 
 .status-bar-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
+  position: relative;
+  z-index: 2;
 }
 
 .theme-switch {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  background: rgba(0, 0, 0, 0.04);
-  border-radius: 20px;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 16px;
+  height: 44px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.6) 100%);
+  backdrop-filter: blur(10px);
+  border-radius: $border-radius-full;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    $shadow-raised,
+    inset 0 1px 2px rgba(255, 255, 255, 0.4);
+  transition: $transition-base;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      $shadow-elevated,
+      inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  }
+
+  // 确保ToggleSwitch垂直居中
+  .p-toggleswitch {
+    margin: 0;
+    flex-shrink: 0;
+  }
 }
 
 .theme-icon {
-  font-size: 16px;
-  color: #9ca3af;
-  transition: all 0.3s ease;
-  
+  font-size: 18px;
+  color: $text-color-secondary;
+  transition: $transition-base;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+
   &.active {
-    color: #3b82f6;
-    transform: scale(1.1);
+    color: $primary-color;
+    transform: scale(1.2);
+    filter: drop-shadow(0 2px 4px rgba(99, 102, 241, 0.3));
+    text-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
   }
 }
 
 .mode-badge {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: $font-weight-semibold;
+  padding: 6px 12px;
+  border-radius: $border-radius-full;
+  box-shadow:
+    $shadow-raised,
+    inset 0 1px 2px rgba(255, 255, 255, 0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: $transition-base;
+
+  &:hover {
+    transform: translateY(-1px) scale(1.05);
+    box-shadow:
+      $shadow-elevated,
+      inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  }
 }
 
 .user-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: #4b5563;
+  font-size: 16px;
+  font-weight: $font-weight-semibold;
+  color: $text-color;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  padding: 6px 12px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.6) 0%, rgba(248, 250, 252, 0.4) 100%);
+  border-radius: $border-radius;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: $shadow-raised;
+  transition: $transition-base;
+
+  &:hover {
+    transform: translateY(-1px);
+    color: $primary-color;
+    box-shadow: $shadow-elevated;
+  }
 }
 
-/* ==================== 主内容区域 ==================== */
+/* ==================== 主内容区域(3D增强) ==================== */
 .main-content {
   flex: 1;
-  margin-top: 56px;
-  margin-bottom: 104px;
-  padding: 24px;
-  min-height: calc(100vh - 160px);
-  overflow: auto;
+  margin-top: 64px;
+  margin-bottom: 140px;  // 增加底部边距，避免被Dock遮挡
+  padding: 16px 24px;
+  overflow-y: auto;
+  position: relative;
+
+  // 显示简洁的滚动条
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+    
+    &:hover {
+      background: rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      radial-gradient(circle at 20% 80%, rgba(139, 92, 246, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.03) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
-/* 路由过渡动画 */
+/* ==================== 路由过渡动画(3D增强) ==================== */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .fade-enter-from {
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(30px) scale(0.9) rotateX(10deg);
+  filter: blur(2px);
 }
 
 .fade-leave-to {
   opacity: 0;
-  transform: translateY(-8px);
+  transform: translateY(-30px) scale(1.1) rotateX(-10deg);
+  filter: blur(2px);
 }
 
-/* ==================== 底部Dock栏 ==================== */
+/* ==================== 底部Dock栏(3D增强) ==================== */
 .dock-container {
   position: fixed;
-  bottom: 20px;
+  bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
+
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120%;
+    height: 60px;
+    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: -1;
+  }
 }
 
 .dock {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  gap: 12px;
+  padding: 16px 24px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.8) 100%),
+    radial-gradient(circle at center, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+  backdrop-filter: blur(25px) saturate(180%);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+  border-radius: $border-radius-xl;
+  box-shadow:
+    $shadow-floating,
+    inset 0 2px 4px rgba(255, 255, 255, 0.6),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.05),
+    0 0 50px rgba(139, 92, 246, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    right: -100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.3) 50%,
+      transparent 100%);
+    animation: dock-shimmer 4s ease-in-out infinite;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 12px 24px rgba(0, 0, 0, 0.15),
+      0 20px 40px rgba(0, 0, 0, 0.1),
+      inset 0 2px 4px rgba(255, 255, 255, 0.7),
+      0 0 60px rgba(139, 92, 246, 0.2);
+  }
 }
 
-/* ==================== Dock项 ==================== */
+@keyframes dock-shimmer {
+  0%, 100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(100%);
+    opacity: 1;
+  }
+}
+
+/* ==================== Dock项(3D增强) ==================== */
 .dock-item-wrapper {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  transition: $transition-base;
+
+  &:hover {
+    transform: scale(1.05);
+  }
 }
 
 .dock-item {
   position: relative;
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.6) 0%, rgba(248, 250, 252, 0.4) 100%);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: $border-radius-lg;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  
+  transition: $transition-base;
+  box-shadow:
+    $shadow-raised,
+    inset 0 1px 2px rgba(255, 255, 255, 0.4);
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: $gradient-primary;
+    opacity: 0;
+    transition: $transition-base;
+  }
+
   &:hover {
-    background: rgba(255, 255, 255, 0.6);
-    transform: scale(1.15);
+    transform: scale(1.2) translateY(-4px);
+    box-shadow:
+      $shadow-floating,
+      inset 0 1px 2px rgba(255, 255, 255, 0.5),
+      0 0 25px rgba(99, 102, 241, 0.4);
+    border-color: rgba(99, 102, 241, 0.3);
+
+    &::before {
+      opacity: 0.1;
+    }
   }
-  
+
   &.active {
-    background: rgba(59, 130, 246, 0.15);
+    background: $gradient-primary;
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow:
+      $shadow-elevated,
+      inset 0 1px 2px rgba(255, 255, 255, 0.3),
+      0 0 30px rgba(99, 102, 241, 0.5);
+
+    &::before {
+      opacity: 0;
+    }
   }
-  
+
   &:focus-visible {
-    outline: 2px solid #3b82f6;
-    outline-offset: 2px;
+    outline: 3px solid rgba(99, 102, 241, 0.5);
+    outline-offset: 3px;
   }
 }
 
 .dock-icon {
-  font-size: 24px;
-  color: #6b7280;
-  transition: color 0.2s ease;
-  
+  font-size: 28px;
+  color: $text-color-secondary;
+  transition: $transition-base;
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+
   .dock-item:hover & {
-    color: #3b82f6;
+    color: $primary-color;
+    transform: scale(1.1);
+    filter: drop-shadow(0 2px 4px rgba(99, 102, 241, 0.3));
+    text-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
   }
-  
+
   .dock-item.active & {
-    color: #3b82f6;
+    color: white;
+    transform: scale(1.1);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
   }
 }
 
-/* Dock项徽章 */
+/* ==================== Dock项徽章(3D增强) ==================== */
 .dock-badge {
   position: absolute;
-  top: -4px;
-  right: -4px;
-  min-width: 20px;
-  height: 20px;
-  font-size: 11px;
-  font-weight: 600;
-  
+  top: -6px;
+  right: -6px;
+  min-width: 24px;
+  height: 24px;
+  font-size: 12px;
+  font-weight: $font-weight-bold;
+  background: $gradient-danger;
+  border: 2px solid white;
+  border-radius: $border-radius-full;
+  box-shadow:
+    $shadow-elevated,
+    inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  z-index: 3;
+
   &.pulse {
-    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation: pulse3d-badge 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 }
 
-@keyframes pulse {
+@keyframes pulse3d-badge {
   0%, 100% {
     transform: scale(1);
-    opacity: 1;
+    box-shadow:
+      $shadow-elevated,
+      inset 0 1px 2px rgba(255, 255, 255, 0.3);
   }
   50% {
-    transform: scale(1.1);
-    opacity: 0.9;
+    transform: scale(1.2);
+    box-shadow:
+      $shadow-floating,
+      inset 0 1px 2px rgba(255, 255, 255, 0.4),
+      0 0 20px rgba(239, 68, 68, 0.6);
   }
 }
 
-/* 活跃指示器 */
+/* ==================== 活跃指示器(3D增强) ==================== */
 .active-indicator {
-  width: 32px;
-  height: 4px;
-  background: #3b82f6;
-  border-radius: 2px;
-  animation: slideUp 0.3s ease-in-out;
+  width: 40px;
+  height: 6px;
+  background: $gradient-primary;
+  border-radius: $border-radius-sm;
+  box-shadow:
+    $shadow-elevated,
+    inset 0 1px 2px rgba(255, 255, 255, 0.3),
+    0 0 20px rgba(99, 102, 241, 0.6);
+  animation: slideUp3d 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.5) 50%,
+      transparent 100%);
+    border-radius: inherit;
+    animation: indicator-glow 2s ease-in-out infinite;
+  }
 }
 
-@keyframes slideUp {
-  from {
+@keyframes slideUp3d {
+  0% {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(10px) scale(0.5);
   }
-  to {
+  50% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(-2px) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
-/* ==================== 响应式设计 ==================== */
+@keyframes indicator-glow {
+  0%, 100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(100%);
+    opacity: 1;
+  }
+}
+
+/* ==================== 响应式设计(3D适配) ==================== */
 /* 平板 */
 @media (max-width: 1024px) {
   .main-content {
-    padding: 16px;
+    padding: 24px;
+  }
+
+  .dock-item {
+    width: 60px;
+    height: 60px;
+
+    &:hover {
+      transform: scale(1.15) translateY(-3px);
+    }
+  }
+
+  .dock-icon {
+    font-size: 26px;
   }
 }
 
 /* 移动端 */
 @media (max-width: 768px) {
   .status-bar {
-    height: 48px;
-    padding: 0 16px;
+    height: 56px;
+    padding: 0 20px;
+
+    // 减少3D效果强度
+    box-shadow: $shadow-raised;
   }
-  
+
   .app-name {
-    font-size: 16px;
+    font-size: 18px;
   }
-  
+
   .user-name {
     display: none;
   }
-  
+
+  .theme-switch {
+    padding: 6px 12px;
+  }
+
   .main-content {
-    margin-top: 48px;
-    margin-bottom: 88px;
-    padding: 12px;
-    min-height: calc(100vh - 136px);
+    margin-top: 56px;
+    margin-bottom: 100px;
+    padding: 16px;
+    min-height: calc(100vh - 156px);
   }
-  
+
   .dock-container {
-    bottom: 12px;
+    bottom: 16px;
   }
-  
+
   .dock {
-    padding: 8px 12px;
-    gap: 4px;
+    padding: 12px 18px;
+    gap: 8px;
+
+    // 移动端减少阴影强度
+    box-shadow:
+      $shadow-elevated,
+      inset 0 1px 2px rgba(255, 255, 255, 0.4);
+
+    &:hover {
+      transform: translateY(-1px);
+    }
   }
-  
+
   .dock-item {
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
+
+    &:hover {
+      transform: scale(1.1) translateY(-2px);
+    }
   }
-  
+
   .dock-icon {
-    font-size: 20px;
+    font-size: 22px;
   }
-  
+
   .active-indicator {
-    width: 24px;
-    height: 3px;
+    width: 32px;
+    height: 4px;
+  }
+
+  .dock-badge {
+    top: -4px;
+    right: -4px;
+    min-width: 20px;
+    height: 20px;
+    font-size: 11px;
   }
 }
 
 /* 小屏手机 */
 @media (max-width: 480px) {
+  .status-bar {
+    padding: 0 16px;
+  }
+
   .status-bar-left {
-    gap: 8px;
+    gap: 12px;
   }
-  
+
   .app-logo {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
+    transform: scale(1);
+
+    &:hover {
+      transform: scale(1.1) rotate(3deg);
+    }
   }
-  
+
+  .app-name {
+    font-size: 16px;
+  }
+
   .dock {
-    gap: 2px;
+    padding: 10px 16px;
+    gap: 6px;
   }
-  
+
   .dock-item {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .dock-icon {
+    font-size: 20px;
+  }
+
+  .active-indicator {
+    width: 28px;
+    height: 3px;
   }
 }
 
-/* ==================== 浏览器兼容性 ==================== */
+/* ==================== 浏览器兼容性(3D降级) ==================== */
 /* Safari降级方案 */
 @supports not (backdrop-filter: blur(10px)) {
-  .status-bar,
+  .status-bar {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+    box-shadow: $shadow-elevated;
+  }
+
   .dock {
-    background: rgba(255, 255, 255, 0.95);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+    box-shadow: $shadow-floating;
+  }
+
+  .theme-switch {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%);
+  }
+}
+
+/* 性能优化：减少不必要的动画 */
+@media (prefers-reduced-motion: reduce) {
+  .dock::before,
+  .status-bar::before,
+  .active-indicator::before {
+    animation: none;
+  }
+
+  .dock-item,
+  .dock-icon,
+  .app-logo {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 }
 </style>

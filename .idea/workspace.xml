@@ -4,13 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="feat(frontend): 实现macOS风格Dock布局和错误处理优化&#10;&#10;- 重构前端Layout组件为底部Dock导航布局&#10;- 添加全局错误处理和用户友好提示机制- 实现后端健康检查和智能轮询策略&#10;- 集成PrimeVue Toast组件优化错误提示&#10;- 添加网络状态监听和离线模式处理&#10;- 实现请求重试机制和退避算法&#10;-优化加载状态和空状态用户体验&#10;- 添加页面可见性API集成&#10;- 实现健康检查状态管理和自动恢复- 添加离线Banner提示和重试交互">
+    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="feat(config): 添加自动刷新间隔配置功能&#10;&#10;- 在配置存储中新增 autoRefreshInterval 状态管理&#10;- 实现刷新间隔的持久化存储和加载&#10;- 在配置页面添加滑块控件用于设置刷新间隔&#10;-限制刷新间隔范围为5-60分钟- 添加刷新间隔设置的实时预览和提示信息&#10;- 更新任务列表页面的轮询逻辑以使用配置的间隔- 监听配置变化并动态调整轮询定时器&#10;- 在布局组件中添加主题切换开关组件- 升级 PrimeVue 组件库相关的类型声明&#10;- 配置 Vite 的 Sass 处理选项以抑制依赖警告">
+      <change beforePath="$PROJECT_DIR$/.claude/settings.local.json" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/settings.local.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/index.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/index.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/reset.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/reset.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/variables.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/variables.scss" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/frontEnd/src/components.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/components.d.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/frontEnd/src/components/TaskFilter.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/components/TaskFilter.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/stores/config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/stores/config.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/Config/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/Config/index.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/Home/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/Home/index.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/Layout.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/Layout.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/TaskDetail/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/TaskDetail/index.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/TaskList/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/TaskList/index.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/frontEnd/vite.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/vite.config.ts" afterDir="false" />
     </list>
@@ -212,7 +218,15 @@
       <option name="project" value="LOCAL" />
       <updated>1761393845750</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="feat(config): 添加自动刷新间隔配置功能&#10;&#10;- 在配置存储中新增 autoRefreshInterval 状态管理&#10;- 实现刷新间隔的持久化存储和加载&#10;- 在配置页面添加滑块控件用于设置刷新间隔&#10;-限制刷新间隔范围为5-60分钟- 添加刷新间隔设置的实时预览和提示信息&#10;- 更新任务列表页面的轮询逻辑以使用配置的间隔- 监听配置变化并动态调整轮询定时器&#10;- 在布局组件中添加主题切换开关组件- 升级 PrimeVue 组件库相关的类型声明&#10;- 配置 Vite 的 Sass 处理选项以抑制依赖警告">
+      <option name="closed" value="true" />
+      <created>1761407250586</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1761407250586</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -229,7 +243,8 @@
     <MESSAGE value="docs(api): 添加Burp Suite插件API详细文档- 新增Burp Suite插件API完整参考文档- 补充了API端点的功能说明与使用示例- 添加了认证机制与安全最佳实践说明&#10;- 更新了任务管理与请求头规则处理流程&#10;- 增加了错误响应结构与版本控制策略说明" />
     <MESSAGE value="chore(frontend): 添加前端.gitignore文件- 添加了依赖管理相关的忽略规则，包括node_modules和各种包管理器日志文件&#10;- 配置了构建产物与缓存的忽略项，如dist目录、Vite缓存等&#10;- 设置了环境变量配置文件的忽略规则，保护本地敏感信息&#10;- 添加了多种编辑器和IDE的配置文件忽略规则- 包含了操作系统生成的元数据文件忽略配置&#10;- 增加了测试覆盖率报告和相关数据文件的忽略规则" />
     <MESSAGE value="feat(frontend): 实现macOS风格Dock布局和错误处理优化&#10;&#10;- 重构前端Layout组件为底部Dock导航布局&#10;- 添加全局错误处理和用户友好提示机制- 实现后端健康检查和智能轮询策略&#10;- 集成PrimeVue Toast组件优化错误提示&#10;- 添加网络状态监听和离线模式处理&#10;- 实现请求重试机制和退避算法&#10;-优化加载状态和空状态用户体验&#10;- 添加页面可见性API集成&#10;- 实现健康检查状态管理和自动恢复- 添加离线Banner提示和重试交互" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(frontend): 实现macOS风格Dock布局和错误处理优化&#10;&#10;- 重构前端Layout组件为底部Dock导航布局&#10;- 添加全局错误处理和用户友好提示机制- 实现后端健康检查和智能轮询策略&#10;- 集成PrimeVue Toast组件优化错误提示&#10;- 添加网络状态监听和离线模式处理&#10;- 实现请求重试机制和退避算法&#10;-优化加载状态和空状态用户体验&#10;- 添加页面可见性API集成&#10;- 实现健康检查状态管理和自动恢复- 添加离线Banner提示和重试交互" />
+    <MESSAGE value="feat(config): 添加自动刷新间隔配置功能&#10;&#10;- 在配置存储中新增 autoRefreshInterval 状态管理&#10;- 实现刷新间隔的持久化存储和加载&#10;- 在配置页面添加滑块控件用于设置刷新间隔&#10;-限制刷新间隔范围为5-60分钟- 添加刷新间隔设置的实时预览和提示信息&#10;- 更新任务列表页面的轮询逻辑以使用配置的间隔- 监听配置变化并动态调整轮询定时器&#10;- 在布局组件中添加主题切换开关组件- 升级 PrimeVue 组件库相关的类型声明&#10;- 配置 Vite 的 Sass 处理选项以抑制依赖警告" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(config): 添加自动刷新间隔配置功能&#10;&#10;- 在配置存储中新增 autoRefreshInterval 状态管理&#10;- 实现刷新间隔的持久化存储和加载&#10;- 在配置页面添加滑块控件用于设置刷新间隔&#10;-限制刷新间隔范围为5-60分钟- 添加刷新间隔设置的实时预览和提示信息&#10;- 更新任务列表页面的轮询逻辑以使用配置的间隔- 监听配置变化并动态调整轮询定时器&#10;- 在布局组件中添加主题切换开关组件- 升级 PrimeVue 组件库相关的类型声明&#10;- 配置 Vite 的 Sass 处理选项以抑制依赖警告" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -242,6 +257,12 @@
           <url>file://$PROJECT_DIR$/src/backEnd/main.py</url>
           <line>29</line>
           <option name="timeStamp" value="3" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/src/frontEnd/src/router/index.ts</url>
+          <line>3</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="4" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

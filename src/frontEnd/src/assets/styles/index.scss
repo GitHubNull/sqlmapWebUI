@@ -2,19 +2,110 @@
 @use './variables.scss' as *;
 @use './reset.scss';
 
-// 工具类
-.text-center {
-  text-align: center;
+// ==================== 3D立体效果Mixins ====================
+
+// 凸起表面效果
+@mixin raised-surface($intensity: normal) {
+  @if $intensity == light {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    box-shadow: $shadow-raised;
+    border: $border-highlight;
+  } @else if $intensity == strong {
+    background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 100%);
+    box-shadow: $shadow-elevated;
+    border: $border-highlight;
+  } @else {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    box-shadow: $shadow-raised;
+    border: $border-highlight;
+  }
 }
 
-.text-left {
-  text-align: left;
+// 按压凹陷效果
+@mixin pressed-surface {
+  background: linear-gradient(145deg, #f1f5f9 0%, #ffffff 100%);
+  box-shadow: $shadow-pressed;
+  border: $border-shadow;
 }
 
-.text-right {
-  text-align: right;
+// 浮动效果
+@mixin floating-surface {
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: $shadow-floating;
+  border: $border-highlight;
+  transform: $transform-float;
 }
 
+// 毛玻璃效果(增强版)
+@mixin glass-morphism($opacity: 0.8, $blur: 20px) {
+  background: rgba(255, 255, 255, $opacity);
+  backdrop-filter: blur($blur) saturate(180%);
+  -webkit-backdrop-filter: blur($blur) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: $shadow-elevated;
+}
+
+// 渐变按钮效果
+@mixin gradient-button($gradient: $gradient-primary) {
+  background: $gradient;
+  border: none;
+  color: $text-color-white;
+  box-shadow: $shadow-raised, $shadow-inset-light;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+
+  &:hover {
+    transform: $transform-hover;
+    box-shadow: $shadow-elevated, $shadow-glow;
+  }
+
+  &:active {
+    transform: $transform-press;
+    box-shadow: $shadow-pressed;
+  }
+}
+
+// 3D卡片效果
+@mixin card-3d($elevation: normal) {
+  @include raised-surface();
+  border-radius: $border-radius-lg;
+  transition: $transition-base;
+
+  &:hover {
+    transform: $transform-hover;
+    box-shadow: $shadow-elevated;
+  }
+
+  @if $elevation == high {
+    box-shadow: $shadow-floating;
+  }
+}
+
+// 立体输入框
+@mixin input-3d {
+  background: linear-gradient(145deg, #f8fafc 0%, #ffffff 100%);
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  box-shadow: $shadow-inset-dark, 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: $border-radius;
+
+  &:focus {
+    box-shadow: $shadow-inset-dark, $shadow-glow;
+    border-color: $primary-color;
+  }
+}
+
+// 发光文字效果
+@mixin glow-text($color: $primary-color) {
+  text-shadow: 0 0 10px rgba($color, 0.5), 0 0 20px rgba($color, 0.3), 0 0 30px rgba($color, 0.1);
+}
+
+// ==================== 工具类 ====================
+
+// 文本对齐
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+// 布局
 .flex-center {
   display: flex;
   justify-content: center;
@@ -27,149 +118,889 @@
   align-items: center;
 }
 
+// 间距工具类
+.mt-xs { margin-top: $spacing-xs; }
 .mt-sm { margin-top: $spacing-sm; }
 .mt-md { margin-top: $spacing-md; }
 .mt-lg { margin-top: $spacing-lg; }
+.mt-xl { margin-top: $spacing-xl; }
 
+.mb-xs { margin-bottom: $spacing-xs; }
 .mb-sm { margin-bottom: $spacing-sm; }
 .mb-md { margin-bottom: $spacing-md; }
 .mb-lg { margin-bottom: $spacing-lg; }
+.mb-xl { margin-bottom: $spacing-xl; }
 
+.ml-xs { margin-left: $spacing-xs; }
 .ml-sm { margin-left: $spacing-sm; }
 .ml-md { margin-left: $spacing-md; }
 .ml-lg { margin-left: $spacing-lg; }
+.ml-xl { margin-left: $spacing-xl; }
 
+.mr-xs { margin-right: $spacing-xs; }
 .mr-sm { margin-right: $spacing-sm; }
 .mr-md { margin-right: $spacing-md; }
 .mr-lg { margin-right: $spacing-lg; }
+.mr-xl { margin-right: $spacing-xl; }
 
+.p-xs { padding: $spacing-xs; }
 .p-sm { padding: $spacing-sm; }
 .p-md { padding: $spacing-md; }
 .p-lg { padding: $spacing-lg; }
+.p-xl { padding: $spacing-xl; }
 
-// 暗黑模式
+// 3D效果工具类
+.surface-raised {
+  @include raised-surface();
+}
+
+.surface-pressed {
+  @include pressed-surface();
+}
+
+.surface-floating {
+  @include floating-surface();
+}
+
+.glass-effect {
+  @include glass-morphism();
+}
+
+.card-3d {
+  @include card-3d();
+}
+
+.text-glow {
+  @include glow-text();
+}
+
+// ==================== 暗黑模式(3D增强) ====================
 .dark-mode {
-  background-color: $bg-color-dark;
-  color: #E9ECEF;
+  background: linear-gradient(135deg, $bg-color-dark 0%, #1e293b 100%);
+  color: #e2e8f0;
 
-  .card {
-    background-color: #343A40;
-    color: #E9ECEF;
+  // 暗黑模式下的3D效果
+  .surface-raised {
+    background: linear-gradient(145deg, #334155 0%, #1e293b 100%);
+    box-shadow:
+      0 4px 8px rgba(0, 0, 0, 0.3),
+      0 8px 16px rgba(0, 0, 0, 0.2),
+      inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .card-3d {
+    background: linear-gradient(145deg, #334155 0%, #1e293b 100%);
+    box-shadow:
+      0 4px 8px rgba(0, 0, 0, 0.3),
+      0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  // 暗黑模式Tag颜色适配
+  .p-tag {
+    &.p-tag-primary {
+      background: #4f46e5;
+      border-color: #4f46e5;
+    }
+
+    &.p-tag-secondary {
+      background: #64748b;
+      border-color: #64748b;
+    }
+
+    &.p-tag-success {
+      background: #059669;
+      border-color: #059669;
+    }
+
+    &.p-tag-info {
+      background: #0891b2;
+      border-color: #0891b2;
+    }
+
+    &.p-tag-warn {
+      background: #d97706;
+      border-color: #d97706;
+    }
+
+    &.p-tag-danger {
+      background: #dc2626;
+      border-color: #dc2626;
+    }
   }
 }
 
-// 过渡动画
+// ==================== 增强过渡动画 ====================
+
+// 3D翻转效果
+.flip-enter-active, .flip-leave-active {
+  transition: all 0.5s ease;
+  transform-style: preserve-3d;
+}
+
+.flip-enter-from {
+  transform: rotateY(-90deg);
+  opacity: 0;
+}
+
+.flip-leave-to {
+  transform: rotateY(90deg);
+  opacity: 0;
+}
+
+// 淡入淡出(增强版)
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+  transform: translateY(10px) scale(0.95);
 }
 
+// 弹性滑动效果
 .slide-fade-enter-active {
-  transition: all 0.3s ease-out;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .slide-fade-leave-active {
-  transition: all 0.25s cubic-bezier(1, 0.5, 0.8, 1);
+  transition: all 0.3s cubic-bezier(0.55, 0.055, 0.675, 0.19);
 }
 
 .slide-fade-enter-from,
 .slide-fade-leave-to {
-  transform: translateY(20px);
+  transform: translateY(30px) scale(0.9);
   opacity: 0;
 }
 
-// 卡片阴影
-.card-shadow {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: box-shadow 0.3s ease;
-  
-  &:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  }
-}
-
-// 滑动容器
-.scroll-container {
+// ==================== 3D滚动条 - 仅限特定容器 ====================
+.custom-scroll-container {
   overflow-y: auto;
-  
+
   &::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 12px;
+    height: 12px;
   }
-  
+
   &::-webkit-scrollbar-track {
-    background: var(--surface-100);
-    border-radius: 4px;
+    background: linear-gradient(145deg, #f1f5f9 0%, #e2e8f0 100%);
+    border-radius: 6px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
   }
-  
+
   &::-webkit-scrollbar-thumb {
-    background: var(--surface-400);
-    border-radius: 4px;
-    
+    background: $gradient-primary;
+    border-radius: 6px;
+    box-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.2),
+      inset 0 1px 2px rgba(255, 255, 255, 0.3);
+
     &:hover {
-      background: var(--surface-500);
+      background: $gradient-secondary;
+      box-shadow:
+        0 4px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 0.4);
     }
   }
 }
 
-// 全局按钮样式补充
+// DataTable 内部滚动条简洁样式
+.p-datatable-wrapper {
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
+// 虚拟滚动组件的滚动条
+.p-virtualscroller {
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
+// ==================== PrimeVue组件3D增强 ====================
+
+// 全局复选框修复 - 确保选中效果可见
+.p-checkbox {
+  .p-checkbox-box {
+    background: #ffffff !important;
+    border: 2px solid #cbd5e1 !important;
+    border-radius: 4px;
+    width: 20px;
+    height: 20px;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: none !important;
+
+    &:hover {
+      border-color: #94a3b8 !important;
+      background: #f8fafc !important;
+    }
+
+    // 选中状态
+    &.p-highlight {
+      background: #6366f1 !important;
+      border-color: #6366f1 !important;
+      
+      .p-checkbox-icon {
+        color: white !important;
+        font-size: 14px;
+        display: block !important;
+      }
+    }
+
+    // 焦点状态
+    &.p-focus {
+      outline: 2px solid rgba(99, 102, 241, 0.2);
+      outline-offset: 2px;
+    }
+  }
+}
+
+// 全局按钮3D效果
 .p-button {
-  transition: all 0.2s ease;
-  
-  &:not(:disabled):hover {
-    transform: translateY(-1px);
+  @include gradient-button();
+  transition: $transition-base;
+  border-radius: $border-radius;
+  font-weight: $font-weight-medium;
+
+  &.p-button-text {
+    background: transparent;
+    box-shadow: none;
+    text-shadow: none;
+    color: $text-color; // 添加默认颜色，确保图标可见
+
+    &:hover {
+      background: rgba(99, 102, 241, 0.1);
+      box-shadow: $shadow-raised;
+      color: $primary-color;
+      border-radius: $border-radius;
+    }
   }
-  
-  &:not(:disabled):active {
-    transform: translateY(0);
+
+  &.p-button-outlined {
+    background: transparent;
+    border: 2px solid $primary-color;
+    color: $primary-color;
+    box-shadow: $shadow-raised;
+
+    &:hover {
+      background: $gradient-primary;
+      color: white;
+      box-shadow: $shadow-elevated;
+    }
+  }
+
+  &.p-button-secondary {
+    @include gradient-button($gradient-secondary);
+  }
+
+  &.p-button-success {
+    @include gradient-button($gradient-success);
+  }
+
+  &.p-button-warning {
+    @include gradient-button($gradient-warning);
+  }
+
+  &.p-button-danger {
+    @include gradient-button($gradient-danger);
   }
 }
 
-// 卡片过渡
+// 卡片3D效果
 .p-card {
-  transition: all 0.3s ease;
-  border-radius: 8px;
-  
-  &:hover {
-    transform: translateY(-2px);
+  @include card-3d();
+  border: none;
+
+  .p-card-header {
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: $border-radius-lg $border-radius-lg 0 0;
+  }
+
+  .p-card-title {
+    color: $text-color;
+    font-weight: $font-weight-semibold;
+    @include glow-text();
   }
 }
 
-// 加载骨架屏
+// 输入框3D效果
+.p-inputtext,
+.p-select,
+.p-datepicker input {
+  @include input-3d();
+  transition: $transition-base;
+}
+
+// ToggleSwitch 3D效果
+.p-toggleswitch {
+  width: 48px;
+  height: 24px;
+  position: relative;
+
+  .p-toggleswitch-slider {
+    background: linear-gradient(145deg, #e2e8f0 0%, #cbd5e1 100%);
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: $border-radius-full;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    box-shadow:
+      inset 0 2px 6px rgba(0, 0, 0, 0.15),
+      inset 0 0 10px rgba(0, 0, 0, 0.1),
+      0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: $transition-base;
+    cursor: pointer;
+
+    &:hover {
+      box-shadow:
+        inset 0 2px 8px rgba(0, 0, 0, 0.2),
+        inset 0 0 12px rgba(0, 0, 0, 0.15),
+        0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  // 样式化实际的handle元素
+  .p-toggleswitch-handle {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: $border-radius-full;
+    box-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.2),
+      0 4px 12px rgba(0, 0, 0, 0.1),
+      inset 0 1px 2px rgba(255, 255, 255, 0.6);
+    transition: $transition-base;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+
+    &:hover {
+      box-shadow:
+        0 3px 8px rgba(0, 0, 0, 0.25),
+        0 6px 16px rgba(0, 0, 0, 0.15),
+        inset 0 1px 2px rgba(255, 255, 255, 0.7);
+    }
+  }
+
+  &.p-toggleswitch-checked .p-toggleswitch-slider {
+    background: $gradient-primary;
+    box-shadow:
+      inset 0 1px 3px rgba(255, 255, 255, 0.3),
+      inset 0 -1px 3px rgba(0, 0, 0, 0.2),
+      0 1px 3px rgba(0, 0, 0, 0.1),
+      0 0 8px rgba(99, 102, 241, 0.4);
+
+    &:hover {
+      box-shadow:
+        inset 0 1px 3px rgba(255, 255, 255, 0.4),
+        inset 0 -1px 3px rgba(0, 0, 0, 0.3),
+        0 2px 6px rgba(0, 0, 0, 0.15),
+        0 0 12px rgba(99, 102, 241, 0.6);
+    }
+  }
+
+  &.p-toggleswitch-checked .p-toggleswitch-handle {
+    transform: translateX(24px);
+    background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 100%);
+    box-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.3),
+      0 4px 12px rgba(0, 0, 0, 0.2),
+      inset 0 1px 2px rgba(255, 255, 255, 0.8);
+
+    &:hover {
+      box-shadow:
+        0 3px 8px rgba(0, 0, 0, 0.35),
+        0 6px 16px rgba(0, 0, 0, 0.25),
+        inset 0 1px 2px rgba(255, 255, 255, 0.9);
+    }
+  }
+
+  .p-toggleswitch-input {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    margin: 0;
+    cursor: pointer;
+
+    &:focus + .p-toggleswitch-slider {
+      box-shadow:
+        inset 0 2px 6px rgba(0, 0, 0, 0.15),
+        inset 0 0 10px rgba(0, 0, 0, 0.1),
+        0 0 0 3px rgba(99, 102, 241, 0.3),
+        0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+  }
+}
+
+// 标签3D效果 - 保持PrimeVue原始颜色系统
+.p-tag {
+  border-radius: $border-radius-full;
+  font-weight: $font-weight-medium;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: $shadow-raised;
+  border: 1px solid transparent;
+  transition: $transition-base;
+
+  // 恢复PrimeVue默认颜色系统
+  &.p-tag-primary {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+  }
+
+  &.p-tag-secondary {
+    background: #6b7280;
+    color: white;
+    border-color: #6b7280;
+  }
+
+  &.p-tag-success {
+    background: #10b981;
+    color: white;
+    border-color: #10b981;
+  }
+
+  &.p-tag-info {
+    background: #06b6d4;
+    color: white;
+    border-color: #06b6d4;
+  }
+
+  &.p-tag-warn {
+    background: #f59e0b;
+    color: white;
+    border-color: #f59e0b;
+  }
+
+  &.p-tag-danger {
+    background: #ef4444;
+    color: white;
+    border-color: #ef4444;
+  }
+
+  // 3D悬停效果
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: $shadow-elevated;
+  }
+}
+
+// ==================== 增强加载效果 ====================
 .skeleton {
   background: linear-gradient(
-    90deg,
-    var(--surface-200) 25%,
-    var(--surface-100) 50%,
-    var(--surface-200) 75%
+    110deg,
+    $surface-lighter 8%,
+    $surface-white 18%,
+    $surface-lighter 33%
   );
   background-size: 200% 100%;
-  animation: loading 1.5s ease-in-out infinite;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: $border-radius;
 }
 
-@keyframes loading {
+@keyframes shimmer {
   0% {
-    background-position: 200% 0;
-  }
-  100% {
     background-position: -200% 0;
   }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
-// 响应式工具类
+// 3D脉动效果
+.pulse-3d {
+  animation: pulse3d 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse3d {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: $shadow-raised;
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: $shadow-elevated;
+  }
+}
+
+// ==================== 响应式3D效果调整 ====================
 @media (max-width: 768px) {
   .hide-mobile {
     display: none !important;
+  }
+
+  // 移动端减少3D效果强度
+  .card-3d,
+  .surface-raised {
+    box-shadow: $shadow-raised;
+
+    &:hover {
+      transform: translateY(-1px);
+    }
   }
 }
 
 @media (min-width: 769px) {
   .show-mobile {
     display: none !important;
+  }
+}
+
+// ==================== 特殊3D效果 ====================
+
+// 霓虹发光效果
+.neon-glow {
+  box-shadow:
+    0 0 5px currentColor,
+    0 0 10px currentColor,
+    0 0 15px currentColor,
+    0 0 20px currentColor;
+  animation: neon-flicker 2s ease-in-out infinite alternate;
+}
+
+@keyframes neon-flicker {
+  0%, 18%, 22%, 25%, 53%, 57%, 100% {
+    filter: brightness(1);
+  }
+  20%, 24%, 55% {
+    filter: brightness(0.8);
+  }
+}
+
+// 彩虹边框效果
+.rainbow-border {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: $gradient-rainbow;
+    border-radius: inherit;
+    z-index: -1;
+    animation: rainbow-rotate 3s linear infinite;
+  }
+}
+
+@keyframes rainbow-rotate {
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  100% {
+    filter: hue-rotate(360deg);
+  }
+}
+
+// ==================== 终极交互动画增强 ====================
+
+// 页面加载动画
+.page-enter-active {
+  animation: pageEnter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes pageEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(50px) scale(0.95) rotateX(10deg);
+    filter: blur(5px);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translateY(-10px) scale(1.02) rotateX(-2deg);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateX(0deg);
+    filter: blur(0px);
+  }
+}
+
+// 炫酷点击波纹效果
+.ripple-effect {
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+  }
+
+  &:active::before {
+    width: 300px;
+    height: 300px;
+  }
+}
+
+// 磁力悬停效果
+.magnetic-hover {
+  transition: $transition-base;
+
+  &:hover {
+    animation: magnetic 0.3s ease-in-out;
+  }
+}
+
+@keyframes magnetic {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.05) rotate(1deg);
+  }
+  75% {
+    transform: scale(1.08) rotate(-1deg);
+  }
+}
+
+// 深度悬浮效果
+.depth-float {
+  animation: depthFloat 6s ease-in-out infinite;
+}
+
+@keyframes depthFloat {
+  0%, 100% {
+    transform: translateY(0px) rotateX(0deg) rotateY(0deg);
+  }
+  25% {
+    transform: translateY(-5px) rotateX(2deg) rotateY(1deg);
+  }
+  50% {
+    transform: translateY(-8px) rotateX(0deg) rotateY(-1deg);
+  }
+  75% {
+    transform: translateY(-3px) rotateX(-1deg) rotateY(1deg);
+  }
+}
+
+// 能量脉动效果
+.energy-pulse {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    background: $gradient-primary;
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0;
+    filter: blur(8px);
+    animation: energyPulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes energyPulse {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+// 数据流动画
+.data-flow {
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(99, 102, 241, 0.3) 20%,
+      rgba(6, 182, 212, 0.3) 40%,
+      rgba(16, 185, 129, 0.3) 60%,
+      rgba(245, 158, 11, 0.3) 80%,
+      transparent 100%);
+    animation: dataFlow 3s linear infinite;
+  }
+}
+
+@keyframes dataFlow {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+// 3D翻转卡片效果
+.flip-card {
+  perspective: 1000px;
+
+  .flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+  }
+
+  &:hover .flip-card-inner {
+    transform: rotateY(180deg);
+  }
+
+  .flip-card-front,
+  .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: inherit;
+  }
+
+  .flip-card-back {
+    transform: rotateY(180deg);
+  }
+}
+
+// 粒子背景效果
+.particle-bg {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.1) 2px, transparent 2px),
+      radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.1) 2px, transparent 2px),
+      radial-gradient(circle at 40% 80%, rgba(16, 185, 129, 0.1) 2px, transparent 2px),
+      radial-gradient(circle at 60% 60%, rgba(245, 158, 11, 0.1) 2px, transparent 2px);
+    background-size: 100px 100px, 120px 120px, 80px 80px, 90px 90px;
+    animation: particleMove 20s linear infinite;
+    pointer-events: none;
+  }
+}
+
+@keyframes particleMove {
+  0% {
+    background-position: 0 0, 0 0, 0 0, 0 0;
+  }
+  100% {
+    background-position: 100px 100px, -120px 120px, 80px -80px, -90px 90px;
+  }
+}
+
+// 全息效果
+.hologram {
+  position: relative;
+  background: linear-gradient(45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 70%);
+  background-size: 20px 20px;
+  animation: hologramShift 2s linear infinite;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(0, 255, 255, 0.03) 50%,
+      transparent 100%);
+    animation: hologramScan 3s ease-in-out infinite;
+  }
+}
+
+@keyframes hologramShift {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 20px 20px;
+  }
+}
+
+@keyframes hologramScan {
+  0%, 100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(100%);
+    opacity: 1;
+  }
+}
+
+// 终极工具类组合
+.ultimate-card {
+  @include card-3d(high);
+  @extend .ripple-effect;
+  @extend .energy-pulse;
+  @extend .data-flow;
+
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  &:hover {
+    transform: translateY(-12px) rotateX(8deg) rotateY(-4deg) scale(1.02);
+    box-shadow:
+      $shadow-floating,
+      0 0 50px rgba(99, 102, 241, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
   }
 }

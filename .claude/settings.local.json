@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(pnpm run build)",
-      "Bash(npm run build)"
+      "Bash(npm run build)",
+      "Read(//e/devs/html-dev/tingdong_ui_demo/src/examples/**)"
     ],
     "deny": [],
     "ask": []

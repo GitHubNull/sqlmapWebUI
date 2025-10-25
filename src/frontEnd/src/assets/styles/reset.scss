@@ -7,10 +7,24 @@
   padding: 0;
 }
 
+// 强制隐藏html和body的滚动条
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow: hidden !important;
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+  
+  // 隐藏滚动条但保持功能（如果需要的话）
+  &::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+  scrollbar-width: none;  // Firefox
+  -ms-overflow-style: none;  // IE and Edge
 }
 
 body {
@@ -20,10 +34,26 @@ body {
   line-height: 1.5;
   color: #495057;
   background-color: #F8F9FA;
+  overflow: hidden !important;
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+  
+  // 隐藏滚动条
+  &::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 #app {
-  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden !important;
+  position: relative;
 }
 
 a {

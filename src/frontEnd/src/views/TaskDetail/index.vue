@@ -279,12 +279,11 @@ import { useTaskStore } from '@/stores/task'
 import { TaskStatus } from '@/types/task'
 import type { Task } from '@/types/task'
 import { formatDateTime } from '@/utils/format'
-import { 
-  getTaskLogs, 
-  getScanOptions, 
-  getHttpRequestInfo, 
-  getPayloadDetail, 
-  getErrors 
+import {
+  getTaskLogs,
+  getHttpRequestInfo,
+  getPayloadDetail,
+  getErrors
 } from '@/api/task'
 
 const route = useRoute()

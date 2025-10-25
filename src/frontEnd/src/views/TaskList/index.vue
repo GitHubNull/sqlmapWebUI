@@ -55,7 +55,7 @@
           :rows="20"
           :rowsPerPageOptions="[10, 20, 50, 100]"
           :scrollable="true"
-          scrollHeight="calc(100vh - 450px)"
+          scrollHeight="calc(100vh - 380px)"
           :virtualScrollerOptions="{ itemSize: 60 }"
           showGridlines
           responsiveLayout="scroll"
@@ -364,10 +364,33 @@ function confirmDeleteAll() {
 </script>
 
 <style scoped lang="scss">
+@use '@/assets/styles/variables.scss' as *;
+
 .task-list-page {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 0;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, rgba(16, 185, 129, 0.03) 0%, transparent 50%),
+      url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23f1f5f9' fill-opacity='0.2'%3E%3Cpath d='M20 20.5V18H0v-2h20v2.5zm0 2.5v2.5H0V23h20zm2 0h18v2H22v-2zm0-2.5h18V18H22v2.5z'/%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 .flex-between {
@@ -381,36 +404,81 @@ function confirmDeleteAll() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  background: var(--blue-50);
-  border-radius: 8px;
+  padding: 12px 20px;
+  background:
+    linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+  border-radius: $border-radius-lg;
+  border: 2px solid rgba(99, 102, 241, 0.1);
+  box-shadow:
+    $shadow-raised,
+    inset 0 1px 2px rgba(255, 255, 255, 0.4);
   margin-bottom: 16px;
-  
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      transparent 100%);
+    animation: shimmer-batch 3s ease-in-out infinite;
+  }
+
   @media (max-width: 768px) {
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
     align-items: stretch;
+    padding: 16px 20px;
+  }
+}
+
+@keyframes shimmer-batch {
+  0%, 100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(200%);
+    opacity: 1;
   }
 }
 
 .batch-info {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: var(--blue-700);
-  font-weight: 500;
-  
+  gap: 12px;
+  color: $primary-color;
+  font-weight: $font-weight-semibold;
+  font-size: 16px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 2;
+
   i {
-    font-size: 18px;
+    font-size: 20px;
+    background: $gradient-primary;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
   }
 }
 
 .batch-buttons {
   display: flex;
-  gap: 8px;
-  
+  gap: 12px;
+  position: relative;
+  z-index: 2;
+
   @media (max-width: 768px) {
     flex-direction: column;
+    gap: 8px;
   }
 }
 
@@ -419,30 +487,151 @@ function confirmDeleteAll() {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 100%;
+  padding: 8px 12px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  transition: $transition-base;
+
+  &:hover {
+    background: rgba(99, 102, 241, 0.05);
+  }
 }
 
 .action-buttons {
   display: flex;
-  gap: 0.25rem;
+  gap: 8px;
   justify-content: center;
   align-items: center;
+  padding: 4px;
 }
 
-// 确保DataTable在大数据量时不会布局错乱
+// ==================== DataTable 3D增强 ====================
 :deep(.p-datatable) {
+  border-radius: $border-radius-lg;
+  overflow: hidden;
+  box-shadow: $shadow-elevated;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%);
+
   .p-datatable-wrapper {
     overflow-x: auto;
+    border-radius: inherit;
   }
-  
+
+  // 表头3D效果
   .p-datatable-thead > tr > th {
     position: sticky;
     top: 0;
-    z-index: 1;
-    background: var(--surface-ground);
+    z-index: 10;
+    background:
+      linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid rgba(99, 102, 241, 0.2);
+    box-shadow:
+      inset 0 1px 2px rgba(255, 255, 255, 0.4),
+      0 2px 4px rgba(0, 0, 0, 0.1);
+    color: $text-color;
+    font-weight: $font-weight-semibold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    transition: $transition-base;
+
+    &:hover {
+      background:
+        linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
+      transform: translateY(-1px);
+      box-shadow:
+        inset 0 1px 2px rgba(255, 255, 255, 0.5),
+        0 4px 8px rgba(0, 0, 0, 0.15);
+    }
   }
-  
+
+  // 表格行3D效果
+  .p-datatable-tbody > tr {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    transition: $transition-base;
+
+    &:hover {
+      background:
+        linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(59, 130, 246, 0.02) 100%);
+      box-shadow:
+        0 1px 4px rgba(0, 0, 0, 0.08),
+        inset 0 1px 2px rgba(255, 255, 255, 0.3);
+    }
+
+    td {
+      border-bottom: none;
+      padding: 16px 12px;
+      vertical-align: middle;
+    }
+  }
+
+  // 选中行效果
+  .p-datatable-tbody > tr.p-selected {
+    background:
+      linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+    box-shadow:
+      inset 0 2px 4px rgba(99, 102, 241, 0.1),
+      0 2px 8px rgba(99, 102, 241, 0.2);
+
+    &:hover {
+      background:
+        linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
+    }
+  }
+
   .p-column-title {
     white-space: nowrap;
+    font-size: 15px;
+  }
+
+  // 复选框简洁样式（无3D效果）
+  .p-checkbox {
+    width: 20px;
+    height: 20px;
+
+    .p-checkbox-box {
+      background: #ffffff;
+      border: 2px solid #cbd5e1;
+      border-radius: 4px;
+      width: 20px;
+      height: 20px;
+      display: inline-flex !important;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      position: relative;
+
+      &:hover {
+        border-color: #94a3b8;
+        background: #f8fafc;
+      }
+
+      &.p-highlight {
+        background: #6366f1 !important;
+        border-color: #6366f1 !important;
+      }
+
+      &:has(.p-checkbox-icon) {
+        background: #6366f1 !important;
+        border-color: #6366f1 !important;
+      }
+
+      .p-checkbox-icon {
+        color: white !important;
+        font-size: 14px;
+        display: block;
+      }
+
+      &.p-focus {
+        outline: 2px solid rgba(99, 102, 241, 0.2);
+        outline-offset: 2px;
+      }
+    }
+
+    input {
+      opacity: 0;
+      position: absolute;
+    }
   }
 }
 </style>

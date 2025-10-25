@@ -14,12 +14,10 @@ declare module 'vue' {
     Avatar: typeof import('primevue/avatar')['default']
     Badge: typeof import('primevue/badge')['default']
     Button: typeof import('primevue/button')['default']
-    Calendar: typeof import('primevue/calendar')['default']
     Card: typeof import('primevue/card')['default']
     Checkbox: typeof import('primevue/checkbox')['default']
     Column: typeof import('primevue/column')['default']
     DataTable: typeof import('primevue/datatable')['default']
-    Dropdown: typeof import('primevue/dropdown')['default']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
     InputText: typeof import('primevue/inputtext')['default']
     Message: typeof import('primevue/message')['default']
@@ -28,10 +26,8 @@ declare module 'vue' {
     ProgressSpinner: typeof import('primevue/progressspinner')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    SelectButton: typeof import('primevue/selectbutton')['default']
     Slider: typeof import('primevue/slider')['default']
     Tag: typeof import('primevue/tag')['default']
     TaskFilter: typeof import('./components/TaskFilter.vue')['default']
-    ToggleSwitch: typeof import('primevue/toggleswitch')['default']
   }
 }
