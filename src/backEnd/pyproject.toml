@@ -8,6 +8,8 @@ dependencies = []
 [project.optional-dependencies]
 thirdparty = [
     "fastapi[standard]",
+    "apscheduler",
+    "psutil",
 ]
 
 [[tool.uv.index]]

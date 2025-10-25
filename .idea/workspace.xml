@@ -4,19 +4,43 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="chore(project): 初始化项目配置文件&#10;&#10;- 添加 IntelliJ IDEA 模块配置文件&#10;- 配置项目检查设置&#10;- 创建 pyproject.toml项目定义文件- 设置版本控制映射为 Git&#10;- 初始化工作区配置和更改列表管理">
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/backEnd/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/backEnd/api/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/backEnd/api/burpSuiteExApi/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/backEnd/api/chromeExApi/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/backEnd/api/commonApi/__init__.py" afterDir="false" />
+    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="chore(submodule): 更新sqlmap第三方库路径&#10;&#10;- 将sqlmap子模块路径从src/backEnd/thirdparty/sqlmap  修改为src/backEnd/third_lib/sqlmap&#10;- 保持子模块URL指向官方GitHub仓库不变&#10;- 调整目录结构以符合新的第三方库管理规范">
+      <change afterPath="$PROJECT_DIR$/.idea/dictionaries/project.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/api/chromeExApi/admin.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/config.py" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/backEnd/main.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/backEnd/thirdparty/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/model/BaseResponseMsg.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/model/DataStore.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/model/Database.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/model/HeaderBatch.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/model/HeaderDatabase.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/model/LogRecorder.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/model/PersistentHeaderRule.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/model/SessionHeader.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/model/StdDbOut.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/model/Task.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/model/TaskStatus.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/model/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/model/requestModel/TaskRequest.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/model/requestModel/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/service/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/service/headerRuleService.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/service/taskService.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/utils/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/utils/auth.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/utils/content_type_helper.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/utils/header_parser.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/utils/header_processor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/utils/session_header_manager.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/utils/task_monitor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/uvicorn_config.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/sqlmapWebUI.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/sqlmapWebUI.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/pyproject.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/backEnd/api/burpSuiteExApi/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/api/burpSuiteExApi/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/backEnd/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/backEnd/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/pyproject.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/backEnd/third_lib/sqlmap" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/third_lib/sqlmap" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/backEnd/thirdparty/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/__init__.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,27 +69,57 @@
   "keyToString": {
     "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.main.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "master",
+    "last_opened_file_path": "E:/devs/python-devs/pycharm-devs/sqlmapWebUI/src",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "terminal",
+    "settings.editor.selected.configurable": "http.proxy",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\devs\python-devs\pycharm-devs\sqlmapWebUI\src" />
+      <recent name="E:\devs\python-devs\pycharm-devs\sqlmapWebUI\src\backEnd\model" />
+      <recent name="E:\devs\python-devs\pycharm-devs\sqlmapWebUI\src\backEnd" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="E:\devs\python-devs\pycharm-devs\sqlmapWebUI\src\backEnd\api" />
       <recent name="E:\devs\python-devs\pycharm-devs\sqlmapWebUI\src\backEnd" />
     </key>
   </component>
   <component name="RunManager">
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="sqlmapWebUI" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/backEnd" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/backEnd/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration default="true" type="ShConfigurationType">
       <option name="SCRIPT_TEXT" value="" />
       <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
@@ -81,6 +135,11 @@
       <envs />
       <method v="2" />
     </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.main" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -98,7 +157,7 @@
       <option name="presentableId" value="Default" />
       <updated>1761360270252</updated>
       <workItem from="1761369918811" duration="18000" />
-      <workItem from="1761369953306" duration="377000" />
+      <workItem from="1761369953306" duration="12239000" />
     </task>
     <task id="LOCAL-00001" summary="chore(project): 初始化项目配置文件&#10;&#10;- 添加 IntelliJ IDEA 模块配置文件&#10;- 配置项目检查设置&#10;- 创建 pyproject.toml项目定义文件- 设置版本控制映射为 Git&#10;- 初始化工作区配置和更改列表管理">
       <option name="closed" value="true" />
@@ -108,7 +167,23 @@
       <option name="project" value="LOCAL" />
       <updated>1761360877382</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="feat(backend): 初始化后端项目结构和基础API&#10;&#10;- 添加 FastAPI 基础应用和路由配置- 创建项目模块初始化文件&#10;- 配置第三方依赖和包管理设置&#10;- 更新 IDE 项目配置和工作区设置&#10;- 移动并重构项目配置文件位置">
+      <option name="closed" value="true" />
+      <created>1761370377930</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1761370377930</updated>
+    </task>
+    <task id="LOCAL-00003" summary="chore(submodule): 更新sqlmap第三方库路径&#10;&#10;- 将sqlmap子模块路径从src/backEnd/thirdparty/sqlmap  修改为src/backEnd/third_lib/sqlmap&#10;- 保持子模块URL指向官方GitHub仓库不变&#10;- 调整目录结构以符合新的第三方库管理规范">
+      <option name="closed" value="true" />
+      <created>1761378283149</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1761378283149</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -116,6 +191,26 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="chore(project): 初始化项目配置文件&#10;&#10;- 添加 IntelliJ IDEA 模块配置文件&#10;- 配置项目检查设置&#10;- 创建 pyproject.toml项目定义文件- 设置版本控制映射为 Git&#10;- 初始化工作区配置和更改列表管理" />
-    <option name="LAST_COMMIT_MESSAGE" value="chore(project): 初始化项目配置文件&#10;&#10;- 添加 IntelliJ IDEA 模块配置文件&#10;- 配置项目检查设置&#10;- 创建 pyproject.toml项目定义文件- 设置版本控制映射为 Git&#10;- 初始化工作区配置和更改列表管理" />
+    <MESSAGE value="feat(backend): 初始化后端项目结构和基础API&#10;&#10;- 添加 FastAPI 基础应用和路由配置- 创建项目模块初始化文件&#10;- 配置第三方依赖和包管理设置&#10;- 更新 IDE 项目配置和工作区设置&#10;- 移动并重构项目配置文件位置" />
+    <MESSAGE value="chore(submodule): 更新sqlmap第三方库路径&#10;&#10;- 将sqlmap子模块路径从src/backEnd/thirdparty/sqlmap  修改为src/backEnd/third_lib/sqlmap&#10;- 保持子模块URL指向官方GitHub仓库不变&#10;- 调整目录结构以符合新的第三方库管理规范" />
+    <option name="LAST_COMMIT_MESSAGE" value="chore(submodule): 更新sqlmap第三方库路径&#10;&#10;- 将sqlmap子模块路径从src/backEnd/thirdparty/sqlmap  修改为src/backEnd/third_lib/sqlmap&#10;- 保持子模块URL指向官方GitHub仓库不变&#10;- 调整目录结构以符合新的第三方库管理规范" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/backEnd/utils/header_parser.py</url>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/backEnd/main.py</url>
+          <line>28</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/sqlmapWebUI$main.coverage" NAME="main 覆盖结果" MODIFIED="1761375225401" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/backEnd" />
   </component>
 </project>
