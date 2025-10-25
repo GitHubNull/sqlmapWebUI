@@ -3,6 +3,7 @@ import PrimeVue from 'primevue/config'
 import Lara from '@primevue/themes/lara'
 import Tooltip from 'primevue/tooltip'
 import ToastService from 'primevue/toastservice'
+import ConfirmationService from 'primevue/confirmationservice'
 
 // 导入PrimeIcons图标库CSS(使用直接路径)
 import 'primeicons/primeicons.css'
@@ -25,6 +26,9 @@ export function setupPrimeVue(app: App) {
   
   // 注册ToastService
   app.use(ToastService)
+  
+  // 注册ConfirmationService
+  app.use(ConfirmationService)
   
   // 注册Tooltip指令
   app.directive('tooltip', Tooltip)

@@ -14,9 +14,12 @@ declare module 'vue' {
     Avatar: typeof import('primevue/avatar')['default']
     Badge: typeof import('primevue/badge')['default']
     Button: typeof import('primevue/button')['default']
+    Calendar: typeof import('primevue/calendar')['default']
     Card: typeof import('primevue/card')['default']
+    Checkbox: typeof import('primevue/checkbox')['default']
     Column: typeof import('primevue/column')['default']
     DataTable: typeof import('primevue/datatable')['default']
+    Dropdown: typeof import('primevue/dropdown')['default']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
     InputText: typeof import('primevue/inputtext')['default']
     OfflineBanner: typeof import('./components/OfflineBanner.vue')['default']
@@ -25,5 +28,6 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SelectButton: typeof import('primevue/selectbutton')['default']
     Tag: typeof import('primevue/tag')['default']
+    TaskFilter: typeof import('./components/TaskFilter.vue')['default']
   }
 }

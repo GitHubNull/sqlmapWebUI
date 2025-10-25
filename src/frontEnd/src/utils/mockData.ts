@@ -139,8 +139,15 @@ export function generateMockTask(index: number, mode: MockDataMode = MockDataMod
       break
   }
   
-  // 使用 Mock.js 生成随机日期（最近30天内）
-  const createTime = Mock.Random.datetime('yyyy-MM-ddTHH:mm:ss.SSS') + 'Z'
+  // 生成随机日期（最近30天内）
+  const now = new Date()
+  const daysAgo = Mock.Random.integer(0, 30)
+  const randomDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000)
+  // 添加随机的小时、分钟、秒
+  randomDate.setHours(Mock.Random.integer(0, 23))
+  randomDate.setMinutes(Mock.Random.integer(0, 59))
+  randomDate.setSeconds(Mock.Random.integer(0, 59))
+  const createTime = randomDate.toISOString()
   
   return {
     engineid: 1000 + index,

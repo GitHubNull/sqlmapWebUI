@@ -81,3 +81,56 @@ export function getTaskLogs(taskId: string): Promise<string[]> {
     params: { taskId },
   })
 }
+
+/**
+ * 批量删除任务
+ */
+export async function batchDeleteTasks(taskIds: string[]): Promise<void> {
+  // 逐个删除，因为后端没有批量删除接口
+  for (const taskId of taskIds) {
+    await deleteTask(taskId)
+  }
+}
+
+/**
+ * 清空所有任务
+ */
+export function flushTasks(): Promise<void> {
+  return request.post('/chrome/admin/task/flush')
+}
+
+/**
+ * 获取扫描配置
+ */
+export function getScanOptions(taskId: string): Promise<any> {
+  return request.get('/chrome/admin/task/getScanOptionsByTaskId', {
+    params: { taskId },
+  })
+}
+
+/**
+ * 获取HTTP请求信息
+ */
+export function getHttpRequestInfo(taskId: string): Promise<any> {
+  return request.get('/chrome/admin/task/getHttpRequestInfo', {
+    params: { taskId },
+  })
+}
+
+/**
+ * 获取载荷详情
+ */
+export function getPayloadDetail(taskId: string): Promise<any> {
+  return request.get('/chrome/admin/task/getPayloadDetailByTaskId', {
+    params: { taskId },
+  })
+}
+
+/**
+ * 获取错误记录
+ */
+export function getErrors(taskId: string): Promise<any[]> {
+  return request.get('/chrome/admin/task/getErrorsByTaskId', {
+    params: { taskId },
+  })
+}
