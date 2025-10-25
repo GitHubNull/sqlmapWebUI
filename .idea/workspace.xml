@@ -1,25 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/sqlmapWebUI.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
+    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="chore(project): 初始化项目配置文件&#10;&#10;- 添加 IntelliJ IDEA 模块配置文件&#10;- 配置项目检查设置&#10;- 创建 pyproject.toml项目定义文件- 设置版本控制映射为 Git&#10;- 初始化工作区配置和更改列表管理">
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/api/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/api/burpSuiteExApi/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/api/chromeExApi/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/api/commonApi/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/main.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/thirdparty/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/sqlmapWebUI.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/sqlmapWebUI.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/pyproject.toml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 5
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
   <component name="ProjectId" id="34XWCd2zwqtVNHnAINHe9gT7q8k" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -27,16 +43,50 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master"
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "master",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "terminal",
+    "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="E:\devs\python-devs\pycharm-devs\sqlmapWebUI\src\backEnd\api" />
+      <recent name="E:\devs\python-devs\pycharm-devs\sqlmapWebUI\src\backEnd" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="ShConfigurationType">
+      <option name="SCRIPT_TEXT" value="" />
+      <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
+      <option name="SCRIPT_PATH" value="" />
+      <option name="SCRIPT_OPTIONS" value="" />
+      <option name="INDEPENDENT_SCRIPT_WORKING_DIRECTORY" value="true" />
+      <option name="SCRIPT_WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="INDEPENDENT_INTERPRETER_PATH" value="true" />
+      <option name="INTERPRETER_PATH" value="powershell.exe" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="EXECUTE_IN_TERMINAL" value="true" />
+      <option name="EXECUTE_SCRIPT_FILE" value="true" />
+      <envs />
+      <method v="2" />
+    </configuration>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-dfff61a61320-9cdd278e9d02-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-251.25410.159" />
+        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-PY-252.27397.106" />
+        <option value="bundled-python-sdk-4e2b1448bda8-9a97661f3031-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.27397.106" />
       </set>
     </attachedChunks>
   </component>
@@ -47,7 +97,25 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1761360270252</updated>
+      <workItem from="1761369918811" duration="18000" />
+      <workItem from="1761369953306" duration="377000" />
     </task>
+    <task id="LOCAL-00001" summary="chore(project): 初始化项目配置文件&#10;&#10;- 添加 IntelliJ IDEA 模块配置文件&#10;- 配置项目检查设置&#10;- 创建 pyproject.toml项目定义文件- 设置版本控制映射为 Git&#10;- 初始化工作区配置和更改列表管理">
+      <option name="closed" value="true" />
+      <created>1761360877382</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1761360877382</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="chore(project): 初始化项目配置文件&#10;&#10;- 添加 IntelliJ IDEA 模块配置文件&#10;- 配置项目检查设置&#10;- 创建 pyproject.toml项目定义文件- 设置版本控制映射为 Git&#10;- 初始化工作区配置和更改列表管理" />
+    <option name="LAST_COMMIT_MESSAGE" value="chore(project): 初始化项目配置文件&#10;&#10;- 添加 IntelliJ IDEA 模块配置文件&#10;- 配置项目检查设置&#10;- 创建 pyproject.toml项目定义文件- 设置版本控制映射为 Git&#10;- 初始化工作区配置和更改列表管理" />
   </component>
 </project>

@@ -1,0 +1,15 @@
+[project]
+name = "sqlmapwebui"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.13"
+dependencies = []
+
+[project.optional-dependencies]
+thirdparty = [
+    "fastapi[standard]",
+]
+
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
