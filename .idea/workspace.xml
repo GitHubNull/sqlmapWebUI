@@ -4,10 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="refactor(import): 统一项目导入路径为绝对导入- 将所有相对导入修改为绝对导入,消除路径解析歧义&#10;- 规范 SQLMap 子模块导入路径,统一使用 third_lib.sqlmap 前缀&#10;-修复 main.py 中的 sys.path 配置,确保模块导入优先级正确&#10;- 清理无效的 sys.path 操作和注释掉的旧配置代码&#10;- 更新项目内部模块间的导入语句,补全缺失的模块路径- 添加详细的导入路径修复设计文档,明确各类导入规范&#10;- 优化模块导入顺序,避免循环依赖和导入错误- 验证所有模块导入正确性,确保应用能够正常启动运行">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/backEnd/.env.example" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/backEnd/.gitignore" afterDir="false" />
+    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="chore(frontend): 添加前端.gitignore文件&#10;&#10;- 添加了依赖管理相关的忽略规则，包括node_modules和各种包管理器日志文件&#10;- 配置了构建产物与缓存的忽略项，如dist目录、Vite缓存等&#10;- 设置了环境变量配置文件的忽略规则，保护本地敏感信息- 添加了多种编辑器和IDE的配置文件忽略规则&#10;- 包含了操作系统生成的元数据文件忽略配置&#10;- 增加了测试覆盖率报告和相关数据文件的忽略规则">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -124,7 +122,7 @@
       <option name="presentableId" value="Default" />
       <updated>1761360270252</updated>
       <workItem from="1761369918811" duration="18000" />
-      <workItem from="1761369953306" duration="14124000" />
+      <workItem from="1761369953306" duration="15443000" />
     </task>
     <task id="LOCAL-00001" summary="chore(project): 初始化项目配置文件&#10;&#10;- 添加 IntelliJ IDEA 模块配置文件&#10;- 配置项目检查设置&#10;- 创建 pyproject.toml项目定义文件- 设置版本控制映射为 Git&#10;- 初始化工作区配置和更改列表管理">
       <option name="closed" value="true" />
@@ -166,7 +164,23 @@
       <option name="project" value="LOCAL" />
       <updated>1761384848968</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="chore(config): 添加后端环境配置模板和忽略文件- 创建 .env.example 配置模板文件，包含应用、安全、数据库等配置项&#10;- 添加 src/backEnd/.gitignore 文件，排除 Python 字节码、虚拟环境、数据库文件等&#10;- 添加项目根目录 .gitignore 文件，排除 IDE 配置和系统临时文件- 配置 UV 包管理工具相关忽略规则，保留 uv.lock 锁文件&#10;- 设置敏感配置文件保护规则，防止密钥泄露- 规范 sqlmap 子模块相关文件的忽略策略&#10;- 添加详细的 .gitignore 配置设计文档，明确各类忽略规则">
+      <option name="closed" value="true" />
+      <created>1761385311214</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1761385311214</updated>
+    </task>
+    <task id="LOCAL-00007" summary="chore(frontend): 添加前端.gitignore文件&#10;&#10;- 添加了依赖管理相关的忽略规则，包括node_modules和各种包管理器日志文件&#10;- 配置了构建产物与缓存的忽略项，如dist目录、Vite缓存等&#10;- 设置了环境变量配置文件的忽略规则，保护本地敏感信息- 添加了多种编辑器和IDE的配置文件忽略规则&#10;- 包含了操作系统生成的元数据文件忽略配置&#10;- 增加了测试覆盖率报告和相关数据文件的忽略规则">
+      <option name="closed" value="true" />
+      <created>1761388502608</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1761388502608</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -178,7 +192,9 @@
     <MESSAGE value="chore(submodule): 更新sqlmap第三方库路径&#10;&#10;- 将sqlmap子模块路径从src/backEnd/thirdparty/sqlmap  修改为src/backEnd/third_lib/sqlmap&#10;- 保持子模块URL指向官方GitHub仓库不变&#10;- 调整目录结构以符合新的第三方库管理规范" />
     <MESSAGE value="feat(api): 添加 Chrome 扩展管理 API 和认证机制&#10;&#10;- 新增 chrome/admin 路由前缀，提供任务删除、终止、启动、停止等功能- 实现请求头解析与处理工具，支持多种格式（HTTP、JSON、cURL 等）&#10;- 添加基于 SQLite 的数据库模型和数据存储结构&#10;- 引入基础响应消息类 BaseResponseMsg 统一接口返回格式- 配置跨域资源共享（CORS）支持本地开发环境- 增加静态文件服务支持前端页面访问&#10;- 实现简单的 IP 白名单和 Token 认证逻辑&#10;- 添加版本信息接口 /version 获取系统版本号- 创建持久化请求头规则表及索引优化查询性能" />
     <MESSAGE value="refactor(import): 统一项目导入路径为绝对导入- 将所有相对导入修改为绝对导入,消除路径解析歧义&#10;- 规范 SQLMap 子模块导入路径,统一使用 third_lib.sqlmap 前缀&#10;-修复 main.py 中的 sys.path 配置,确保模块导入优先级正确&#10;- 清理无效的 sys.path 操作和注释掉的旧配置代码&#10;- 更新项目内部模块间的导入语句,补全缺失的模块路径- 添加详细的导入路径修复设计文档,明确各类导入规范&#10;- 优化模块导入顺序,避免循环依赖和导入错误- 验证所有模块导入正确性,确保应用能够正常启动运行" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor(import): 统一项目导入路径为绝对导入- 将所有相对导入修改为绝对导入,消除路径解析歧义&#10;- 规范 SQLMap 子模块导入路径,统一使用 third_lib.sqlmap 前缀&#10;-修复 main.py 中的 sys.path 配置,确保模块导入优先级正确&#10;- 清理无效的 sys.path 操作和注释掉的旧配置代码&#10;- 更新项目内部模块间的导入语句,补全缺失的模块路径- 添加详细的导入路径修复设计文档,明确各类导入规范&#10;- 优化模块导入顺序,避免循环依赖和导入错误- 验证所有模块导入正确性,确保应用能够正常启动运行" />
+    <MESSAGE value="chore(config): 添加后端环境配置模板和忽略文件- 创建 .env.example 配置模板文件，包含应用、安全、数据库等配置项&#10;- 添加 src/backEnd/.gitignore 文件，排除 Python 字节码、虚拟环境、数据库文件等&#10;- 添加项目根目录 .gitignore 文件，排除 IDE 配置和系统临时文件- 配置 UV 包管理工具相关忽略规则，保留 uv.lock 锁文件&#10;- 设置敏感配置文件保护规则，防止密钥泄露- 规范 sqlmap 子模块相关文件的忽略策略&#10;- 添加详细的 .gitignore 配置设计文档，明确各类忽略规则" />
+    <MESSAGE value="chore(frontend): 添加前端.gitignore文件&#10;&#10;- 添加了依赖管理相关的忽略规则，包括node_modules和各种包管理器日志文件&#10;- 配置了构建产物与缓存的忽略项，如dist目录、Vite缓存等&#10;- 设置了环境变量配置文件的忽略规则，保护本地敏感信息- 添加了多种编辑器和IDE的配置文件忽略规则&#10;- 包含了操作系统生成的元数据文件忽略配置&#10;- 增加了测试覆盖率报告和相关数据文件的忽略规则" />
+    <option name="LAST_COMMIT_MESSAGE" value="chore(frontend): 添加前端.gitignore文件&#10;&#10;- 添加了依赖管理相关的忽略规则，包括node_modules和各种包管理器日志文件&#10;- 配置了构建产物与缓存的忽略项，如dist目录、Vite缓存等&#10;- 设置了环境变量配置文件的忽略规则，保护本地敏感信息- 添加了多种编辑器和IDE的配置文件忽略规则&#10;- 包含了操作系统生成的元数据文件忽略配置&#10;- 增加了测试覆盖率报告和相关数据文件的忽略规则" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
