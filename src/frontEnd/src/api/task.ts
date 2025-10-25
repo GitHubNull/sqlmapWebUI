@@ -93,6 +93,16 @@ export async function batchDeleteTasks(taskIds: string[]): Promise<void> {
 }
 
 /**
+ * 批量停止任务
+ */
+export async function batchStopTasks(taskIds: string[]): Promise<void> {
+  // 逐个停止，因为后端没有批量停止接口
+  for (const taskId of taskIds) {
+    await stopTask(taskId)
+  }
+}
+
+/**
  * 清空所有任务
  */
 export function flushTasks(): Promise<void> {

@@ -485,7 +485,7 @@ onUnmounted(() => {
   flex: 1;
   margin-top: 64px;
   margin-bottom: 140px;  // 增加底部边距，避免被Dock遮挡
-  padding: 16px 24px;
+  padding: 16px 4%;  // 左右各占4%，内容占92%
   overflow-y: auto;
   position: relative;
 

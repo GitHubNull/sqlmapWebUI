@@ -24,6 +24,12 @@
           </div>
           <div class="batch-buttons">
             <Button 
+              label="停止选中" 
+              icon="pi pi-stop" 
+              severity="warning"
+              @click="confirmBatchStop"
+            />
+            <Button 
               label="删除选中" 
               icon="pi pi-trash" 
               severity="danger"
@@ -68,14 +74,25 @@
           <!-- 选择列 -->
           <Column selectionMode="multiple" headerStyle="width: 3rem" :exportable="false" frozen />
           <Column field="engineid" header="任务ID" :style="{ minWidth: '100px' }" sortable />
-          <Column field="scanUrl" header="扫描URL" :style="{ minWidth: '300px', maxWidth: '400px' }">
+          <Column field="scanUrl" header="扫描URL" :style="{ minWidth: '300px', maxWidth: '400px' }" sortable>
             <template #body="{ data }">
               <div class="url-cell" :title="data.scanUrl">
                 {{ data.scanUrl }}
               </div>
             </template>
           </Column>
-          <Column field="host" header="主机" :style="{ minWidth: '150px' }" />
+          <Column field="host" header="主机" :style="{ minWidth: '150px' }" sortable />
+          <Column field="injected" header="是否存在注入" :style="{ minWidth: '120px' }" sortable>
+            <template #body="{ data }">
+              <Tag 
+                v-if="data.injected !== undefined && data.injected !== null" 
+                :value="data.injected ? '存在注入' : '无注入'" 
+                :severity="data.injected ? 'danger' : 'success'" 
+                :icon="data.injected ? 'pi pi-exclamation-triangle' : 'pi pi-check-circle'"
+              />
+              <Tag v-else value="未知" severity="secondary" icon="pi pi-question-circle" />
+            </template>
+          </Column>
           <Column field="status" header="状态" :style="{ minWidth: '100px' }" sortable>
             <template #body="{ data }">
               <Tag :value="getStatusLabel(data.status)" :severity="getStatusSeverity(data.status)" />
@@ -260,6 +277,50 @@ function clearSelection() {
   selectedTasks.value = []
 }
 
+// 确认批量停止
+function confirmBatchStop() {
+  // 过滤出运行中的任务
+  const runningTasks = selectedTasks.value.filter(t => t.status === TaskStatus.RUNNING)
+  
+  if (runningTasks.length === 0) {
+    toast.add({
+      severity: 'info',
+      summary: '提示',
+      detail: '选中的任务中没有正在运行的任务',
+      life: 3000,
+    })
+    return
+  }
+  
+  confirm.require({
+    message: `确定要停止选中的 ${runningTasks.length} 个运行中的任务吗？`,
+    header: '确认停止',
+    icon: 'pi pi-exclamation-triangle',
+    acceptLabel: '停止',
+    rejectLabel: '取消',
+    acceptClass: 'p-button-warning',
+    accept: async () => {
+      try {
+        const taskIds = runningTasks.map(t => t.taskid)
+        await taskStore.batchStopTasks(taskIds)
+        toast.add({
+          severity: 'success',
+          summary: '成功',
+          detail: `已停止 ${runningTasks.length} 个任务`,
+          life: 3000,
+        })
+      } catch (error) {
+        toast.add({
+          severity: 'error',
+          summary: '错误',
+          detail: '停止任务失败，请重试',
+          life: 3000,
+        })
+      }
+    },
+  })
+}
+
 // 确认批量删除
 function confirmBatchDelete() {
   // 过滤掉运行中的任务
@@ -367,8 +428,8 @@ function confirmDeleteAll() {
 @use '@/assets/styles/variables.scss' as *;
 
 .task-list-page {
-  max-width: 1600px;
-  margin: 0 auto;
+  width: 100%;  // 占满主内容区域，不限制最大宽度
+  margin: 0;
   padding: 0;
   position: relative;
 

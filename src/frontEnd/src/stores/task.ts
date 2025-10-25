@@ -9,6 +9,7 @@ import {
   deleteTask as deleteTaskApi,
   stopTask as stopTaskApi,
   batchDeleteTasks as batchDeleteTasksApi,
+  batchStopTasks as batchStopTasksApi,
   flushTasks as flushTasksApi,
 } from '@/api/task'
 import type { Task, TaskFilters, TaskStats, SortConfig, TaskDetail } from '@/types/task'
@@ -296,6 +297,21 @@ export const useTaskStore = defineStore('task', () => {
     }
   }
 
+  // 批量停止任务
+  async function batchStopTasks(taskIds: string[]): Promise<void> {
+    loading.value = true
+    try {
+      await batchStopTasksApi(taskIds)
+      // 刷新任务列表
+      await fetchTaskList()
+    } catch (error) {
+      console.debug('batchStopTasks error:', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
   // 删除全部任务
   async function deleteAllTasks(): Promise<void> {
     loading.value = true
@@ -340,6 +356,7 @@ export const useTaskStore = defineStore('task', () => {
     toggleTaskSelection,
     clearSelection,
     batchDeleteTasks,
+    batchStopTasks,
     deleteAllTasks,
   }
 })

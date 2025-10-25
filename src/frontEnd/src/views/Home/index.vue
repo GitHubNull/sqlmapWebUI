@@ -179,9 +179,9 @@ async function refreshData() {
 @use '@/assets/styles/index.scss' as *;
 
 .home-page {
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 32px;
+  width: 100%;  // 占满主内容区域，不限制最大宽度
+  margin: 0;
+  padding: 32px 0;  // 只保留上下内边距
   position: relative;
 
   &::before {
