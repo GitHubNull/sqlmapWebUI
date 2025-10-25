@@ -4,22 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="feat(api): 添加 Chrome 扩展管理 API 和认证机制&#10;&#10;- 新增 chrome/admin 路由前缀，提供任务删除、终止、启动、停止等功能- 实现请求头解析与处理工具，支持多种格式（HTTP、JSON、cURL 等）&#10;- 添加基于 SQLite 的数据库模型和数据存储结构&#10;- 引入基础响应消息类 BaseResponseMsg 统一接口返回格式- 配置跨域资源共享（CORS）支持本地开发环境- 增加静态文件服务支持前端页面访问&#10;- 实现简单的 IP 白名单和 Token 认证逻辑&#10;- 添加版本信息接口 /version 获取系统版本号- 创建持久化请求头规则表及索引优化查询性能">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/api/burpSuiteExApi/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/api/burpSuiteExApi/admin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/api/chromeExApi/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/api/chromeExApi/admin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/model/DataStore.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/model/DataStore.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/model/HeaderDatabase.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/model/HeaderDatabase.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/model/LogRecorder.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/model/LogRecorder.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/model/StdDbOut.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/model/StdDbOut.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/model/Task.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/model/Task.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/service/headerRuleService.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/service/headerRuleService.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/service/taskService.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/service/taskService.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/utils/content_type_helper.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/utils/content_type_helper.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/utils/header_parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/utils/header_parser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/utils/session_header_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/utils/session_header_manager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/utils/task_monitor.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/utils/task_monitor.py" afterDir="false" />
+    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="refactor(import): 统一项目导入路径为绝对导入- 将所有相对导入修改为绝对导入,消除路径解析歧义&#10;- 规范 SQLMap 子模块导入路径,统一使用 third_lib.sqlmap 前缀&#10;-修复 main.py 中的 sys.path 配置,确保模块导入优先级正确&#10;- 清理无效的 sys.path 操作和注释掉的旧配置代码&#10;- 更新项目内部模块间的导入语句,补全缺失的模块路径- 添加详细的导入路径修复设计文档,明确各类导入规范&#10;- 优化模块导入顺序,避免循环依赖和导入错误- 验证所有模块导入正确性,确保应用能够正常启动运行">
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/.env.example" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/backEnd/.gitignore" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -136,7 +124,7 @@
       <option name="presentableId" value="Default" />
       <updated>1761360270252</updated>
       <workItem from="1761369918811" duration="18000" />
-      <workItem from="1761369953306" duration="13533000" />
+      <workItem from="1761369953306" duration="14124000" />
     </task>
     <task id="LOCAL-00001" summary="chore(project): 初始化项目配置文件&#10;&#10;- 添加 IntelliJ IDEA 模块配置文件&#10;- 配置项目检查设置&#10;- 创建 pyproject.toml项目定义文件- 设置版本控制映射为 Git&#10;- 初始化工作区配置和更改列表管理">
       <option name="closed" value="true" />
@@ -170,7 +158,15 @@
       <option name="project" value="LOCAL" />
       <updated>1761382477657</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="refactor(import): 统一项目导入路径为绝对导入- 将所有相对导入修改为绝对导入,消除路径解析歧义&#10;- 规范 SQLMap 子模块导入路径,统一使用 third_lib.sqlmap 前缀&#10;-修复 main.py 中的 sys.path 配置,确保模块导入优先级正确&#10;- 清理无效的 sys.path 操作和注释掉的旧配置代码&#10;- 更新项目内部模块间的导入语句,补全缺失的模块路径- 添加详细的导入路径修复设计文档,明确各类导入规范&#10;- 优化模块导入顺序,避免循环依赖和导入错误- 验证所有模块导入正确性,确保应用能够正常启动运行">
+      <option name="closed" value="true" />
+      <created>1761384848968</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1761384848968</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -181,7 +177,8 @@
     <MESSAGE value="feat(backend): 初始化后端项目结构和基础API&#10;&#10;- 添加 FastAPI 基础应用和路由配置- 创建项目模块初始化文件&#10;- 配置第三方依赖和包管理设置&#10;- 更新 IDE 项目配置和工作区设置&#10;- 移动并重构项目配置文件位置" />
     <MESSAGE value="chore(submodule): 更新sqlmap第三方库路径&#10;&#10;- 将sqlmap子模块路径从src/backEnd/thirdparty/sqlmap  修改为src/backEnd/third_lib/sqlmap&#10;- 保持子模块URL指向官方GitHub仓库不变&#10;- 调整目录结构以符合新的第三方库管理规范" />
     <MESSAGE value="feat(api): 添加 Chrome 扩展管理 API 和认证机制&#10;&#10;- 新增 chrome/admin 路由前缀，提供任务删除、终止、启动、停止等功能- 实现请求头解析与处理工具，支持多种格式（HTTP、JSON、cURL 等）&#10;- 添加基于 SQLite 的数据库模型和数据存储结构&#10;- 引入基础响应消息类 BaseResponseMsg 统一接口返回格式- 配置跨域资源共享（CORS）支持本地开发环境- 增加静态文件服务支持前端页面访问&#10;- 实现简单的 IP 白名单和 Token 认证逻辑&#10;- 添加版本信息接口 /version 获取系统版本号- 创建持久化请求头规则表及索引优化查询性能" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(api): 添加 Chrome 扩展管理 API 和认证机制&#10;&#10;- 新增 chrome/admin 路由前缀，提供任务删除、终止、启动、停止等功能- 实现请求头解析与处理工具，支持多种格式（HTTP、JSON、cURL 等）&#10;- 添加基于 SQLite 的数据库模型和数据存储结构&#10;- 引入基础响应消息类 BaseResponseMsg 统一接口返回格式- 配置跨域资源共享（CORS）支持本地开发环境- 增加静态文件服务支持前端页面访问&#10;- 实现简单的 IP 白名单和 Token 认证逻辑&#10;- 添加版本信息接口 /version 获取系统版本号- 创建持久化请求头规则表及索引优化查询性能" />
+    <MESSAGE value="refactor(import): 统一项目导入路径为绝对导入- 将所有相对导入修改为绝对导入,消除路径解析歧义&#10;- 规范 SQLMap 子模块导入路径,统一使用 third_lib.sqlmap 前缀&#10;-修复 main.py 中的 sys.path 配置,确保模块导入优先级正确&#10;- 清理无效的 sys.path 操作和注释掉的旧配置代码&#10;- 更新项目内部模块间的导入语句,补全缺失的模块路径- 添加详细的导入路径修复设计文档,明确各类导入规范&#10;- 优化模块导入顺序,避免循环依赖和导入错误- 验证所有模块导入正确性,确保应用能够正常启动运行" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor(import): 统一项目导入路径为绝对导入- 将所有相对导入修改为绝对导入,消除路径解析歧义&#10;- 规范 SQLMap 子模块导入路径,统一使用 third_lib.sqlmap 前缀&#10;-修复 main.py 中的 sys.path 配置,确保模块导入优先级正确&#10;- 清理无效的 sys.path 操作和注释掉的旧配置代码&#10;- 更新项目内部模块间的导入语句,补全缺失的模块路径- 添加详细的导入路径修复设计文档,明确各类导入规范&#10;- 优化模块导入顺序,避免循环依赖和导入错误- 验证所有模块导入正确性,确保应用能够正常启动运行" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

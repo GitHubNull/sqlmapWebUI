@@ -1,0 +1,224 @@
+# ============================================
+# 后端模块 .gitignore 配置
+# ============================================
+
+# ============================================
+# Python 字节码与缓存
+# ============================================
+
+# 字节码文件
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C 扩展
+*.so
+
+# 分发 / 打包
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# ============================================
+# 虚拟环境
+# ============================================
+
+# UV/Virtualenv/venv
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# ============================================
+# UV 包管理工具
+# ============================================
+
+# UV 本地缓存目录
+.uv/
+
+# 注意: uv.lock 应当提交到版本控制
+# 以确保团队成员和生产环境的依赖版本一致性
+
+# ============================================
+# 测试与覆盖率
+# ============================================
+
+# Pytest
+.pytest_cache/
+.tox/
+.nox/
+
+# 覆盖率报告
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# ============================================
+# 数据库文件
+# ============================================
+
+# SQLite 数据库
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-shm
+*.db-wal
+
+# 其他数据库文件
+*.mdb
+*.accdb
+
+# ============================================
+# 日志文件
+# ============================================
+
+# 应用日志
+*.log
+logs/
+log/
+
+# 进程 ID 文件
+*.pid
+*.seed
+*.pid.lock
+
+# ============================================
+# 敏感配置文件
+# ============================================
+
+# 环境变量配置
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+
+# 本地配置覆盖
+config.local.py
+config.local.yaml
+config.local.json
+
+# 密钥存储
+secrets.json
+secrets.yaml
+*.key
+*.pem
+*.crt
+*.cer
+
+# ============================================
+# 第三方工具生成文件
+# ============================================
+
+# sqlmap 扫描结果输出
+third_lib/sqlmap/output/
+third_lib/sqlmap/*.db
+third_lib/sqlmap/*.log
+third_lib/sqlmap/*.pid
+thirdparty/sqlmap/output/
+thirdparty/sqlmap/*.db
+thirdparty/sqlmap/*.log
+thirdparty/sqlmap/*.pid
+
+# ============================================
+# 开发工具生成
+# ============================================
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath
+*.sage.py
+
+# Spyder
+.spyderproject
+.spyproject
+
+# Rope
+.ropeproject
+
+# mkdocs
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/
+
+# pytype
+.pytype/
+
+# ============================================
+# 临时文件与缓存
+# ============================================
+
+# 临时文件
+*.tmp
+*.temp
+temp/
+tmp/
+
+# 备份文件
+*.bak
+*.backup
+*.old
+
+# ============================================
+# 运行时文件
+# ============================================
+
+# Uvicorn/Gunicorn PID
+uvicorn.pid
+gunicorn.pid
+
+# 会话文件
+sessions/
+*.session
