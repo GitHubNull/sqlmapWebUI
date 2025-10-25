@@ -1,6 +1,6 @@
 // 全局样式入口
-@import './variables.scss';
-@import './reset.scss';
+@use './variables.scss' as *;
+@use './reset.scss';
 
 // 工具类
 .text-center {

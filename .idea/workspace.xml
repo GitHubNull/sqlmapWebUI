@@ -4,8 +4,27 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="chore(frontend): 添加前端.gitignore文件&#10;&#10;- 添加了依赖管理相关的忽略规则，包括node_modules和各种包管理器日志文件&#10;- 配置了构建产物与缓存的忽略项，如dist目录、Vite缓存等&#10;- 设置了环境变量配置文件的忽略规则，保护本地敏感信息- 添加了多种编辑器和IDE的配置文件忽略规则&#10;- 包含了操作系统生成的元数据文件忽略配置&#10;- 增加了测试覆盖率报告和相关数据文件的忽略规则">
+    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="feat(frontend): 实现macOS风格Dock布局和错误处理优化&#10;&#10;- 重构前端Layout组件为底部Dock导航布局&#10;- 添加全局错误处理和用户友好提示机制- 实现后端健康检查和智能轮询策略&#10;- 集成PrimeVue Toast组件优化错误提示&#10;- 添加网络状态监听和离线模式处理&#10;- 实现请求重试机制和退避算法&#10;-优化加载状态和空状态用户体验&#10;- 添加页面可见性API集成&#10;- 实现健康检查状态管理和自动恢复- 添加离线Banner提示和重试交互">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/backEnd/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/backEnd/static/assets/_plugin-vue_export-helper-DlAUqK2U.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/backEnd/static/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/.env.development" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/.env.development" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/pnpm-lock.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/App.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/App.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/api/request.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/api/request.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/api/task.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/api/task.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/index.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/index.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/components.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/components.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/primevue.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/primevue.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/stores/auth.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/stores/auth.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/stores/task.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/stores/task.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/style.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/utils/mockData.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/utils/mockData.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/Layout.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/Layout.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/TaskList/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/TaskList/index.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/vite.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/vite.config.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -122,7 +141,7 @@
       <option name="presentableId" value="Default" />
       <updated>1761360270252</updated>
       <workItem from="1761369918811" duration="18000" />
-      <workItem from="1761369953306" duration="15443000" />
+      <workItem from="1761369953306" duration="18260000" />
     </task>
     <task id="LOCAL-00001" summary="chore(project): 初始化项目配置文件&#10;&#10;- 添加 IntelliJ IDEA 模块配置文件&#10;- 配置项目检查设置&#10;- 创建 pyproject.toml项目定义文件- 设置版本控制映射为 Git&#10;- 初始化工作区配置和更改列表管理">
       <option name="closed" value="true" />
@@ -180,7 +199,31 @@
       <option name="project" value="LOCAL" />
       <updated>1761388502608</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="docs(api): 添加Burp Suite插件API详细文档- 新增Burp Suite插件API完整参考文档- 补充了API端点的功能说明与使用示例- 添加了认证机制与安全最佳实践说明&#10;- 更新了任务管理与请求头规则处理流程&#10;- 增加了错误响应结构与版本控制策略说明">
+      <option name="closed" value="true" />
+      <created>1761388732611</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1761388732611</updated>
+    </task>
+    <task id="LOCAL-00009" summary="chore(frontend): 添加前端.gitignore文件- 添加了依赖管理相关的忽略规则，包括node_modules和各种包管理器日志文件&#10;- 配置了构建产物与缓存的忽略项，如dist目录、Vite缓存等&#10;- 设置了环境变量配置文件的忽略规则，保护本地敏感信息&#10;- 添加了多种编辑器和IDE的配置文件忽略规则- 包含了操作系统生成的元数据文件忽略配置&#10;- 增加了测试覆盖率报告和相关数据文件的忽略规则">
+      <option name="closed" value="true" />
+      <created>1761388763824</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1761388763824</updated>
+    </task>
+    <task id="LOCAL-00010" summary="feat(frontend): 实现macOS风格Dock布局和错误处理优化&#10;&#10;- 重构前端Layout组件为底部Dock导航布局&#10;- 添加全局错误处理和用户友好提示机制- 实现后端健康检查和智能轮询策略&#10;- 集成PrimeVue Toast组件优化错误提示&#10;- 添加网络状态监听和离线模式处理&#10;- 实现请求重试机制和退避算法&#10;-优化加载状态和空状态用户体验&#10;- 添加页面可见性API集成&#10;- 实现健康检查状态管理和自动恢复- 添加离线Banner提示和重试交互">
+      <option name="closed" value="true" />
+      <created>1761393845750</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1761393845750</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -194,7 +237,10 @@
     <MESSAGE value="refactor(import): 统一项目导入路径为绝对导入- 将所有相对导入修改为绝对导入,消除路径解析歧义&#10;- 规范 SQLMap 子模块导入路径,统一使用 third_lib.sqlmap 前缀&#10;-修复 main.py 中的 sys.path 配置,确保模块导入优先级正确&#10;- 清理无效的 sys.path 操作和注释掉的旧配置代码&#10;- 更新项目内部模块间的导入语句,补全缺失的模块路径- 添加详细的导入路径修复设计文档,明确各类导入规范&#10;- 优化模块导入顺序,避免循环依赖和导入错误- 验证所有模块导入正确性,确保应用能够正常启动运行" />
     <MESSAGE value="chore(config): 添加后端环境配置模板和忽略文件- 创建 .env.example 配置模板文件，包含应用、安全、数据库等配置项&#10;- 添加 src/backEnd/.gitignore 文件，排除 Python 字节码、虚拟环境、数据库文件等&#10;- 添加项目根目录 .gitignore 文件，排除 IDE 配置和系统临时文件- 配置 UV 包管理工具相关忽略规则，保留 uv.lock 锁文件&#10;- 设置敏感配置文件保护规则，防止密钥泄露- 规范 sqlmap 子模块相关文件的忽略策略&#10;- 添加详细的 .gitignore 配置设计文档，明确各类忽略规则" />
     <MESSAGE value="chore(frontend): 添加前端.gitignore文件&#10;&#10;- 添加了依赖管理相关的忽略规则，包括node_modules和各种包管理器日志文件&#10;- 配置了构建产物与缓存的忽略项，如dist目录、Vite缓存等&#10;- 设置了环境变量配置文件的忽略规则，保护本地敏感信息- 添加了多种编辑器和IDE的配置文件忽略规则&#10;- 包含了操作系统生成的元数据文件忽略配置&#10;- 增加了测试覆盖率报告和相关数据文件的忽略规则" />
-    <option name="LAST_COMMIT_MESSAGE" value="chore(frontend): 添加前端.gitignore文件&#10;&#10;- 添加了依赖管理相关的忽略规则，包括node_modules和各种包管理器日志文件&#10;- 配置了构建产物与缓存的忽略项，如dist目录、Vite缓存等&#10;- 设置了环境变量配置文件的忽略规则，保护本地敏感信息- 添加了多种编辑器和IDE的配置文件忽略规则&#10;- 包含了操作系统生成的元数据文件忽略配置&#10;- 增加了测试覆盖率报告和相关数据文件的忽略规则" />
+    <MESSAGE value="docs(api): 添加Burp Suite插件API详细文档- 新增Burp Suite插件API完整参考文档- 补充了API端点的功能说明与使用示例- 添加了认证机制与安全最佳实践说明&#10;- 更新了任务管理与请求头规则处理流程&#10;- 增加了错误响应结构与版本控制策略说明" />
+    <MESSAGE value="chore(frontend): 添加前端.gitignore文件- 添加了依赖管理相关的忽略规则，包括node_modules和各种包管理器日志文件&#10;- 配置了构建产物与缓存的忽略项，如dist目录、Vite缓存等&#10;- 设置了环境变量配置文件的忽略规则，保护本地敏感信息&#10;- 添加了多种编辑器和IDE的配置文件忽略规则- 包含了操作系统生成的元数据文件忽略配置&#10;- 增加了测试覆盖率报告和相关数据文件的忽略规则" />
+    <MESSAGE value="feat(frontend): 实现macOS风格Dock布局和错误处理优化&#10;&#10;- 重构前端Layout组件为底部Dock导航布局&#10;- 添加全局错误处理和用户友好提示机制- 实现后端健康检查和智能轮询策略&#10;- 集成PrimeVue Toast组件优化错误提示&#10;- 添加网络状态监听和离线模式处理&#10;- 实现请求重试机制和退避算法&#10;-优化加载状态和空状态用户体验&#10;- 添加页面可见性API集成&#10;- 实现健康检查状态管理和自动恢复- 添加离线Banner提示和重试交互" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(frontend): 实现macOS风格Dock布局和错误处理优化&#10;&#10;- 重构前端Layout组件为底部Dock导航布局&#10;- 添加全局错误处理和用户友好提示机制- 实现后端健康检查和智能轮询策略&#10;- 集成PrimeVue Toast组件优化错误提示&#10;- 添加网络状态监听和离线模式处理&#10;- 实现请求重试机制和退避算法&#10;-优化加载状态和空状态用户体验&#10;- 添加页面可见性API集成&#10;- 实现健康检查状态管理和自动恢复- 添加离线Banner提示和重试交互" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

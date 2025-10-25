@@ -7,7 +7,16 @@ import { ref, computed } from 'vue'
 import { login as loginApi } from '@/api/auth'
 import { isLocalAccess, isAuthRequired as checkAuthRequired } from '@/utils/auth'
 import { getStorage, setStorage, removeStorage } from '@/utils/storage'
+import { request } from '@/api/request'
 import type { UserInfo, LoginRequest } from '@/types/common'
+
+// 健康检查响应类型
+interface HealthCheckResponse {
+  status: string
+  timestamp: number
+  version?: string
+  uptime?: number
+}
 
 export const useAuthStore = defineStore('auth', () => {
   // 状态
@@ -15,6 +24,11 @@ export const useAuthStore = defineStore('auth', () => {
   const userInfo = ref<UserInfo | null>(getStorage<UserInfo>('userInfo'))
   const isLocalMode = ref<boolean>(isLocalAccess())
   const authRequired = ref<boolean>(checkAuthRequired())
+  
+  // 健康检查状态
+  const backendHealthy = ref<boolean>(true)
+  const lastHealthCheck = ref<number>(0)
+  const healthCheckInterval = 30000 // 30秒
 
   // 计算属性
   const isLoggedIn = computed(() => {
@@ -83,6 +97,58 @@ export const useAuthStore = defineStore('auth', () => {
     // 从存储恢复状态
     token.value = getStorage<string>('token')
     userInfo.value = getStorage<UserInfo>('userInfo')
+    
+    // 初始化时执行一次健康检查
+    checkBackendHealth()
+  }
+  
+  /**
+   * 检查后端服务健康状态
+   */
+  async function checkBackendHealth(): Promise<boolean> {
+    const now = Date.now()
+    
+    // 如果距离上次检查时间小于间隔，直接返回缓存结果
+    if (now - lastHealthCheck.value < healthCheckInterval) {
+      return backendHealthy.value
+    }
+    
+    try {
+      const response = await request.get<HealthCheckResponse>('/health', {
+        timeout: 5000 // 5秒超时
+      })
+      
+      const healthy = response.status === 'healthy'
+      
+      // 状态发生变化时记录日志
+      if (backendHealthy.value !== healthy) {
+        console.info(`Backend health status changed: ${backendHealthy.value} -> ${healthy}`)
+      }
+      
+      backendHealthy.value = healthy
+      lastHealthCheck.value = now
+      
+      return healthy
+    } catch (error) {
+      console.debug('Backend health check failed:', error)
+      
+      // 检查失败设置为不健康
+      if (backendHealthy.value !== false) {
+        console.warn('Backend is unhealthy')
+      }
+      
+      backendHealthy.value = false
+      lastHealthCheck.value = now
+      
+      return false
+    }
+  }
+  
+  /**
+   * 重置健康检查状态（用于强制重新检查）
+   */
+  function resetHealthCheck(): void {
+    lastHealthCheck.value = 0
   }
 
   return {
@@ -91,6 +157,8 @@ export const useAuthStore = defineStore('auth', () => {
     userInfo,
     isLocalMode,
     authRequired,
+    backendHealthy,
+    lastHealthCheck,
     // 计算属性
     isLoggedIn,
     userName,
@@ -100,5 +168,7 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     checkAuth,
     initAuth,
+    checkBackendHealth,
+    resetHealthCheck,
   }
 })

@@ -25,7 +25,8 @@ export const useTaskStore = defineStore('task', () => {
       const data = await getTaskListApi()
       taskList.value = data
     } catch (error) {
-      console.error('Failed to fetch task list:', error)
+      // 错误已在request.ts中统一处理，这里只需记录调试信息
+      console.debug('fetchTaskList error:', error)
       throw error
     } finally {
       loading.value = false
@@ -42,7 +43,7 @@ export const useTaskStore = defineStore('task', () => {
       const newTask = taskList.value.find((t) => t.taskid === result.taskid)
       return newTask || ({} as Task)
     } catch (error) {
-      console.error('Failed to create task:', error)
+      console.debug('createTask error:', error)
       throw error
     } finally {
       loading.value = false
@@ -56,7 +57,7 @@ export const useTaskStore = defineStore('task', () => {
       // 从列表中移除
       taskList.value = taskList.value.filter((t) => t.taskid !== taskId)
     } catch (error) {
-      console.error('Failed to delete task:', error)
+      console.debug('deleteTask error:', error)
       throw error
     } finally {
       loading.value = false
@@ -70,7 +71,7 @@ export const useTaskStore = defineStore('task', () => {
       // 刷新任务列表
       await fetchTaskList()
     } catch (error) {
-      console.error('Failed to stop task:', error)
+      console.debug('stopTask error:', error)
       throw error
     } finally {
       loading.value = false
