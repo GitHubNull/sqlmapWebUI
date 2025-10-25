@@ -2,18 +2,18 @@ import tempfile
 import os
 import sys
 
-from TaskStatus import TaskStatus
-from ..third_lib.sqlmap.lib.core.datatype import AttribDict
-from ..third_lib.sqlmap.lib.core.optiondict import optDict
-from ..third_lib.sqlmap.lib.core.common import unArrayizeValue
-from ..third_lib.sqlmap.lib.core.defaults import _defaults
-from ..third_lib.sqlmap.lib.core.enums import MKSTEMP_PREFIX
-from ..third_lib.sqlmap.lib.core.common import saveConfig
-from ..third_lib.sqlmap.lib.core.subprocessng import Popen
-from ..third_lib.sqlmap.lib.core.settings import IS_WIN
-from ..third_lib.sqlmap.lib.core.data import logger
+from third_lib.sqlmap.lib.core.datatype import AttribDict
+from third_lib.sqlmap.lib.core.optiondict import optDict
+from third_lib.sqlmap.lib.core.common import unArrayizeValue
+from third_lib.sqlmap.lib.core.defaults import _defaults
+from third_lib.sqlmap.lib.core.enums import MKSTEMP_PREFIX
+from third_lib.sqlmap.lib.core.common import saveConfig
+from third_lib.sqlmap.lib.core.subprocessng import Popen
+from third_lib.sqlmap.lib.core.settings import IS_WIN
+from third_lib.sqlmap.lib.core.data import logger
 
-from Database import Database
+from model.TaskStatus import TaskStatus
+from model.Database import Database
 
 
 class Task(object):
@@ -89,9 +89,9 @@ class Task(object):
                 return
             
             # 动态导入避免循环引用
-            from ..service.headerRuleService import HeaderRuleService
-            from ..utils.header_processor import HeaderProcessor
-            from DataStore import DataStore
+            from service.headerRuleService import HeaderRuleService
+            from utils.header_processor import HeaderProcessor
+            from model.DataStore import DataStore
             
             logger.debug(f"[{self.taskid}] Importing header service and processor")
             

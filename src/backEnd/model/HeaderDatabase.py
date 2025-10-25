@@ -3,9 +3,9 @@ import threading
 import time
 import os
 
-from lib.core.data import logger
-from lib.core.common import getSafeExString
-from .Database import Database
+from third_lib.sqlmap.lib.core.data import logger
+from third_lib.sqlmap.lib.core.common import getSafeExString
+from model.Database import Database
 
 
 class HeaderDatabase(Database):

@@ -1,12 +1,12 @@
 import sys
 
-from ..third_lib.sqlmap.lib.core.enums import CONTENT_STATUS
-from ..third_lib.sqlmap.lib.core.data import kb
-from ..third_lib.sqlmap.lib.core.dicts import PART_RUN_CONTENT_TYPES
-from ..third_lib.sqlmap.lib.core.data import conf
-from ..third_lib.sqlmap.lib.core.compat import xrange
-from ..third_lib.sqlmap.lib.core.convert import dejsonize
-from ..third_lib.sqlmap.lib.core.convert import jsonize
+from third_lib.sqlmap.lib.core.enums import CONTENT_STATUS
+from third_lib.sqlmap.lib.core.data import kb
+from third_lib.sqlmap.lib.core.dicts import PART_RUN_CONTENT_TYPES
+from third_lib.sqlmap.lib.core.data import conf
+from third_lib.sqlmap.lib.core.compat import xrange
+from third_lib.sqlmap.lib.core.convert import dejsonize
+from third_lib.sqlmap.lib.core.convert import jsonize
 
 
 # Wrapper functions for sqlmap engine

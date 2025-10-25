@@ -1,10 +1,8 @@
 # 使用标准库的logging模块
 import logging
-import sys
 
 from fastapi import APIRouter, Depends, Query
 
-sys.path.append("..。")
 from model.BaseResponseMsg import BaseResponseMsg
 from model.requestModel.TaskRequest import TaskDeleteRequest, TaskFindByHeaderKeyWordRequest, \
     TaskLogQueryRequest, TaskFindByBodyKeyWordRequest, TaskFindByUrlPathRequest, TaskStopRequest

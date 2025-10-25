@@ -14,10 +14,10 @@ from model.TaskStatus import TaskStatus
 from model.requestModel.TaskRequest import TaskAddRequest
 from model.BaseResponseMsg import BaseResponseMsg
 
-from ..third_lib.sqlmap.lib.core.settings import RESTAPI_UNSUPPORTED_OPTIONS
-from ..third_lib.sqlmap.lib.core.convert import encodeHex
-from ..third_lib.sqlmap.lib.core.data import logger
-from ..utils.content_type_helper import get_content_type_by_number
+from third_lib.sqlmap.lib.core.settings import RESTAPI_UNSUPPORTED_OPTIONS
+from third_lib.sqlmap.lib.core.convert import encodeHex
+from third_lib.sqlmap.lib.core.data import logger
+from utils.content_type_helper import get_content_type_by_number
 
 
 def validate_options(options):

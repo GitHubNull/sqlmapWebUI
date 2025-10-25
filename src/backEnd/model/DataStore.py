@@ -1,8 +1,8 @@
 import threading
 from collections import OrderedDict
 from typing import Optional
-from .Database import Database
-from .HeaderDatabase import HeaderDatabase
+from model.Database import Database
+from model.HeaderDatabase import HeaderDatabase
 
 
 # Global data storage

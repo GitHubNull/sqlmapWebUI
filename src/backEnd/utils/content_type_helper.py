@@ -1,7 +1,7 @@
 
 
 # 创建一个字典来映射数字到 CONTENT_TYPE 的名称
-from ..third_lib.sqlmap.lib.core.enums import CONTENT_TYPE
+from third_lib.sqlmap.lib.core.enums import CONTENT_TYPE
 
 
 CONTENT_TYPE_MAP = {value: key for key, value in CONTENT_TYPE.__dict__.items() if not key.startswith('__') and isinstance(value, int)}

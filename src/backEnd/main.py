@@ -3,22 +3,23 @@ import sys
 import tempfile
 import os
 
-from app import app
-from utils.task_monitor import monitor
-
-# 修复导入路径问题
-# sys.path.insert("third_lib/sqlmap")
-# sys.path.append("backEnd/third_lib/sqlmap")
-# 更准确地设置路径
+# 配置 Python 模块导入路径 - 必须在所有项目模块导入之前完成
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sqlmap_path = os.path.join(current_dir, "third_lib", "sqlmap")
+
+# 将路径添加到 sys.path 最前面,确保优先级最高
 if sqlmap_path not in sys.path:
     sys.path.insert(0, sqlmap_path)
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+
+# 现在才能安全地导入项目模块
+from app import app
+from utils.task_monitor import monitor
 
 sys.dont_write_bytecode = True
 
 __import__("third_lib.sqlmap.lib.utils.versioncheck")  # this has to be the first non-standard import
-# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import logging
 # import os
 import warnings

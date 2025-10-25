@@ -1,7 +1,7 @@
 import logging
 import time
 
-from ..third_lib.sqlmap.lib.core.data import conf
+from third_lib.sqlmap.lib.core.data import conf
 
 
 class LogRecorder(logging.StreamHandler):

@@ -6,10 +6,10 @@ from fastapi import HTTPException
 from fastapi import APIRouter, Depends, Request, Query
 from fastapi import status
 
-from src.backEnd.model.BaseResponseMsg import BaseResponseMsg
-from src.backEnd.model.requestModel.TaskRequest import TaskAddRequest
-from src.backEnd.service.taskService import taskService
-from src.backEnd.utils.auth import get_current_user
+from model.BaseResponseMsg import BaseResponseMsg
+from model.requestModel.TaskRequest import TaskAddRequest
+from service.taskService import taskService
+from utils.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 

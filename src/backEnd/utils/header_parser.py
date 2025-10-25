@@ -1,7 +1,7 @@
 import re
 import json
 from typing import List, Dict, Optional
-from ..model.HeaderBatch import ParsedHeaderItem, ParseResult, FormatHint
+from model.HeaderBatch import ParsedHeaderItem, ParseResult, FormatHint
 
 # 使用标准库的logging模块
 import logging

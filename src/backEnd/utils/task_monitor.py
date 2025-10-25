@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
 import os
-from ..model.TaskStatus import TaskStatus
-from ..third_lib.sqlmap.lib.core.data import logger
+from model.TaskStatus import TaskStatus
+from third_lib.sqlmap.lib.core.data import logger
 
 import psutil
 
-from ..model.DataStore import DataStore
+from model.DataStore import DataStore
 
 
 def get_max_tasks_count():
