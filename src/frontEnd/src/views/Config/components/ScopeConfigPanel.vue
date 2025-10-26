@@ -2,16 +2,15 @@
   <div class="scope-config-panel">
     <Card class="scope-card">
       <template #title>
-        <div class="flex align-items-center gap-2 w-full">
+        <div class="flex align-items-center gap-2 w-full cursor-pointer" @click="handleScopeToggle">
           <Checkbox
             inputId="has_scope"
             v-model="hasScope"
             :binary="true"
-            @change="handleScopeToggle"
           />
           <i class="pi pi-filter text-primary"></i>
           <span>{{ title }}</span>
-          <div class="scope-info" v-if="showInfo">
+          <div class="scope-info" v-if="showInfo" @click.stop>
             <Button
               icon="pi pi-info-circle"
               text
@@ -131,13 +130,13 @@
             <!-- 高级选项 -->
             <div class="field col-12 mb-0">
               <div class="flex align-items-center justify-content-between">
-                <div class="flex align-items-center gap-2">
+                <div class="flex align-items-center gap-2 cursor-pointer" @click="scopeData.use_regex = !scopeData.use_regex">
                   <Checkbox
                     inputId="use_regex"
                     v-model="scopeData.use_regex"
                     :binary="true"
                   />
-                  <label for="use_regex" class="font-medium">
+                  <label for="use_regex" class="font-medium cursor-pointer m-0">
                     <i class="pi pi-code mr-2 text-primary"></i>
                     使用正则表达式匹配
                   </label>

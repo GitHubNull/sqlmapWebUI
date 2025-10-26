@@ -81,7 +81,7 @@
               </div>
             </Message>
 
-            <div class="input-area">
+            <div class="input-area w-full">
               <Textarea
                 v-model="textInput"
                 rows="15"
@@ -94,7 +94,7 @@ API密钥|X-API-Key|key123|REPLACE|90
 规则名称|Header名称|Header值|策略|优先级
 或简写：
 Header名称: Header值"
-                class="text-input"
+                class="text-input w-full"
                 :autoResize="false"
               />
               <div class="input-stats">
@@ -123,7 +123,7 @@ Header名称: Header值"
               </div>
             </Message>
 
-            <div class="input-area">
+            <div class="input-area w-full">
               <Textarea
                 v-model="jsonInput"
                 rows="15"
@@ -145,7 +145,7 @@ Header名称: Header值"
     "is_active": true
   }
 ]'
-                class="json-input"
+                class="json-input w-full"
                 :autoResize="false"
               />
             </div>
@@ -201,7 +201,7 @@ Header名称: Header值"
             <div class="formgrid grid p-fluid">
               <div class="field col-12 md:col-4 mb-3">
                 <FloatLabel>
-                  <Dropdown
+                  <Select
                     id="default_strategy"
                     v-model="defaultStrategy"
                     :options="strategyOptions"
@@ -230,13 +230,13 @@ Header名称: Header值"
               </div>
 
               <div class="field col-12 md:col-4 mb-0">
-                <div class="flex align-items-center gap-2">
+                <div class="flex align-items-center gap-2 cursor-pointer" @click="defaultActive = !defaultActive">
                   <Checkbox
                     inputId="default_active"
                     v-model="defaultActive"
                     :binary="true"
                   />
-                  <label for="default_active" class="font-medium">
+                  <label for="default_active" class="font-medium cursor-pointer m-0">
                     默认启用
                   </label>
                 </div>
@@ -249,7 +249,7 @@ Header名称: Header值"
         <!-- 域控配置 -->
         <Card class="scope-card">
           <template #title>
-            <div class="flex align-items-center gap-2 w-full">
+            <div class="flex align-items-center gap-2 w-full cursor-pointer" @click="hasScope = !hasScope">
               <Checkbox
                 inputId="has_scope"
                 v-model="hasScope"
@@ -433,6 +433,7 @@ Header名称: Header值"
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
+import Select from 'primevue/select'
 import type { PersistentHeaderRuleCreate, ReplaceStrategy, HeaderScope } from '@/types/headerRule'
 
 const props = defineProps<{
@@ -783,6 +784,14 @@ const visible = computed({
     max-height: calc(90vh - 140px);
     overflow-y: auto;
 
+    // 强制所有textarea全宽
+    :deep(textarea),
+    :deep(.p-textarea) {
+      width: 100% !important;
+      max-width: 100% !important;
+      display: block !important;
+    }
+
     // 卡片通用样式
     :deep(.p-card) {
       border-radius: 12px;
@@ -802,6 +811,8 @@ const visible = computed({
 
       .p-card-content {
         padding-top: 0;
+        width: 100% !important;
+        max-width: 100% !important;
       }
     }
 
@@ -868,8 +879,19 @@ const visible = computed({
 
     // 输入区域样式
     .input-area {
+      width: 100% !important;
+      display: block !important;
+      max-width: 100% !important;
+
+      textarea,
       .text-input,
-      .json-input {
+      .json-input,
+      :deep(.p-textarea),
+      :deep(textarea) {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: block !important;
+        box-sizing: border-box !important;
         border-radius: 8px;
         border: 2px solid var(--surface-border);
         transition: all 0.2s ease;
@@ -1033,5 +1055,19 @@ const visible = computed({
       }
     }
   }
+}
+</style>
+
+<!-- 非scoped样式，强制textarea全宽 -->
+<style lang="scss">
+// 全局样式，强制批量导入对话框中textarea全宽
+.import-dialog .dialog-content textarea,
+.import-dialog .dialog-content .p-textarea,
+.batch-import-dialog .dialog-content textarea,
+.batch-import-dialog .dialog-content .p-textarea {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: block !important;
+  box-sizing: border-box !important;
 }
 </style>

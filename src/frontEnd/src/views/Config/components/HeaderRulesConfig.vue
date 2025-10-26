@@ -224,13 +224,14 @@
               </div>
 
               <div class="field col-12 mb-0">
-                <FloatLabel>
+                <FloatLabel class="w-full">
                   <Textarea
                     id="header_value"
                     v-model="formData.header_value"
                     :autoResize="true"
                     rows="3"
                     :invalid="!formData.header_value && showValidation"
+                    class="w-full"
                   />
                   <label for="header_value">
                     Header值 <span class="text-red-500">*</span>
@@ -283,13 +284,13 @@
               </div>
 
               <div class="field col-12 mb-0">
-                <div class="flex align-items-center gap-2">
+                <div class="flex align-items-center gap-2 cursor-pointer" @click="formData.is_active = !formData.is_active">
                   <Checkbox
                     inputId="is_active"
                     v-model="formData.is_active"
                     :binary="true"
                   />
-                  <label for="is_active" class="font-medium cursor-pointer">
+                  <label for="is_active" class="font-medium cursor-pointer m-0">
                     <i class="pi pi-power-off mr-2 text-primary"></i>
                     启用此规则
                   </label>
@@ -790,126 +791,225 @@ async function handleBatchImport(rules: PersistentHeaderRuleCreate[]) {
 
 // 对话框样式优化
 :deep(.rule-dialog) {
+  .p-dialog-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--surface-border);
+  }
+
   .p-dialog-content {
     padding: 0;
-    overflow-y: auto;
+    overflow: hidden;
+  }
+
+  .p-dialog-footer {
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid var(--surface-border);
+    background: var(--surface-50);
   }
 }
 
 .dialog-content {
-  padding: 1.5rem;
-  max-height: calc(85vh - 140px);
+  padding: 2rem;
+  max-height: calc(80vh - 180px);
   overflow-y: auto;
+  overflow-x: hidden;
 
-  // 基本信息卡片样式
-  .basic-info-card {
-    :deep(.p-card-title) {
-      font-size: 1.1rem;
+  // 卡片通用样式
+  :deep(.p-card) {
+    border-radius: 12px;
+    border: 1px solid var(--surface-border);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+    background: var(--surface-0);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .p-card-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--surface-border);
+      background: var(--surface-50);
+    }
+
+    .p-card-title {
+      font-size: 1rem;
       font-weight: 600;
-      color: var(--primary-color);
-      margin-bottom: 1rem;
-    }
-
-    :deep(.p-card-content) {
-      padding-top: 0;
-    }
-  }
-
-  // 高级配置卡片样式
-  .advanced-config-card {
-    :deep(.p-card-title) {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--primary-color);
-      margin-bottom: 1rem;
-    }
-
-    :deep(.p-card-content) {
-      padding-top: 0;
-    }
-  }
-
-  // 作用域配置面板样式
-  .scope-config-panel {
-    margin-top: 1rem;
-  }
-
-  // 浮动标签优化
-  :deep(.p-float-label) {
-    margin-bottom: 0.5rem;
-
-    label {
-      font-weight: 500;
-      color: var(--text-color-secondary);
+      color: var(--text-color);
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
 
       i {
         color: var(--primary-color);
+        font-size: 1.1rem;
       }
+    }
+
+    .p-card-content {
+      padding: 1.5rem;
+    }
+  }
+
+  // 表单字段样式
+  .field {
+    margin-bottom: 1.5rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    // 确保full-width字段不受grid限制
+    &.col-12 {
+      :deep(.p-float-label),
+      :deep(.p-floatlabel),
+      :deep(.p-inputtextarea),
+      :deep(.p-textarea) {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+    }
+  }
+
+  // 浮动标签优化
+  :deep(.p-float-label),
+  :deep(.p-floatlabel) {
+    width: 100% !important;
+    display: block !important;
+
+    label {
+      font-weight: 500;
+      font-size: 0.95rem;
+      color: var(--text-color-secondary);
+      left: 0.75rem;
+      transition: all 0.2s ease;
+
+      i {
+        color: var(--primary-color);
+        margin-right: 0.25rem;
+      }
+    }
+
+    input:focus ~ label,
+    input.p-filled ~ label,
+    textarea:focus ~ label,
+    textarea.p-filled ~ label,
+    .p-inputwrapper-focus ~ label,
+    .p-inputwrapper-filled ~ label {
+      top: -0.75rem;
+      font-size: 0.875rem;
+      background: var(--surface-0);
+      padding: 0 0.25rem;
     }
   }
 
   // 输入组件样式
   :deep(.p-inputtext),
-  :deep(.p-dropdown),
   :deep(.p-inputnumber-input) {
-    border-radius: 8px;
-    border: 2px solid var(--surface-border);
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 0.95rem;
+    border: 1px solid var(--surface-border);
+    border-radius: 6px;
     transition: all 0.2s ease;
+    background: var(--surface-0);
 
-    &:focus {
+    &:enabled:hover {
       border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+    }
+
+    &:enabled:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.1);
+      outline: none;
     }
 
     &.p-invalid {
       border-color: var(--red-500);
-      box-shadow: 0 0 0 3px rgba(var(--red-500-rgb), 0.1);
+
+      &:enabled:focus {
+        box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.1);
+      }
     }
   }
 
-  :deep(.p-inputtextarea) {
-    border-radius: 8px;
-    border: 2px solid var(--surface-border);
+  :deep(.p-inputtextarea),
+  :deep(.p-textarea) {
+    width: 100% !important;
+    padding: 0.75rem;
+    font-size: 0.95rem;
+    border: 1px solid var(--surface-border);
+    border-radius: 6px;
     transition: all 0.2s ease;
     resize: vertical;
+    min-height: 80px;
+    background: var(--surface-0);
+    font-family: inherit;
+    line-height: 1.5;
 
-    &:focus {
+    &:enabled:hover {
       border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+    }
+
+    &:enabled:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.1);
+      outline: none;
     }
 
     &.p-invalid {
       border-color: var(--red-500);
-      box-shadow: 0 0 0 3px rgba(var(--red-500-rgb), 0.1);
+
+      &:enabled:focus {
+        box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.1);
+      }
+    }
+  }
+
+  :deep(.p-dropdown) {
+    width: 100%;
+    border: 1px solid var(--surface-border);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+
+    &:not(.p-disabled):hover {
+      border-color: var(--primary-color);
+    }
+
+    &:not(.p-disabled).p-focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.1);
+    }
+  }
+
+  // 提示文本样式
+  small {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-color-secondary);
+    line-height: 1.4;
+
+    &.text-color-secondary {
+      color: var(--text-color-secondary);
     }
   }
 
   // 复选框样式
   :deep(.p-checkbox) {
     .p-checkbox-box {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       border-radius: 4px;
-      border: 2px solid var(--surface-border);
+      border: 1px solid var(--surface-border);
+      background: var(--surface-0);
       transition: all 0.2s ease;
-      cursor: pointer;
-
-      &:hover {
-        border-color: var(--primary-color);
-      }
 
       &.p-highlight {
         background: var(--primary-color);
         border-color: var(--primary-color);
       }
-
-      .p-checkbox-icon {
-        transition: all 0.2s ease;
-      }
-    }
-
-    &:not(.p-disabled):hover .p-checkbox-box {
-      border-color: var(--primary-color);
     }
   }
 
@@ -921,23 +1021,17 @@ async function handleBatchImport(rules: PersistentHeaderRuleCreate[]) {
 
     .p-message-wrapper {
       border-radius: 8px;
-      padding: 1rem;
+      padding: 0.875rem 1rem;
+    }
+
+    .p-message-icon {
+      font-size: 1.25rem;
     }
 
     &.p-message-info .p-message-wrapper {
-      background: linear-gradient(135deg,
-        var(--blue-50) 0%,
-        var(--blue-100) 100%);
-      border-left: 4px solid var(--blue-500);
-    }
-  }
-
-  // 分隔线样式
-  :deep(.p-divider) {
-    margin: 1.5rem 0;
-
-    &.my-4 {
-      margin: 1.5rem 0;
+      background: var(--blue-50);
+      color: var(--blue-900);
+      border-left: 3px solid var(--blue-500);
     }
   }
 }
