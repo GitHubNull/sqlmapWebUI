@@ -67,26 +67,25 @@
               outlined
               v-tooltip.top="'清除过滤器'"
             />
-            <div class="add-button-group">
-              <Button
-                label="单条添加"
-                icon="pi pi-plus"
-                @click="showCreateDialog"
-                severity="success"
-              />
-              <Button
-                icon="pi pi-chevron-down"
-                severity="success"
-                @click="toggleAddMenu"
-                aria-haspopup="true"
-                aria-controls="add_menu"
-              />
-            </div>
-            <Menu
-              ref="addMenu"
-              id="add_menu"
-              :model="addMenuItems"
-              :popup="true"
+            <Button
+              label="单条添加"
+              icon="pi pi-plus"
+              @click="showCreateDialog"
+              severity="success"
+            />
+            <Button
+              label="批量添加"
+              icon="pi pi-list"
+              @click="showBatchImportDialog"
+              severity="success"
+              outlined
+            />
+            <Button
+              label="文件导入"
+              icon="pi pi-file-import"
+              @click="showFileImportDialog"
+              severity="success"
+              outlined
             />
             <Button
               label="刷新"
@@ -290,7 +289,7 @@
                     v-model="formData.is_active"
                     :binary="true"
                   />
-                  <label for="is_active" class="font-medium">
+                  <label for="is_active" class="font-medium cursor-pointer">
                     <i class="pi pi-power-off mr-2 text-primary"></i>
                     启用此规则
                   </label>
@@ -360,7 +359,6 @@ const dialogVisible = ref(false)
 const rules = ref<PersistentHeaderRule[]>([])
 const editingRule = ref<PersistentHeaderRule | null>(null)
 const showValidation = ref(false)
-const addMenu = ref() // 菜单引用
 const batchImportVisible = ref(false) // 批量导入对话框显示状态
 const importing = ref(false) // 批量导入状态
 const scopePanel = ref<InstanceType<typeof ScopeConfigPanel>>() // 作用域面板引用
@@ -391,28 +389,6 @@ const strategyOptions = replaceStrategies
 const scopeOptions = [
   { label: '全局', value: 'global' },
   { label: '有作用域', value: 'scoped' },
-]
-
-// 添加菜单项
-const addMenuItems = [
-  {
-    label: '单条添加',
-    icon: 'pi pi-plus',
-    command: () => showCreateDialog()
-  },
-  {
-    label: '批量添加',
-    icon: 'pi pi-list',
-    command: () => showBatchImportDialog()
-  },
-  {
-    separator: true
-  },
-  {
-    label: '从文件导入',
-    icon: 'pi pi-file-import',
-    command: () => showFileImportDialog()
-  }
 ]
 
 const formData = reactive<PersistentHeaderRuleCreate>({
@@ -652,11 +628,6 @@ function clearFilters() {
   scopeFilter.value = null
 }
 
-// 切换添加菜单
-function toggleAddMenu(event: Event) {
-  addMenu.value.toggle(event)
-}
-
 // 显示批量导入对话框
 function showBatchImportDialog() {
   batchImportVisible.value = true
@@ -738,14 +709,29 @@ async function handleBatchImport(rules: PersistentHeaderRuleCreate[]) {
       flex-wrap: wrap;
 
       .search-area {
-        flex: 1;
-        min-width: 300px;
+        flex: 0 0 280px;
+        max-width: 280px;
+
+        :deep(.p-iconfield) {
+          display: flex;
+          align-items: center;
+          position: relative;
+
+          .p-inputicon {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            left: 0.75rem;
+            color: var(--text-color-secondary);
+          }
+        }
 
         .search-input {
           width: 100%;
           border-radius: 8px;
           border: 2px solid var(--surface-border);
           transition: all 0.2s ease;
+          padding-left: 2.5rem;
 
           &:focus {
             border-color: var(--primary-color);
@@ -789,23 +775,7 @@ async function handleBatchImport(rules: PersistentHeaderRuleCreate[]) {
         gap: 0.5rem;
         align-items: center;
         margin-left: auto;
-
-        .add-button-group {
-          :deep(.p-button) {
-            border-radius: 0;
-
-            &:first-child {
-              border-top-left-radius: 8px;
-              border-bottom-left-radius: 8px;
-            }
-
-            &:last-child {
-              border-top-right-radius: 8px;
-              border-bottom-right-radius: 8px;
-              border-left: none;
-            }
-          }
-        }
+        flex-wrap: wrap;
       }
     }
   }
@@ -917,14 +887,29 @@ async function handleBatchImport(rules: PersistentHeaderRuleCreate[]) {
   // 复选框样式
   :deep(.p-checkbox) {
     .p-checkbox-box {
+      width: 20px;
+      height: 20px;
       border-radius: 4px;
       border: 2px solid var(--surface-border);
       transition: all 0.2s ease;
+      cursor: pointer;
+
+      &:hover {
+        border-color: var(--primary-color);
+      }
 
       &.p-highlight {
         background: var(--primary-color);
         border-color: var(--primary-color);
       }
+
+      .p-checkbox-icon {
+        transition: all 0.2s ease;
+      }
+    }
+
+    &:not(.p-disabled):hover .p-checkbox-box {
+      border-color: var(--primary-color);
     }
   }
 

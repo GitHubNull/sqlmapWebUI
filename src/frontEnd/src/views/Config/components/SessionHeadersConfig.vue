@@ -54,26 +54,25 @@
               outlined
               v-tooltip.top="'清除过滤器'"
             />
-            <div class="add-button-group">
-              <Button
-                label="单条添加"
-                icon="pi pi-plus"
-                @click="showAddDialog"
-                severity="success"
-              />
-              <Button
-                icon="pi pi-chevron-down"
-                severity="success"
-                @click="toggleAddMenu"
-                aria-haspopup="true"
-                aria-controls="add_menu"
-              />
-            </div>
-            <Menu
-              ref="addMenu"
-              id="add_menu"
-              :model="addMenuItems"
-              :popup="true"
+            <Button
+              label="单条添加"
+              icon="pi pi-plus"
+              @click="showAddDialog"
+              severity="success"
+            />
+            <Button
+              label="批量添加"
+              icon="pi pi-list"
+              @click="showBatchAddDialog"
+              severity="success"
+              outlined
+            />
+            <Button
+              label="文件导入"
+              icon="pi pi-file-import"
+              @click="showFileImportDialog"
+              severity="success"
+              outlined
             />
             <Button
               label="刷新"
@@ -278,6 +277,279 @@ User-Agent: CustomUserAgent/1.0"
         />
       </template>
     </Dialog>
+
+    <!-- 批量添加对话框 -->
+    <Dialog
+      v-model:visible="batchDialogVisible"
+      header="批量添加Session Headers"
+      :style="{ width: '900px', maxHeight: '90vh' }"
+      modal
+      class="session-dialog"
+    >
+      <div class="dialog-content">
+        <!-- 使用说明卡片 -->
+        <Card class="info-card mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-book text-primary"></i>
+              <span>批量添加格式说明</span>
+            </div>
+          </template>
+          <template #content>
+            <Message severity="info" :closable="false">
+              <div class="flex align-items-center gap-2">
+                <i class="pi pi-info-circle"></i>
+                <span>每行一个Header，格式：</span>
+                <code class="format-code">Header-Name: Header-Value</code>
+              </div>
+            </Message>
+          </template>
+        </Card>
+
+        <!-- Header输入区域卡片 -->
+        <Card class="input-card mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-list text-primary"></i>
+              <span>Header列表</span>
+            </div>
+          </template>
+          <template #content>
+            <div class="input-area">
+              <Textarea
+                v-model="batchRawHeaders"
+                rows="12"
+                placeholder="例如:
+Authorization: Bearer your-token-here
+X-Custom-Header: custom-value
+Cookie: session_id=abc123
+X-API-Key: your-api-key
+User-Agent: CustomUserAgent/1.0"
+                class="headers-textarea"
+                :autoResize="false"
+              />
+              <div class="input-stats">
+                <small class="text-color-secondary">
+                  <i class="pi pi-info-circle mr-1"></i>
+                  输入行数: {{ batchRawHeaders.split('\n').filter(line => line.trim()).length }}
+                </small>
+              </div>
+            </div>
+          </template>
+        </Card>
+
+        <!-- 配置选项卡片 -->
+        <Card class="config-card mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-cog text-primary"></i>
+              <span>配置选项</span>
+            </div>
+          </template>
+          <template #content>
+            <div class="formgrid grid p-fluid">
+              <div class="field col-12 md:col-6 mb-3">
+                <FloatLabel>
+                  <InputNumber
+                    id="batch_priority"
+                    v-model="defaultPriority"
+                    :min="0"
+                    :max="100"
+                  />
+                  <label for="batch_priority">
+                    <i class="pi pi-sort-numeric-down mr-2"></i>
+                    默认优先级
+                  </label>
+                </FloatLabel>
+                <small class="text-color-secondary mt-1">0-100，越大优先级越高</small>
+              </div>
+
+              <div class="field col-12 md:col-6 mb-0">
+                <FloatLabel>
+                  <InputNumber
+                    id="batch_ttl"
+                    v-model="defaultTtl"
+                    :min="60"
+                    :max="86400"
+                    suffix=" 秒"
+                  />
+                  <label for="batch_ttl">
+                    <i class="pi pi-clock mr-2"></i>
+                    默认过期时间
+                  </label>
+                </FloatLabel>
+                <small class="text-color-secondary mt-1">60-86400秒（1分钟-24小时）</small>
+              </div>
+            </div>
+          </template>
+        </Card>
+
+        <!-- 域控配置 -->
+        <ScopeConfigPanel
+          v-model="sessionScope"
+          title="作用域配置（可选）"
+          description="为批量添加的Header统一设置作用域，不配置则对所有请求生效"
+          :show-templates="true"
+          :show-info="true"
+          :show-advanced="false"
+        />
+      </div>
+
+      <template #footer>
+        <Button 
+          label="取消" 
+          icon="pi pi-times"
+          severity="secondary" 
+          @click="batchDialogVisible = false" 
+        />
+        <Button 
+          label="添加" 
+          icon="pi pi-check"
+          @click="handleBatchAdd" 
+          :loading="saving" 
+        />
+      </template>
+    </Dialog>
+
+    <!-- 文件导入对话框 -->
+    <Dialog
+      v-model:visible="fileImportDialogVisible"
+      header="从文件导入Session Headers"
+      :style="{ width: '900px', maxHeight: '90vh' }"
+      modal
+      class="session-dialog"
+    >
+      <div class="dialog-content">
+        <!-- 使用说明卡片 -->
+        <Card class="info-card mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-book text-primary"></i>
+              <span>文件格式说明</span>
+            </div>
+          </template>
+          <template #content>
+            <Message severity="info" :closable="false">
+              <div>
+                <div class="mb-2">
+                  <i class="pi pi-info-circle mr-2"></i>
+                  支持的文件格式：
+                </div>
+                <ul class="ml-4">
+                  <li>文本文件 (.txt)：每行一个Header，格式为 <code class="format-code">Header-Name: Header-Value</code></li>
+                  <li>JSON文件 (.json)：对象数组格式，每个对象包含header_name和header_value字段</li>
+                </ul>
+              </div>
+            </Message>
+          </template>
+        </Card>
+
+        <!-- 文件上传区域 -->
+        <Card class="input-card mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-upload text-primary"></i>
+              <span>选择文件</span>
+            </div>
+          </template>
+          <template #content>
+            <div class="file-upload-area">
+              <input
+                type="file"
+                ref="fileInput"
+                accept=".txt,.json"
+                @change="handleFileSelect"
+                class="file-input"
+              />
+              <div class="file-preview" v-if="fileContent">
+                <div class="file-preview-header">
+                  <span class="font-semibold">文件内容预览：</span>
+                </div>
+                <Textarea
+                  v-model="fileContent"
+                  rows="10"
+                  class="headers-textarea"
+                  :autoResize="false"
+                  readonly
+                />
+              </div>
+            </div>
+          </template>
+        </Card>
+
+        <!-- 配置选项卡片 -->
+        <Card class="config-card mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-cog text-primary"></i>
+              <span>配置选项</span>
+            </div>
+          </template>
+          <template #content>
+            <div class="formgrid grid p-fluid">
+              <div class="field col-12 md:col-6 mb-3">
+                <FloatLabel>
+                  <InputNumber
+                    id="file_priority"
+                    v-model="defaultPriority"
+                    :min="0"
+                    :max="100"
+                  />
+                  <label for="file_priority">
+                    <i class="pi pi-sort-numeric-down mr-2"></i>
+                    默认优先级
+                  </label>
+                </FloatLabel>
+                <small class="text-color-secondary mt-1">0-100，越大优先级越高</small>
+              </div>
+
+              <div class="field col-12 md:col-6 mb-0">
+                <FloatLabel>
+                  <InputNumber
+                    id="file_ttl"
+                    v-model="defaultTtl"
+                    :min="60"
+                    :max="86400"
+                    suffix=" 秒"
+                  />
+                  <label for="file_ttl">
+                    <i class="pi pi-clock mr-2"></i>
+                    默认过期时间
+                  </label>
+                </FloatLabel>
+                <small class="text-color-secondary mt-1">60-86400秒（1分钟-24小时）</small>
+              </div>
+            </div>
+          </template>
+        </Card>
+
+        <!-- 域控配置 -->
+        <ScopeConfigPanel
+          v-model="sessionScope"
+          title="作用域配置（可选）"
+          description="为导入的Header统一设置作用域，不配置则对所有请求生效"
+          :show-templates="true"
+          :show-info="true"
+          :show-advanced="false"
+        />
+      </div>
+
+      <template #footer>
+        <Button 
+          label="取消" 
+          icon="pi pi-times"
+          severity="secondary" 
+          @click="fileImportDialogVisible = false" 
+        />
+        <Button 
+          label="导入" 
+          icon="pi pi-check"
+          @click="handleFileImport" 
+          :loading="saving"
+          :disabled="!fileContent" 
+        />
+      </template>
+    </Dialog>
   </div>
 </template>
 
@@ -300,8 +572,12 @@ const confirm = useConfirm()
 const loading = ref(false)
 const saving = ref(false)
 const dialogVisible = ref(false)
+const batchDialogVisible = ref(false)
+const fileImportDialogVisible = ref(false)
 const sessionHeaders = ref<any[]>([])
 const rawHeaders = ref('')
+const batchRawHeaders = ref('')
+const fileContent = ref('')
 const defaultPriority = ref(50)
 const defaultTtl = ref(3600) // 默认1小时
 
@@ -310,7 +586,6 @@ const searchQuery = ref('')
 const statusFilter = ref<string | null>(null)
 const priorityFilter = ref<string | null>(null)
 const pageSize = ref(10)
-const addMenu = ref() // 菜单引用
 const sessionScope = ref<HeaderScope | null>(null) // Session Header作用域配置
 
 // 过滤选项
@@ -353,6 +628,22 @@ function showAddDialog() {
   defaultPriority.value = 50
   defaultTtl.value = 3600
   dialogVisible.value = true
+}
+
+function showBatchAddDialog() {
+  batchRawHeaders.value = ''
+  defaultPriority.value = 50
+  defaultTtl.value = 3600
+  sessionScope.value = null
+  batchDialogVisible.value = true
+}
+
+function showFileImportDialog() {
+  fileContent.value = ''
+  defaultPriority.value = 50
+  defaultTtl.value = 3600
+  sessionScope.value = null
+  fileImportDialogVisible.value = true
 }
 
 async function addSessionHeaders() {
@@ -410,6 +701,157 @@ async function addSessionHeaders() {
       severity: 'error',
       summary: '添加失败',
       detail: error.message || '添加Session Headers失败',
+      life: 3000,
+    })
+  } finally {
+    saving.value = false
+  }
+}
+
+async function handleBatchAdd() {
+  if (!batchRawHeaders.value.trim()) {
+    toast.add({
+      severity: 'warn',
+      summary: '验证失败',
+      detail: '请输入Header内容',
+      life: 3000,
+    })
+    return
+  }
+
+  saving.value = true
+  try {
+    // 解析Headers
+    const lines = batchRawHeaders.value.split('\n').filter((line) => line.trim())
+    const headers: SessionHeader[] = []
+
+    for (const line of lines) {
+      const [name, ...valueParts] = line.split(':')
+      if (name && valueParts.length > 0) {
+        headers.push({
+          header_name: name.trim(),
+          header_value: valueParts.join(':').trim(),
+          priority: defaultPriority.value,
+          ttl: defaultTtl.value,
+          scope: sessionScope.value,
+        })
+      }
+    }
+
+    if (headers.length === 0) {
+      toast.add({
+        severity: 'warn',
+        summary: '解析失败',
+        detail: '未能解析出有效的Header',
+        life: 3000,
+      })
+      return
+    }
+
+    await setSessionHeaders({ headers })
+    toast.add({
+      severity: 'success',
+      summary: '批量添加成功',
+      detail: `成功添加 ${headers.length} 个Session Header`,
+      life: 3000,
+    })
+
+    batchDialogVisible.value = false
+    await loadSessionHeaders()
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: '批量添加失败',
+      detail: error.message || '批量添加Session Headers失败',
+      life: 3000,
+    })
+  } finally {
+    saving.value = false
+  }
+}
+
+function handleFileSelect(event: Event) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    fileContent.value = e.target?.result as string
+  }
+  reader.readAsText(file)
+}
+
+async function handleFileImport() {
+  if (!fileContent.value.trim()) {
+    toast.add({
+      severity: 'warn',
+      summary: '验证失败',
+      detail: '请选择文件',
+      life: 3000,
+    })
+    return
+  }
+
+  saving.value = true
+  try {
+    let headers: SessionHeader[] = []
+
+    // 尝试解析为JSON
+    try {
+      const jsonData = JSON.parse(fileContent.value)
+      if (Array.isArray(jsonData)) {
+        headers = jsonData.map(item => ({
+          header_name: item.header_name || item.name,
+          header_value: item.header_value || item.value,
+          priority: item.priority || defaultPriority.value,
+          ttl: item.ttl || defaultTtl.value,
+          scope: item.scope || sessionScope.value,
+        }))
+      }
+    } catch {
+      // JSON解析失败，尝试作为文本文件解析
+      const lines = fileContent.value.split('\n').filter((line) => line.trim())
+      for (const line of lines) {
+        const [name, ...valueParts] = line.split(':')
+        if (name && valueParts.length > 0) {
+          headers.push({
+            header_name: name.trim(),
+            header_value: valueParts.join(':').trim(),
+            priority: defaultPriority.value,
+            ttl: defaultTtl.value,
+            scope: sessionScope.value,
+          })
+        }
+      }
+    }
+
+    if (headers.length === 0) {
+      toast.add({
+        severity: 'warn',
+        summary: '解析失败',
+        detail: '未能从文件中解析出有效的Header',
+        life: 3000,
+      })
+      return
+    }
+
+    await setSessionHeaders({ headers })
+    toast.add({
+      severity: 'success',
+      summary: '导入成功',
+      detail: `成功导入 ${headers.length} 个Session Header`,
+      life: 3000,
+    })
+
+    fileImportDialogVisible.value = false
+    fileContent.value = ''
+    await loadSessionHeaders()
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: '导入失败',
+      detail: error.message || '导入Session Headers失败',
       life: 3000,
     })
   } finally {
@@ -512,56 +954,6 @@ function clearFilters() {
   statusFilter.value = null
   priorityFilter.value = null
 }
-
-// 切换添加菜单
-function toggleAddMenu(event: Event) {
-  addMenu.value.toggle(event)
-}
-
-// 添加菜单项
-const addMenuItems = [
-  {
-    label: '单条添加',
-    icon: 'pi pi-plus',
-    command: () => showAddDialog()
-  },
-  {
-    label: '批量添加',
-    icon: 'pi pi-list',
-    command: () => showBatchImportDialog()
-  },
-  {
-    separator: true
-  },
-  {
-    label: '从文件导入',
-    icon: 'pi pi-file-import',
-    command: () => showFileImportDialog()
-  }
-]
-
-// 显示批量导入对话框
-function showBatchImportDialog() {
-  // 当前Session Headers已经支持批量添加，这里可以扩展更多功能
-  // 例如：从文件导入、从预设模板导入等
-  toast.add({
-    severity: 'info',
-    summary: '功能提示',
-    detail: '当前已支持批量添加，可在弹窗中输入多行Header',
-    life: 3000,
-  })
-}
-
-// 显示文件导入对话框
-function showFileImportDialog() {
-  // TODO: 实现文件导入对话框
-  toast.add({
-    severity: 'info',
-    summary: '功能开发中',
-    detail: '文件导入功能正在开发中',
-    life: 3000,
-  })
-}
 </script>
 
 <style scoped lang="scss">
@@ -579,14 +971,29 @@ function showFileImportDialog() {
       flex-wrap: wrap;
 
       .search-area {
-        flex: 1;
-        min-width: 300px;
+        flex: 0 0 280px;
+        max-width: 280px;
+
+        :deep(.p-iconfield) {
+          display: flex;
+          align-items: center;
+          position: relative;
+
+          .p-inputicon {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            left: 0.75rem;
+            color: var(--text-color-secondary);
+          }
+        }
 
         .search-input {
           width: 100%;
           border-radius: 8px;
           border: 2px solid var(--surface-border);
           transition: all 0.2s ease;
+          padding-left: 2.5rem;
 
           &:focus {
             border-color: var(--primary-color);
@@ -630,23 +1037,7 @@ function showFileImportDialog() {
         gap: 0.5rem;
         align-items: center;
         margin-left: auto;
-
-        .add-button-group {
-          :deep(.p-button) {
-            border-radius: 0;
-
-            &:first-child {
-              border-top-left-radius: 8px;
-              border-bottom-left-radius: 8px;
-            }
-
-            &:last-child {
-              border-top-right-radius: 8px;
-              border-bottom-right-radius: 8px;
-              border-left: none;
-            }
-          }
-        }
+        flex-wrap: wrap;
       }
     }
   }
@@ -751,6 +1142,33 @@ function showFileImportDialog() {
         display: flex;
         justify-content: space-between;
         align-items: center;
+      }
+    }
+
+    .file-upload-area {
+      .file-input {
+        width: 100%;
+        padding: 1rem;
+        border: 2px dashed var(--surface-border);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          border-color: var(--primary-color);
+          background: var(--surface-50);
+        }
+      }
+
+      .file-preview {
+        margin-top: 1rem;
+
+        .file-preview-header {
+          margin-bottom: 0.5rem;
+          padding: 0.5rem;
+          background: var(--surface-50);
+          border-radius: 4px;
+        }
       }
     }
   }

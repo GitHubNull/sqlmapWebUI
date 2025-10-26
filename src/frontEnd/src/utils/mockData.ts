@@ -5,6 +5,8 @@
 import Mock from 'mockjs'
 import type { Task } from '@/types/task'
 import { TaskStatus } from '@/types/task'
+import type { PersistentHeaderRule, SessionHeader, HeaderScope } from '@/types/headerRule'
+import { ReplaceStrategy } from '@/types/headerRule'
 
 /**
  * 数据生成模式
@@ -280,4 +282,210 @@ export function generateMockTasks(
  */
 export function delay(ms: number = 500): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+// ==================== Header规则Mock数据 ====================
+
+/**
+ * 生成随机作用域配置
+ */
+function generateMockScope(): HeaderScope | null {
+  // 50%概率返回null（全局生效）
+  if (Mock.Random.boolean()) {
+    return null
+  }
+
+  const scopeTypes = [
+    // 仅HTTPS
+    { protocol_pattern: 'https', use_regex: false },
+    // 特定域名
+    { host_pattern: Mock.Random.domain(), use_regex: false },
+    // 所有子域名
+    { host_pattern: `*.${Mock.Random.domain()}`, use_regex: false },
+    // API路径
+    { path_pattern: '/api/*', use_regex: false },
+    // 正则匹配
+    { path_pattern: '^/v[0-9]+/.*', use_regex: true },
+    // 组合条件
+    {
+      protocol_pattern: 'https',
+      host_pattern: `*.${Mock.Random.domain()}`,
+      path_pattern: '/api/*',
+      use_regex: false,
+    },
+  ]
+
+  return Mock.Random.pick(scopeTypes)
+}
+
+/**
+ * 生成随机Header规则
+ */
+export function generateMockHeaderRule(index: number): PersistentHeaderRule {
+  const headerNames = [
+    'Authorization',
+    'X-API-Key',
+    'X-Custom-Header',
+    'X-Request-ID',
+    'X-Tenant-ID',
+    'X-User-Agent',
+    'Accept-Language',
+    'X-Forwarded-For',
+    'X-Real-IP',
+    'Cookie',
+  ]
+
+  const strategies = [
+    ReplaceStrategy.REPLACE,
+    ReplaceStrategy.APPEND,
+    ReplaceStrategy.PREPEND,
+    ReplaceStrategy.CONDITIONAL,
+    ReplaceStrategy.UPSERT,
+  ]
+
+  const headerName = Mock.Random.pick(headerNames)
+  let headerValue: string
+
+  // 根据header名称生成合适的值
+  switch (headerName) {
+    case 'Authorization':
+      headerValue = `Bearer ${Mock.mock('@string("lower", 32)')}}`
+      break
+    case 'X-API-Key':
+      headerValue = Mock.mock('@string("upper", 40)')
+      break
+    case 'Cookie':
+      headerValue = `session_id=${Mock.mock('@guid')}; user_id=${Mock.Random.integer(1000, 9999)}`
+      break
+    case 'Accept-Language':
+      headerValue = Mock.Random.pick(['zh-CN', 'en-US', 'ja-JP', 'ko-KR'])
+      break
+    case 'X-Forwarded-For':
+    case 'X-Real-IP':
+      headerValue = Mock.Random.ip()
+      break
+    default:
+      headerValue = Mock.mock('@string("lower", 10, 30)')
+  }
+
+  const now = new Date()
+  const daysAgo = Mock.Random.integer(0, 30)
+  const createdAt = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000)
+  const updatedAt = new Date(createdAt.getTime() + Mock.Random.integer(0, daysAgo * 24 * 60 * 60 * 1000))
+
+  return {
+    id: 1000 + index,
+    name: `${headerName}规则-${index + 1}`,
+    header_name: headerName,
+    header_value: headerValue,
+    replace_strategy: Mock.Random.pick(strategies),
+    priority: Mock.Random.integer(0, 100),
+    is_active: Mock.Random.boolean(),
+    scope: generateMockScope(),
+    created_at: createdAt.toISOString(),
+    updated_at: updatedAt.toISOString(),
+  }
+}
+
+/**
+ * 生成指定数量的Mock Header规则
+ */
+export function generateMockHeaderRules(count: number = 20): PersistentHeaderRule[] {
+  const rules: PersistentHeaderRule[] = []
+
+  console.log(`🎲 Mock Header规则数据生成`)
+  console.log(`📊 生成数量: ${count} 条`)
+
+  for (let i = 0; i < count; i++) {
+    rules.push(generateMockHeaderRule(i))
+  }
+
+  // 统计状态分布
+  const activeCount = rules.filter(r => r.is_active).length
+  const inactiveCount = count - activeCount
+  const globalCount = rules.filter(r => !r.scope).length
+  const scopedCount = count - globalCount
+
+  console.log(`✅ Mock Header规则生成完成！`)
+  console.log(`📈 状态统计：`)
+  console.log(`  - 启用: ${activeCount} 条 (${(activeCount / count * 100).toFixed(1)}%)`)
+  console.log(`  - 禁用: ${inactiveCount} 条 (${(inactiveCount / count * 100).toFixed(1)}%)`)
+  console.log(`🎯 作用域统计：`)
+  console.log(`  - 全局: ${globalCount} 条 (${(globalCount / count * 100).toFixed(1)}%)`)
+  console.log(`  - 有作用域: ${scopedCount} 条 (${(scopedCount / count * 100).toFixed(1)}%)`)
+
+  return rules
+}
+
+/**
+ * 生成随机Session Header
+ */
+export function generateMockSessionHeader(index: number): any {
+  const headerNames = [
+    'Authorization',
+    'X-Session-Token',
+    'X-CSRF-Token',
+    'Cookie',
+    'X-Request-ID',
+    'X-Trace-ID',
+  ]
+
+  const headerName = Mock.Random.pick(headerNames)
+  let headerValue: string
+
+  switch (headerName) {
+    case 'Authorization':
+      headerValue = `Bearer ${Mock.mock('@string("lower", 32)')}}`
+      break
+    case 'X-Session-Token':
+    case 'X-CSRF-Token':
+      headerValue = Mock.mock('@guid')
+      break
+    case 'Cookie':
+      headerValue = `session=${Mock.mock('@guid')}; path=/; HttpOnly`
+      break
+    default:
+      headerValue = Mock.mock('@string("lower", 20, 40)')
+  }
+
+  const now = new Date()
+  const createdAt = new Date(now.getTime() - Mock.Random.integer(0, 3600) * 1000)
+  const ttl = Mock.Random.pick([300, 600, 1800, 3600, 7200, 14400, 28800, 43200, 86400])
+  const expiresAt = new Date(createdAt.getTime() + ttl * 1000)
+
+  return {
+    header_name: headerName,
+    header_value: headerValue,
+    priority: Mock.Random.integer(0, 100),
+    ttl,
+    scope: generateMockScope(),
+    created_at: createdAt.toISOString(),
+    expires_at: expiresAt.toISOString(),
+  }
+}
+
+/**
+ * 生成指定数量的Mock Session Headers
+ */
+export function generateMockSessionHeaders(count: number = 10): any[] {
+  const headers: any[] = []
+
+  console.log(`🎲 Mock Session Header数据生成`)
+  console.log(`📊 生成数量: ${count} 条`)
+
+  for (let i = 0; i < count; i++) {
+    headers.push(generateMockSessionHeader(i))
+  }
+
+  // 统计有效/过期分布
+  const now = new Date()
+  const validCount = headers.filter(h => new Date(h.expires_at) > now).length
+  const expiredCount = count - validCount
+
+  console.log(`✅ Mock Session Header生成完成！`)
+  console.log(`📈 状态统计：`)
+  console.log(`  - 有效: ${validCount} 条 (${(validCount / count * 100).toFixed(1)}%)`)
+  console.log(`  - 已过期: ${expiredCount} 条 (${(expiredCount / count * 100).toFixed(1)}%)`)
+
+  return headers
 }
