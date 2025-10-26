@@ -3,55 +3,87 @@
     <Card>
       <template #title>配置管理</template>
       <template #content>
-        <div class="config-section">
-          <h3>数据刷新设置</h3>
-          <div class="field">
-            <label>自动刷新间隔 ({{ configStore.autoRefreshInterval }} 分钟)</label>
-            <div class="slider-container">
-              <Slider 
-                v-model="configStore.autoRefreshInterval" 
-                :min="5" 
-                :max="60" 
-                :step="5"
-                @change="handleRefreshIntervalChange"
-                class="refresh-slider"
-              />
-              <!-- 刻度尺标记 -->
-              <div class="slider-ruler">
-                <div 
-                  v-for="n in 12" 
-                  :key="n" 
-                  class="ruler-mark"
-                  :class="{
-                    'major': n * 5 === 5 || n * 5 === 15 || n * 5 === 30 || n * 5 === 60,
-                    'active': configStore.autoRefreshInterval === n * 5
-                  }"
-                  :style="{ left: `calc(${((n * 5 - 5) / 55) * 100}% + 14px)` }"
-                >
-                  <div class="mark-line"></div>
-                  <div 
-                    v-if="n * 5 === 5 || n * 5 === 15 || n * 5 === 30 || n * 5 === 60" 
-                    class="mark-label"
-                  >
-                    {{ n * 5 }}
+        <!-- Tab导航 -->
+        <TabView v-model:activeIndex="activeTab" class="config-tabs">
+          <!-- 系统配置 -->
+          <TabPanel value="0">
+            <template #header>
+              <i class="pi pi-cog"></i>
+              <span>系统配置</span>
+            </template>
+            <div class="config-section">
+              <h3>数据刷新设置</h3>
+              <div class="field">
+                <label>自动刷新间隔 ({{ configStore.autoRefreshInterval }} 分钟)</label>
+                <div class="slider-container">
+                  <Slider 
+                    v-model="configStore.autoRefreshInterval" 
+                    :min="5" 
+                    :max="60" 
+                    :step="5"
+                    @change="handleRefreshIntervalChange"
+                    class="refresh-slider"
+                  />
+                  <!-- 刻度尺标记 -->
+                  <div class="slider-ruler">
+                    <div 
+                      v-for="n in 12" 
+                      :key="n" 
+                      class="ruler-mark"
+                      :class="{
+                        'major': n * 5 === 5 || n * 5 === 15 || n * 5 === 30 || n * 5 === 60,
+                        'active': configStore.autoRefreshInterval === n * 5
+                      }"
+                      :style="{ left: `calc(${((n * 5 - 5) / 55) * 100}% + 14px)` }"
+                    >
+                      <div class="mark-line"></div>
+                      <div 
+                        v-if="n * 5 === 5 || n * 5 === 15 || n * 5 === 30 || n * 5 === 60" 
+                        class="mark-label"
+                      >
+                        {{ n * 5 }}
+                      </div>
+                    </div>
                   </div>
                 </div>
+                <small class="field-help">
+                  设置任务列表页面的自动刷新间隔，范围为5-60分钟，每5分钟一个间隔
+                </small>
               </div>
             </div>
-            <small class="field-help">
-              设置任务列表页面的自动刷新间隔，范围为5-60分钟，每5分钟一个间隔
-            </small>
-          </div>
-        </div>
+          </TabPanel>
+
+          <!-- Header规则管理 -->
+          <TabPanel value="1">
+            <template #header>
+              <i class="pi pi-list"></i>
+              <span>Header规则管理</span>
+            </template>
+            <HeaderRulesConfig />
+          </TabPanel>
+
+          <!-- 会话Header管理 -->
+          <TabPanel value="2">
+            <template #header>
+              <i class="pi pi-clock"></i>
+              <span>会话Header管理</span>
+            </template>
+            <SessionHeadersConfig />
+          </TabPanel>
+        </TabView>
       </template>
     </Card>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useConfigStore } from '@/stores/config'
+import HeaderRulesConfig from './components/HeaderRulesConfig.vue'
+import SessionHeadersConfig from './components/SessionHeadersConfig.vue'
 
 const configStore = useConfigStore()
+const activeTab = ref(0)
 
 function handleRefreshIntervalChange() {
   configStore.updateAutoRefreshInterval(configStore.autoRefreshInterval)
@@ -86,6 +118,70 @@ function handleRefreshIntervalChange() {
   > * {
     position: relative;
     z-index: 1;
+  }
+}
+
+// ==================== Tab样式 ====================
+:deep(.config-tabs) {
+  .p-tabview-nav {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.7) 100%);
+    border-radius: $border-radius-lg $border-radius-lg 0 0;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-bottom: none;
+    padding: 8px 12px 0 12px; // 增加左右内边距
+    box-shadow: $shadow-raised;
+    gap: 12px; // 增加标签之间的间距
+    display: flex;
+  }
+
+  .p-tabview-nav-link {
+    background: transparent;
+    border: none;
+    padding: 14px 28px; // 增加内边距
+    margin-right: 12px; // 增加右边距
+    border-radius: $border-radius $border-radius 0 0;
+    transition: $transition-base;
+    display: flex;
+    align-items: center;
+    gap: 10px; // 增加图标和文字之间的间距
+
+    i {
+      font-size: 1.2rem; // 稍微增大图标
+      transition: $transition-base;
+    }
+
+    span {
+      font-weight: 600;
+      font-size: 15px;
+      white-space: nowrap; // 防止文字换行
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+      
+      i {
+        color: $primary-color;
+        transform: scale(1.1);
+      }
+    }
+  }
+
+  .p-tabview-nav-link.p-highlight {
+    background: $gradient-primary;
+    color: white;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+
+    i {
+      color: white;
+    }
+  }
+
+  .p-tabview-panels {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.6) 100%);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 0 0 $border-radius-lg $border-radius-lg;
+    padding: 32px;
+    box-shadow: $shadow-elevated;
   }
 }
 
@@ -230,7 +326,6 @@ function handleRefreshIntervalChange() {
     // 根据位置动态生成颜色
     @for $i from 1 through 12 {
       &:nth-child(#{$i}) .mark-line {
-        $percent: ($i - 1) / 11 * 100%;  // 0% 到 100%
         @if $i <= 4 {
           // 5-20分钟: 红色系
           background: linear-gradient(180deg, 

@@ -2,6 +2,7 @@ import re
 from typing import List, Dict, Optional, Tuple
 from model.PersistentHeaderRule import PersistentHeaderRule, ReplaceStrategy
 from model.SessionHeader import SessionHeader
+from utils.scope_matcher import ScopeMatcher
 
 # 使用标准库的logging模块
 import logging
@@ -86,9 +87,17 @@ class HeaderProcessor:
             return True
 
     @classmethod
-    def apply_persistent_rules(cls, headers_dict: Dict[str, str], rules: List[PersistentHeaderRule]) -> Tuple[Dict[str, str], List[str]]:
-        """应用持久化规则到请求头字典
-        返回: (处理后的请求头字典, 实际应用的规则名称列表)"""
+    def apply_persistent_rules(cls, headers_dict: Dict[str, str], rules: List[PersistentHeaderRule], target_url: Optional[str] = None) -> Tuple[Dict[str, str], List[str]]:
+        """
+        应用持久化规则到请求头字典
+        
+        参数:
+            headers_dict: 请求头字典
+            rules: 持久化规则列表
+            target_url: 目标URL，用于作用域匹配（可选）
+        
+        返回: (处理后的请求头字典, 实际应用的规则名称列表)
+        """
         if not rules:
             return headers_dict, []
         
@@ -101,6 +110,15 @@ class HeaderProcessor:
         for rule in sorted_rules:
             if not rule.is_active:
                 continue
+            
+            # 作用域匹配：如果规则配置了scope且提供了target_url，检查是否匹配
+            if rule.scope is not None and target_url:
+                if not ScopeMatcher.match_scope(rule.scope, target_url):
+                    logger.debug(
+                        f"规则 '{rule.name}' 作用域不匹配，跳过应用. "
+                        f"URL: {target_url}"
+                    )
+                    continue
             
             # 验证请求头名称
             if not cls.validate_header_name(rule.header_name):
@@ -133,9 +151,17 @@ class HeaderProcessor:
         return processed_headers, applied_rules
 
     @classmethod
-    def apply_session_headers(cls, headers_dict: Dict[str, str], session_headers: Dict[str, SessionHeader]) -> Tuple[Dict[str, str], List[str]]:
-        """应用会话性请求头到请求头字典
-        返回: (处理后的请求头字典, 实际应用的会话头名称列表)"""
+    def apply_session_headers(cls, headers_dict: Dict[str, str], session_headers: Dict[str, SessionHeader], target_url: Optional[str] = None) -> Tuple[Dict[str, str], List[str]]:
+        """
+        应用会话性请求头到请求头字典
+        
+        参数:
+            headers_dict: 请求头字典
+            session_headers: 会话性请求头字典
+            target_url: 目标URL，用于作用域匹配（可选）
+        
+        返回: (处理后的请求头字典, 实际应用的会话头名称列表)
+        """
         if not session_headers:
             return headers_dict, []
         
@@ -146,7 +172,7 @@ class HeaderProcessor:
         }
         
         if not active_session_headers:
-            return headers_dict
+            return headers_dict, []
         
         # 按优先级排序会话性请求头（优先级高的后执行，以便覆盖优先级低的）
         sorted_session_headers = sorted(
@@ -158,6 +184,15 @@ class HeaderProcessor:
         applied_headers = []
         
         for header_name, session_header in sorted_session_headers:
+            # 作用域匹配：如果会话头配置了scope且提供了target_url，检查是否匹配
+            if session_header.scope is not None and target_url:
+                if not ScopeMatcher.match_scope(session_header.scope, target_url):
+                    logger.debug(
+                        f"会话头 '{header_name}' 作用域不匹配，跳过应用. "
+                        f"URL: {target_url}"
+                    )
+                    continue
+            
             # 验证请求头名称
             if not cls.validate_header_name(header_name):
                 logger.warning(f"Invalid session header name: {header_name}")
@@ -177,23 +212,30 @@ class HeaderProcessor:
 
     @classmethod
     def process_headers(cls, original_headers: List[str], persistent_rules: List[PersistentHeaderRule], 
-                       session_headers: Dict[str, SessionHeader]) -> Tuple[List[str], List[str]]:
+                       session_headers: Dict[str, SessionHeader], target_url: Optional[str] = None) -> Tuple[List[str], List[str]]:
         """
         处理请求头，应用持久化规则和会话性请求头
+        
+        参数:
+            original_headers: 原始请求头列表
+            persistent_rules: 持久化规则列表
+            session_headers: 会话性请求头字典
+            target_url: 目标URL，用于作用域匹配（可选）
+        
         返回: (处理后的请求头列表, 应用的规则描述列表)
         """
         try:
-            logger.debug(f"Processing headers: {len(original_headers)} original headers, {len(persistent_rules)} rules, {len(session_headers)} session headers")
+            logger.debug(f"Processing headers: {len(original_headers)} original headers, {len(persistent_rules)} rules, {len(session_headers)} session headers, target_url={target_url}")
             
             # 1. 将原始请求头转换为字典格式
             headers_dict = cls.normalize_headers(original_headers)
             logger.debug(f"Original headers: {headers_dict}")
             
-            # 2. 应用持久化规则
-            headers_dict, applied_persistent_rules = cls.apply_persistent_rules(headers_dict, persistent_rules)
+            # 2. 应用持久化规则（传递target_url用于作用域匹配）
+            headers_dict, applied_persistent_rules = cls.apply_persistent_rules(headers_dict, persistent_rules, target_url)
             
-            # 3. 应用会话性请求头
-            headers_dict, applied_session_headers = cls.apply_session_headers(headers_dict, session_headers)
+            # 3. 应用会话性请求头（传递target_url用于作用域匹配）
+            headers_dict, applied_session_headers = cls.apply_session_headers(headers_dict, session_headers, target_url)
             
             # 4. 转换回SQLMap所需的格式
             processed_headers = cls.format_headers_for_sqlmap(headers_dict)
@@ -216,13 +258,20 @@ class HeaderProcessor:
 
     @classmethod
     def preview_header_processing(cls, original_headers: List[str], persistent_rules: List[PersistentHeaderRule], 
-                                 session_headers: Dict[str, SessionHeader]) -> Dict:
+                                 session_headers: Dict[str, SessionHeader], target_url: Optional[str] = None) -> Dict:
         """
         预览请求头处理结果，不实际应用
-        返回详细的处理信息用于调试和预览
+        
+        参数:
+            original_headers: 原始请求头列表
+            persistent_rules: 持久化规则列表
+            session_headers: 会话性请求头字典
+            target_url: 目标URL，用于作用域匹配（可选）
+        
+        返回: 详细的处理信息用于调试和预览
         """
         try:
-            processed_headers, applied_rules = cls.process_headers(original_headers, persistent_rules, session_headers)
+            processed_headers, applied_rules = cls.process_headers(original_headers, persistent_rules, session_headers, target_url)
             
             return {
                 "original_headers": original_headers,

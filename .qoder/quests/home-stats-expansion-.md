@@ -1204,7 +1204,7 @@ sequenceDiagram
 
 ### 主页统计查看流程
 
-``mermaid
+```mermaid
 flowchart TD
     Start[用户访问主页] --> Load[加载任务列表]
     Load --> Calculate[计算统计数据]
@@ -1212,6 +1212,7 @@ flowchart TD
     Display --> Click{用户点击卡片}
     Click -->|是| Navigate[跳转到任务列表并应用过滤]
     Click -->|否| Wait[等待用户操作]
+
 ```
 
 ### 任务搜索过滤流程

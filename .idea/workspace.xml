@@ -4,7 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="feat(config):优化自动刷新间隔滑块刻度尺设计&#10;&#10;- 新增带刻度线的滑块尺样式，提升视觉反馈&#10;- 添加主要刻度标记（5、15、30、60分钟）&#10;- 实现激活状态高亮显示当前选中值&#10;- 增加悬停效果增强交互体验&#10;- 调整布局结构以适应新刻度尺组件&#10;- 更新样式细节包括阴影、渐变和过渡动画&#10;- 允许标签溢出显示以改善视觉效果- 恢复滑块容器宽度为100%- 动态生成刻度颜色实现红黄绿渐变&#10;- 优化PrimeVue滑块背景和范围颜色- 添加3D增强效果和颜色渐变&#10;- 调整刻度线和标签的颜色与阴影- 改进滑块整体视觉层次和过渡效果" />
+    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="feat(config):优化自动刷新间隔滑块刻度尺设计&#10;&#10;- 新增带刻度线的滑块尺样式，提升视觉反馈&#10;- 添加主要刻度标记（5、15、30、60分钟）&#10;- 实现激活状态高亮显示当前选中值&#10;- 增加悬停效果增强交互体验&#10;- 调整布局结构以适应新刻度尺组件&#10;- 更新样式细节包括阴影、渐变和过渡动画- 允许标签溢出显示以改善视觉效果&#10;- 恢复滑块容器宽度为100%&#10;- 动态生成刻度颜色实现红黄绿渐变&#10;- 优化PrimeVue滑块背景和范围颜色- 添加3D增强效果和颜色渐变&#10;- 调整刻度线和标签的颜色与阴影&#10;- 改进滑块整体视觉层次和过渡效果">
+      <change afterPath="$PROJECT_DIR$/src/backEnd/api/commonApi/headerController.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.qoder/quests/home-stats-expansion-.md" beforeDir="false" afterPath="$PROJECT_DIR$/.qoder/quests/home-stats-expansion-.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/backEnd/model/HeaderDatabase.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/model/HeaderDatabase.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/backEnd/model/PersistentHeaderRule.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/model/PersistentHeaderRule.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/backEnd/model/SessionHeader.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/model/SessionHeader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/backEnd/service/headerRuleService.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/service/headerRuleService.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/backEnd/utils/header_processor.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/utils/header_processor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/index.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/index.scss" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -267,7 +277,15 @@
       <option name="project" value="LOCAL" />
       <updated>1761452829210</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="feat(config):优化自动刷新间隔滑块刻度尺设计&#10;&#10;- 新增带刻度线的滑块尺样式，提升视觉反馈&#10;- 添加主要刻度标记（5、15、30、60分钟）&#10;- 实现激活状态高亮显示当前选中值&#10;- 增加悬停效果增强交互体验&#10;- 调整布局结构以适应新刻度尺组件&#10;- 更新样式细节包括阴影、渐变和过渡动画- 允许标签溢出显示以改善视觉效果&#10;- 恢复滑块容器宽度为100%&#10;- 动态生成刻度颜色实现红黄绿渐变&#10;- 优化PrimeVue滑块背景和范围颜色- 添加3D增强效果和颜色渐变&#10;- 调整刻度线和标签的颜色与阴影&#10;- 改进滑块整体视觉层次和过渡效果">
+      <option name="closed" value="true" />
+      <created>1761456927631</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1761456927631</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -291,7 +309,8 @@
     <MESSAGE value="feat(api): 添加健康检查端点和智能轮询机制- 新增 `/api/health` 端点用于服务状态监控&#10;- 实现前端智能轮询策略 useSmartPolling.ts&#10;- 更新 API 文档包含健康检查使用示例&#10;- 调整认证机制排除健康检查端点&#10;- 增加健康检查客户端调用方法&#10;- 更新相关文件引用和架构说明&#10;-优化任务列表统计显示未知状态任务&#10;- 调整首页注入状态卡片样式和布局&#10;- 改进任务列表分页器固定显示效果&#10;- 移除底部导航徽章显示逻辑&#10;- 优化模拟数据生成注入状态分布&#10;- 新增任务批量操作流程说明文档&#10;- 更新业务逻辑层批量停止功能描述- 调整页面布局间距和响应式设计&#10;- 增强3D视觉效果和颜色主题适配" />
     <MESSAGE value="feat(config):优化自动刷新间隔滑块刻度尺设计&#10;&#10;- 新增带刻度线的滑块尺样式，提升视觉反馈&#10;- 添加主要刻度标记（5、15、30、60分钟）&#10;- 实现激活状态高亮显示当前选中值&#10;- 增加悬停效果增强交互体验&#10;- 调整布局结构以适应新刻度尺组件&#10;- 更新样式细节包括阴影、渐变和过渡动画" />
     <MESSAGE value="feat(config):优化自动刷新间隔滑块刻度尺设计&#10;&#10;- 新增带刻度线的滑块尺样式，提升视觉反馈&#10;- 添加主要刻度标记（5、15、30、60分钟）&#10;- 实现激活状态高亮显示当前选中值&#10;- 增加悬停效果增强交互体验&#10;- 调整布局结构以适应新刻度尺组件&#10;- 更新样式细节包括阴影、渐变和过渡动画&#10;- 允许标签溢出显示以改善视觉效果- 恢复滑块容器宽度为100%- 动态生成刻度颜色实现红黄绿渐变&#10;- 优化PrimeVue滑块背景和范围颜色- 添加3D增强效果和颜色渐变&#10;- 调整刻度线和标签的颜色与阴影- 改进滑块整体视觉层次和过渡效果" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(config):优化自动刷新间隔滑块刻度尺设计&#10;&#10;- 新增带刻度线的滑块尺样式，提升视觉反馈&#10;- 添加主要刻度标记（5、15、30、60分钟）&#10;- 实现激活状态高亮显示当前选中值&#10;- 增加悬停效果增强交互体验&#10;- 调整布局结构以适应新刻度尺组件&#10;- 更新样式细节包括阴影、渐变和过渡动画&#10;- 允许标签溢出显示以改善视觉效果- 恢复滑块容器宽度为100%- 动态生成刻度颜色实现红黄绿渐变&#10;- 优化PrimeVue滑块背景和范围颜色- 添加3D增强效果和颜色渐变&#10;- 调整刻度线和标签的颜色与阴影- 改进滑块整体视觉层次和过渡效果" />
+    <MESSAGE value="feat(config):优化自动刷新间隔滑块刻度尺设计&#10;&#10;- 新增带刻度线的滑块尺样式，提升视觉反馈&#10;- 添加主要刻度标记（5、15、30、60分钟）&#10;- 实现激活状态高亮显示当前选中值&#10;- 增加悬停效果增强交互体验&#10;- 调整布局结构以适应新刻度尺组件&#10;- 更新样式细节包括阴影、渐变和过渡动画- 允许标签溢出显示以改善视觉效果&#10;- 恢复滑块容器宽度为100%&#10;- 动态生成刻度颜色实现红黄绿渐变&#10;- 优化PrimeVue滑块背景和范围颜色- 添加3D增强效果和颜色渐变&#10;- 调整刻度线和标签的颜色与阴影&#10;- 改进滑块整体视觉层次和过渡效果" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(config):优化自动刷新间隔滑块刻度尺设计&#10;&#10;- 新增带刻度线的滑块尺样式，提升视觉反馈&#10;- 添加主要刻度标记（5、15、30、60分钟）&#10;- 实现激活状态高亮显示当前选中值&#10;- 增加悬停效果增强交互体验&#10;- 调整布局结构以适应新刻度尺组件&#10;- 更新样式细节包括阴影、渐变和过渡动画- 允许标签溢出显示以改善视觉效果&#10;- 恢复滑块容器宽度为100%&#10;- 动态生成刻度颜色实现红黄绿渐变&#10;- 优化PrimeVue滑块背景和范围颜色- 添加3D增强效果和颜色渐变&#10;- 调整刻度线和标签的颜色与阴影&#10;- 改进滑块整体视觉层次和过渡效果" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

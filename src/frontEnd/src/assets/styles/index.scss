@@ -179,6 +179,202 @@
   background: linear-gradient(135deg, $bg-color-dark 0%, #1e293b 100%);
   color: #e2e8f0;
 
+  // ==================== 全局元素暗黑适配 ====================
+  
+  // 主内容区域
+  .main-content {
+    background: transparent;
+    color: #e2e8f0;
+  }
+
+  // 卡片容器
+  .p-card {
+    background: linear-gradient(145deg, #334155 0%, #1e293b 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    
+    .p-card-title {
+      color: #e2e8f0;
+    }
+    
+    .p-card-content {
+      color: #cbd5e1;
+    }
+  }
+
+  // 标题
+  h1, h2, h3, h4, h5, h6 {
+    color: #f1f5f9;
+  }
+
+  // 文本
+  p, span, div {
+    color: #e2e8f0;
+  }
+
+  // 统计卡片 (首页)
+  .stat-card {
+    background: linear-gradient(145deg, #334155 0%, #1e293b 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    
+    .stat-value {
+      color: #f1f5f9 !important;
+    }
+    
+    .stat-label {
+      color: #94a3b8 !important;
+    }
+  }
+
+  // 配置页面
+  .field {
+    background: linear-gradient(135deg, rgba(51, 65, 85, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    
+    label {
+      color: #e2e8f0 !important;
+    }
+  }
+
+  .field-help {
+    background: linear-gradient(135deg, rgba(51, 65, 85, 0.4) 0%, rgba(30, 41, 59, 0.2) 100%) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #94a3b8 !important;
+  }
+
+  // ==================== PrimeVue组件暗黑适配 ====================
+
+  // 按钮
+  .p-button {
+    &.p-button-text {
+      color: #e2e8f0 !important; // 确保文本按钮在暗黑模式下可见
+      
+      .p-button-icon {
+        color: #e2e8f0 !important; // 确保图标可见
+      }
+      
+      &:hover {
+        background: rgba(99, 102, 241, 0.2) !important;
+        color: #a5b4fc !important;
+        
+        .p-button-icon {
+          color: #a5b4fc !important;
+        }
+      }
+    }
+  }
+
+  // 输入框
+  .p-inputtext {
+    background: #1e293b;
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #e2e8f0;
+    
+    &::placeholder {
+      color: #64748b;
+    }
+    
+    &:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+  }
+
+  // 下拉框
+  .p-select {
+    background: #1e293b;
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #e2e8f0;
+    
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+  }
+
+  // 表格
+  .p-datatable {
+    .p-datatable-header {
+      background: #1e293b;
+      border-color: rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+    }
+    
+    .p-datatable-thead > tr > th {
+      background: #334155;
+      border-color: rgba(255, 255, 255, 0.1);
+      color: #f1f5f9;
+    }
+    
+    .p-datatable-tbody > tr {
+      background: #1e293b;
+      color: #e2e8f0;
+      
+      &:hover {
+        background: #334155;
+      }
+      
+      > td {
+        border-color: rgba(255, 255, 255, 0.05);
+      }
+    }
+    
+    .p-datatable-footer {
+      background: #1e293b;
+      border-color: rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+    }
+  }
+
+  // 分页器
+  .p-paginator {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+    border-color: rgba(255, 255, 255, 0.1);
+    
+    .p-paginator-page,
+    .p-paginator-first,
+    .p-paginator-prev,
+    .p-paginator-next,
+    .p-paginator-last {
+      color: #e2e8f0;
+      
+      &:hover {
+        background: rgba(99, 102, 241, 0.2);
+      }
+      
+      &.p-highlight {
+        background: #6366f1;
+        color: white;
+      }
+    }
+  }
+
+  // 复选框
+  .p-checkbox {
+    .p-checkbox-box {
+      background: #1e293b !important;
+      border-color: rgba(255, 255, 255, 0.3) !important;
+      
+      &:hover {
+        background: #334155 !important;
+        border-color: rgba(255, 255, 255, 0.4) !important;
+      }
+      
+      &.p-highlight {
+        background: #6366f1 !important;
+        border-color: #6366f1 !important;
+      }
+    }
+  }
+
+  // 滑块
+  .p-slider {
+    background: linear-gradient(90deg, 
+      rgba(239, 68, 68, 0.25) 0%,
+      rgba(251, 191, 36, 0.25) 36%,
+      rgba(34, 197, 94, 0.25) 100%
+    ) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+  }
+
   // 暗黑模式下的3D效果
   .surface-raised {
     background: linear-gradient(145deg, #334155 0%, #1e293b 100%);
@@ -401,12 +597,20 @@
     box-shadow: none;
     text-shadow: none;
     color: $text-color; // 添加默认颜色，确保图标可见
+    
+    .p-button-icon {
+      color: inherit; // 继承按钮颜色
+    }
 
     &:hover {
       background: rgba(99, 102, 241, 0.1);
       box-shadow: $shadow-raised;
       color: $primary-color;
       border-radius: $border-radius;
+      
+      .p-button-icon {
+        color: $primary-color;
+      }
     }
   }
 

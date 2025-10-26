@@ -36,10 +36,18 @@ class HeaderDatabase(Database):
                 match_condition TEXT,
                 priority INTEGER DEFAULT 0,
                 is_active INTEGER DEFAULT 1,
+                scope_config TEXT DEFAULT NULL,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             )
         """)
+        
+        # 检查并添加scope_config列（如果表已存在但没有该列）
+        self._add_column_if_not_exists(
+            'persistent_header_rules', 
+            'scope_config', 
+            'TEXT DEFAULT NULL'
+        )
         
         # 创建会话性请求头表
         self.execute("""
@@ -49,11 +57,19 @@ class HeaderDatabase(Database):
                 header_name TEXT NOT NULL,
                 header_value TEXT NOT NULL,
                 priority INTEGER DEFAULT 0,
+                scope_config TEXT DEFAULT NULL,
                 expires_at TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 UNIQUE(client_ip, header_name)
             )
         """)
+        
+        # 检查并添加scope_config列（如果表已存在但没有该列）
+        self._add_column_if_not_exists(
+            'session_headers', 
+            'scope_config', 
+            'TEXT DEFAULT NULL'
+        )
         
         # 创建索引以提高查询性能
         self.execute("CREATE INDEX IF NOT EXISTS idx_header_rules_active ON persistent_header_rules(is_active)")
@@ -63,3 +79,28 @@ class HeaderDatabase(Database):
         self.execute("CREATE INDEX IF NOT EXISTS idx_session_headers_expires ON session_headers(expires_at)")
         
         logger.info(f"Header database initialized at {self.database_path}")
+    
+    def _add_column_if_not_exists(self, table_name: str, column_name: str, column_definition: str):
+        """
+        检查并添加列（如果不存在）
+        
+        参数:
+            table_name: 表名
+            column_name: 列名
+            column_definition: 列定义（包含类型和默认值）
+        """
+        try:
+            # 查询表结构
+            result = self.only_execute(f"PRAGMA table_info({table_name})")
+            if result:
+                columns = [row[1] for row in result.fetchall()]
+            else:
+                columns = []
+            
+            # 如果列不存在，添加它
+            if column_name not in columns:
+                logger.info(f"添加列 {column_name} 到表 {table_name}")
+                self.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_definition}")
+                logger.info(f"列 {column_name} 添加成功")
+        except Exception as e:
+            logger.warning(f"添加列 {column_name} 失败: {getSafeExString(e)}")

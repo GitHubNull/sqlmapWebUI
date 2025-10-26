@@ -1,32 +1,31 @@
+# 使用标准库的logging模块
+import logging
 from datetime import datetime
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
+
 from fastapi import status
 
-from model.Database import Database
-from model.DataStore import DataStore
 from model.BaseResponseMsg import BaseResponseMsg
-from model.PersistentHeaderRule import (
-    PersistentHeaderRule, 
-    PersistentHeaderRuleCreate, 
-    PersistentHeaderRuleUpdate,
-    PersistentHeaderRuleResponse
-)
-from model.SessionHeader import SessionHeaderCreate, SessionHeaderBatchCreate
+from model.DataStore import DataStore
+from model.Database import Database
 from model.HeaderBatch import (
     HeaderBatchParseRequest,
     HeaderBatchCreateRequest,
     ParsedHeaderBatchCreateRequest,
-    ParseResult,
     HeaderBatchResult,
     TargetType,
     ParsedHeaderItem
 )
-from utils.session_header_manager import SessionHeaderManager
-from utils.header_processor import HeaderProcessor
+from model.PersistentHeaderRule import (
+    PersistentHeaderRule,
+    PersistentHeaderRuleCreate,
+    PersistentHeaderRuleUpdate,
+    PersistentHeaderRuleResponse
+)
+from model.SessionHeader import SessionHeaderCreate
 from utils.header_parser import HeaderParser
+from utils.header_processor import HeaderProcessor
 
-# 使用标准库的logging模块
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -113,11 +112,17 @@ class HeaderRuleService:
             
             current_time = self._get_current_time()
             
+            # 序列化scope配置
+            scope_config_json = None
+            if rule_data.scope is not None:
+                import json
+                scope_config_json = json.dumps(rule_data.scope.to_dict(), ensure_ascii=False)
+            
             # 插入新规则
             cursor = db.only_execute("""
                 INSERT INTO persistent_header_rules 
-                (name, header_name, header_value, replace_strategy, match_condition, priority, is_active, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (name, header_name, header_value, replace_strategy, match_condition, priority, is_active, scope_config, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 rule_data.name,
                 rule_data.header_name,
@@ -126,6 +131,7 @@ class HeaderRuleService:
                 rule_data.match_condition,
                 rule_data.priority,
                 1 if rule_data.is_active else 0,
+                scope_config_json,
                 current_time,
                 current_time
             ))
@@ -145,6 +151,7 @@ class HeaderRuleService:
                 match_condition=rule_data.match_condition,
                 priority=rule_data.priority,
                 is_active=rule_data.is_active,
+                scope=rule_data.scope.to_dict() if rule_data.scope else None,
                 created_at=current_time,
                 updated_at=current_time
             )
@@ -185,7 +192,7 @@ class HeaderRuleService:
             if active_only:
                 query = """
                     SELECT id, name, header_name, header_value, replace_strategy, 
-                           match_condition, priority, is_active, created_at, updated_at
+                           match_condition, priority, is_active, scope_config, created_at, updated_at
                     FROM persistent_header_rules 
                     WHERE is_active = 1
                     ORDER BY priority DESC, created_at DESC
@@ -194,7 +201,7 @@ class HeaderRuleService:
             else:
                 query = """
                     SELECT id, name, header_name, header_value, replace_strategy, 
-                           match_condition, priority, is_active, created_at, updated_at
+                           match_condition, priority, is_active, scope_config, created_at, updated_at
                     FROM persistent_header_rules 
                     ORDER BY priority DESC, created_at DESC
                 """
@@ -205,6 +212,19 @@ class HeaderRuleService:
             
             rules = []
             for row in rules_data:
+                # 解析scope_config
+                scope_dict = None
+                if row[8]:  # scope_config字段
+                    try:
+                        import json
+                        from model.HeaderScope import HeaderScope
+                        scope_data = json.loads(row[8])
+                        scope_obj = HeaderScope.from_dict(scope_data)
+                        scope_dict = scope_obj.to_dict() if scope_obj else None
+                    except Exception as e:
+                        logger.warning(f"解析scope_config失败: {e}")
+                        scope_dict = None
+                
                 rule_response = PersistentHeaderRuleResponse(
                     id=row[0],
                     name=row[1],
@@ -214,8 +234,9 @@ class HeaderRuleService:
                     match_condition=row[5],
                     priority=row[6],
                     is_active=bool(row[7]),
-                    created_at=row[8],
-                    updated_at=row[9]
+                    scope=scope_dict,
+                    created_at=row[9],
+                    updated_at=row[10]
                 )
                 rules.append(rule_response.dict())
             
@@ -255,7 +276,7 @@ class HeaderRuleService:
             
             query = """
                 SELECT id, name, header_name, header_value, replace_strategy, 
-                       match_condition, priority, is_active, created_at, updated_at
+                       match_condition, priority, is_active, scope_config, created_at, updated_at
                 FROM persistent_header_rules 
                 WHERE id = ?
             """
@@ -271,6 +292,19 @@ class HeaderRuleService:
                 )
             
             row = rule_data[0]
+            # 解析scope_config
+            scope_dict = None
+            if row[8]:  # scope_config字段
+                try:
+                    import json
+                    from model.HeaderScope import HeaderScope
+                    scope_data = json.loads(row[8])
+                    scope_obj = HeaderScope.from_dict(scope_data)
+                    scope_dict = scope_obj.to_dict() if scope_obj else None
+                except Exception as e:
+                    logger.warning(f"解析scope_config失败: {e}")
+                    scope_dict = None
+            
             rule_response = PersistentHeaderRuleResponse(
                 id=row[0],
                 name=row[1],
@@ -280,8 +314,9 @@ class HeaderRuleService:
                 match_condition=row[5],
                 priority=row[6],
                 is_active=bool(row[7]),
-                created_at=row[8],
-                updated_at=row[9]
+                scope=scope_dict,
+                created_at=row[9],
+                updated_at=row[10]
             )
             
             return BaseResponseMsg(
@@ -379,6 +414,15 @@ class HeaderRuleService:
             if update_data.is_active is not None:
                 update_fields.append("is_active = ?")
                 update_values.append(1 if update_data.is_active else 0)
+            
+            if update_data.scope is not None:
+                # 序列化scope配置
+                import json
+                scope_config_json = None
+                if update_data.scope is not None:
+                    scope_config_json = json.dumps(update_data.scope.to_dict(), ensure_ascii=False)
+                update_fields.append("scope_config = ?")
+                update_values.append(scope_config_json)
             
             if not update_fields:
                 return BaseResponseMsg(
@@ -498,7 +542,7 @@ class HeaderRuleService:
             
             query = """
                 SELECT id, name, header_name, header_value, replace_strategy, 
-                       match_condition, priority, is_active, created_at, updated_at
+                       match_condition, priority, is_active, scope_config, created_at, updated_at
                 FROM persistent_header_rules 
                 WHERE is_active = 1
                 ORDER BY priority DESC
@@ -512,18 +556,23 @@ class HeaderRuleService:
             rules = []
             
             for row in rules_data:
-                rule = PersistentHeaderRule(
-                    id=row[0],
-                    name=row[1],
-                    header_name=row[2],
-                    header_value=row[3],
-                    replace_strategy=row[4],
-                    match_condition=row[5],
-                    priority=row[6],
-                    is_active=bool(row[7]),
-                    created_at=datetime.strptime(row[8], '%Y-%m-%d %H:%M:%S') if row[8] else None,
-                    updated_at=datetime.strptime(row[9], '%Y-%m-%d %H:%M:%S') if row[9] else None
-                )
+                # 构建数据字典包含所有字段
+                rule_dict = {
+                    'id': row[0],
+                    'name': row[1],
+                    'header_name': row[2],
+                    'header_value': row[3],
+                    'replace_strategy': row[4],
+                    'match_condition': row[5],
+                    'priority': row[6],
+                    'is_active': bool(row[7]),
+                    'scope_config': row[8],  # scope_config JSON字符串
+                    'created_at': row[9],
+                    'updated_at': row[10]
+                }
+                
+                # 使用PersistentHeaderRule.from_db_row方法创建对象，该方法会处理scope_config的反序列化
+                rule = PersistentHeaderRule.from_db_row(rule_dict)
                 rules.append(rule)
             
             return rules
@@ -532,8 +581,15 @@ class HeaderRuleService:
             logger.error(f"Failed to get active persistent rules for processing: {e}")
             return []
 
-    async def preview_header_processing(self, headers: List[str], client_ip: str) -> BaseResponseMsg:
-        """预览请求头处理结果"""
+    async def preview_header_processing(self, headers: List[str], client_ip: str, target_url: Optional[str] = None) -> BaseResponseMsg:
+        """
+        预览请求头处理结果
+        
+        参数:
+            headers: 原始请求头列表
+            client_ip: 客户端IP
+            target_url: 目标URL，用于作用域匹配（可选）
+        """
         try:
             # 获取持久化规则
             persistent_rules = self.get_active_persistent_rules_for_processing()
@@ -545,9 +601,9 @@ class HeaderRuleService:
             else:
                 session_headers = session_manager.get_session_headers(client_ip, active_only=True)
             
-            # 预览处理结果
+            # 预览处理结果（传递target_url用于作用域匹配）
             preview_result = HeaderProcessor.preview_header_processing(
-                headers, persistent_rules, session_headers
+                headers, persistent_rules, session_headers, target_url
             )
             
             return BaseResponseMsg(

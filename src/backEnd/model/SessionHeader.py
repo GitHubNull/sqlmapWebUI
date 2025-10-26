@@ -1,6 +1,9 @@
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List
 from pydantic import BaseModel, Field
+import json
+
+from model.HeaderScope import HeaderScope
 
 
 class SessionHeader(BaseModel):
@@ -11,6 +14,7 @@ class SessionHeader(BaseModel):
     expires_at: datetime = Field(..., description="过期时间")
     created_at: datetime = Field(default_factory=datetime.now, description="创建时间")
     source_ip: Optional[str] = Field(None, description="来源IP")
+    scope: Optional[HeaderScope] = Field(default=None, description="作用域配置(可选，不填写时默认全局生效)")
 
     def is_expired(self) -> bool:
         """检查是否已过期"""
@@ -18,7 +22,7 @@ class SessionHeader(BaseModel):
 
     def to_dict(self) -> dict:
         """转换为字典格式"""
-        return {
+        result = {
             "header_name": self.header_name,
             "header_value": self.header_value,
             "priority": self.priority,
@@ -26,6 +30,9 @@ class SessionHeader(BaseModel):
             "created_at": self.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             "source_ip": self.source_ip
         }
+        if self.scope is not None:
+            result["scope"] = self.scope.to_dict()
+        return result
 
     class Config:
         json_encoders = {
@@ -39,11 +46,12 @@ class SessionHeaderCreate(BaseModel):
     header_value: str = Field(..., min_length=1, max_length=2000, description="请求头值")
     priority: int = Field(default=0, ge=0, le=100, description="优先级(0-100)")
     ttl: int = Field(default=3600, ge=60, le=86400, description="生存时间(秒, 60-86400)")
+    scope: Optional[HeaderScope] = Field(default=None, description="作用域配置(可选，不填写时默认全局生效)")
 
 
 class SessionHeaderBatchCreate(BaseModel):
     """批量创建会话性请求头的请求模型"""
-    headers: List[SessionHeaderCreate] = Field(..., min_items=1, max_items=20, description="请求头列表")
+    headers: List[SessionHeaderCreate] = Field(..., description="请求头列表")
 
 
 class SessionHeaderResponse(BaseModel):
@@ -53,6 +61,7 @@ class SessionHeaderResponse(BaseModel):
     priority: int
     expires_at: str
     created_at: str
+    scope: Optional[dict] = None  # 返回字典格式的scope
 
 
 class SessionHeaderListResponse(BaseModel):
