@@ -74,6 +74,7 @@ export interface SessionHeader {
   header_value: string
   priority?: number
   ttl?: number // 生存时间(秒)
+  scope?: HeaderScope | null // 作用域配置(可选)
 }
 
 /**

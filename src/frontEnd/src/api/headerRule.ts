@@ -3,10 +3,8 @@
  */
 import { request } from './request'
 import type {
-  PersistentHeaderRule,
   PersistentHeaderRuleCreate,
   PersistentHeaderRuleUpdate,
-  SessionHeader,
   SessionHeaderBatchCreate,
   HeaderPreviewRequest,
 } from '@/types/headerRule'

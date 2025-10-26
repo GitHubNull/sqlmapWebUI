@@ -1,40 +1,122 @@
 <template>
   <div class="session-headers-config">
+    <!-- 搜索过滤工具栏 -->
+    <Card class="search-filter-card mb-4">
+      <template #content>
+        <div class="search-filter-toolbar">
+          <!-- 搜索区域 -->
+          <div class="search-area">
+            <IconField iconPosition="left">
+              <InputIcon class="pi pi-search" />
+              <InputText
+                v-model="searchQuery"
+                placeholder="搜索Header名称或值..."
+                class="search-input"
+              />
+            </IconField>
+          </div>
+
+          <!-- 过滤器区域 -->
+          <div class="filter-area">
+            <div class="filter-group">
+              <label class="filter-label">状态:</label>
+              <Select
+                v-model="statusFilter"
+                :options="statusOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="全部"
+                class="filter-dropdown"
+                :showClear="true"
+              />
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-label">优先级:</label>
+              <Select
+                v-model="priorityFilter"
+                :options="priorityOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="全部"
+                class="filter-dropdown"
+                :showClear="true"
+              />
+            </div>
+          </div>
+
+          <!-- 操作按钮区域 -->
+          <div class="action-area">
+            <Button
+              icon="pi pi-filter-slash"
+              @click="clearFilters"
+              severity="secondary"
+              outlined
+              v-tooltip.top="'清除过滤器'"
+            />
+            <div class="add-button-group">
+              <Button
+                label="单条添加"
+                icon="pi pi-plus"
+                @click="showAddDialog"
+                severity="success"
+              />
+              <Button
+                icon="pi pi-chevron-down"
+                severity="success"
+                @click="toggleAddMenu"
+                aria-haspopup="true"
+                aria-controls="add_menu"
+              />
+            </div>
+            <Menu
+              ref="addMenu"
+              id="add_menu"
+              :model="addMenuItems"
+              :popup="true"
+            />
+            <Button
+              label="刷新"
+              icon="pi pi-refresh"
+              @click="loadSessionHeaders"
+              :loading="loading"
+              severity="secondary"
+              outlined
+            />
+            <Button
+              label="清除所有"
+              icon="pi pi-trash"
+              @click="confirmClearAll"
+              severity="danger"
+              outlined
+            />
+          </div>
+        </div>
+      </template>
+    </Card>
+
     <!-- 信息提示 -->
     <Message severity="info" :closable="false" class="mb-3">
       <i class="pi pi-info-circle mr-2"></i>
       会话Header仅在当前浏览器会话中有效，关闭浏览器后将自动清除
     </Message>
 
-    <!-- 工具栏 -->
-    <div class="toolbar">
-      <Button
-        label="添加Header"
-        icon="pi pi-plus"
-        @click="showAddDialog"
-        severity="success"
-      />
-      <Button
-        label="刷新"
-        icon="pi pi-refresh"
-        @click="loadSessionHeaders"
-        :loading="loading"
-      />
-      <Button
-        label="清除所有"
-        icon="pi pi-trash"
-        @click="confirmClearAll"
-        severity="danger"
-        outlined
-      />
-    </div>
-
     <!-- Session Headers列表 -->
     <DataTable
-      :value="sessionHeaders"
+      :value="filteredSessionHeaders"
       :loading="loading"
       stripedRows
+      paginator
+      :rows="pageSize"
+      :rowsPerPageOptions="[5, 10, 20, 50]"
+      sortField="created_at"
+      :sortOrder="-1"
       class="session-table"
+      :globalFilterFields="['header_name', 'header_value']"
+      responsiveLayout="stack"
+      breakpoint="768px"
+      :resizableColumns="true"
+      columnResizeMode="fit"
     >
       <Column field="header_name" header="Header名称"></Column>
       <Column field="header_value" header="Header值">
@@ -63,71 +145,123 @@
     <Dialog
       v-model:visible="dialogVisible"
       header="添加Session Headers"
-      :style="{ width: '700px' }"
+      :style="{ width: '900px', maxHeight: '90vh' }"
       modal
+      class="session-dialog"
     >
-      <!-- 使用说明 -->
-      <Message severity="info" :closable="false" class="mb-3">
-        <p class="font-semibold mb-2">
-          <i class="pi pi-book mr-2"></i>
-          批量添加格式说明
-        </p>
-        <p class="mb-0">
-          每行一个Header，格式：<code class="px-2 py-1 bg-primary-50 text-primary-700 border-round">Header-Name: Header-Value</code>
-        </p>
-      </Message>
+      <div class="dialog-content">
+        <!-- 使用说明卡片 -->
+        <Card class="info-card mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-book text-primary"></i>
+              <span>批量添加格式说明</span>
+            </div>
+          </template>
+          <template #content>
+            <Message severity="info" :closable="false">
+              <div class="flex align-items-center gap-2">
+                <i class="pi pi-info-circle"></i>
+                <span>每行一个Header，格式：</span>
+                <code class="format-code">Header-Name: Header-Value</code>
+              </div>
+            </Message>
+          </template>
+        </Card>
 
-      <!-- Header输入区域 -->
-      <Panel header="Header列表" class="mb-3">
-        <Textarea
-          v-model="rawHeaders"
-          rows="10"
-          placeholder="例如:
+        <!-- Header输入区域卡片 -->
+        <Card class="input-card mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-list text-primary"></i>
+              <span>Header列表</span>
+            </div>
+          </template>
+          <template #content>
+            <div class="input-area">
+              <Textarea
+                v-model="rawHeaders"
+                rows="12"
+                placeholder="例如:
 Authorization: Bearer your-token-here
 X-Custom-Header: custom-value
-Cookie: session_id=abc123"
-          class="w-full"
+Cookie: session_id=abc123
+X-API-Key: your-api-key
+User-Agent: CustomUserAgent/1.0"
+                class="headers-textarea"
+                :autoResize="false"
+              />
+              <div class="input-stats">
+                <small class="text-color-secondary">
+                  <i class="pi pi-info-circle mr-1"></i>
+                  输入行数: {{ rawHeaders.split('\n').filter(line => line.trim()).length }}
+                </small>
+              </div>
+            </div>
+          </template>
+        </Card>
+
+        <!-- 配置选项卡片 -->
+        <Card class="config-card mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-cog text-primary"></i>
+              <span>配置选项</span>
+            </div>
+          </template>
+          <template #content>
+            <div class="formgrid grid p-fluid">
+              <div class="field col-12 md:col-6 mb-3">
+                <FloatLabel>
+                  <InputNumber
+                    id="priority"
+                    v-model="defaultPriority"
+                    :min="0"
+                    :max="100"
+                    showButtons
+                    buttonLayout="horizontal"
+                    :step="1"
+                  />
+                  <label for="priority">
+                    <i class="pi pi-sort-amount-up mr-2"></i>
+                    优先级 (0-100)
+                  </label>
+                </FloatLabel>
+                <small class="text-color-secondary mt-1">数值越大优先级越高</small>
+              </div>
+
+              <div class="field col-12 md:col-6 mb-0">
+                <FloatLabel>
+                  <InputNumber
+                    id="ttl"
+                    v-model="defaultTtl"
+                    :min="60"
+                    :max="86400"
+                    showButtons
+                    buttonLayout="horizontal"
+                    :step="60"
+                  />
+                  <label for="ttl">
+                    <i class="pi pi-clock mr-2"></i>
+                    生存时间 (秒)
+                  </label>
+                </FloatLabel>
+                <small class="text-color-secondary mt-1">默认3600秒(1小时)，最大86400秒(24小时)</small>
+              </div>
+            </div>
+          </template>
+        </Card>
+
+        <!-- 域控配置 -->
+        <ScopeConfigPanel
+          v-model="sessionScope"
+          title="作用域配置（可选）"
+          description="为批量添加的Header统一设置作用域，不配置则对所有请求生效"
+          :show-templates="true"
+          :show-info="true"
+          :show-advanced="false"
         />
-      </Panel>
-
-      <Divider />
-
-      <!-- 配置选项 -->
-      <Panel header="配置选项" :toggleable="true">
-        <div class="p-fluid">
-          <div class="formgrid grid">
-            <div class="field col-6 mb-3">
-              <label for="priority">
-                <i class="pi pi-sort-amount-up mr-2"></i>
-                优先级 (0-100)
-              </label>
-              <InputNumber
-                id="priority"
-                v-model="defaultPriority"
-                :min="0"
-                :max="100"
-                showButtons
-              />
-              <small class="text-color-secondary">数值越大优先级越高</small>
-            </div>
-
-            <div class="field col-6 mb-0">
-              <label for="ttl">
-                <i class="pi pi-clock mr-2"></i>
-                生存时间 (秒)
-              </label>
-              <InputNumber
-                id="ttl"
-                v-model="defaultTtl"
-                :min="60"
-                :max="86400"
-                showButtons
-              />
-              <small class="text-color-secondary">默认3600秒(1小时)，最大86400秒(24小时)</small>
-            </div>
-          </div>
-        </div>
-      </Panel>
+      </div>
 
       <template #footer>
         <Button 
@@ -148,15 +282,17 @@ Cookie: session_id=abc123"
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
+import Select from 'primevue/select'
+import ScopeConfigPanel from './ScopeConfigPanel.vue'
 import {
   getSessionHeaders,
   setSessionHeaders,
   clearSessionHeaders,
 } from '@/api/headerRule'
-import type { SessionHeader } from '@/types/headerRule'
+import type { SessionHeader, HeaderScope } from '@/types/headerRule'
 
 const toast = useToast()
 const confirm = useConfirm()
@@ -168,6 +304,26 @@ const sessionHeaders = ref<any[]>([])
 const rawHeaders = ref('')
 const defaultPriority = ref(50)
 const defaultTtl = ref(3600) // 默认1小时
+
+// 搜索和过滤相关
+const searchQuery = ref('')
+const statusFilter = ref<string | null>(null)
+const priorityFilter = ref<string | null>(null)
+const pageSize = ref(10)
+const addMenu = ref() // 菜单引用
+const sessionScope = ref<HeaderScope | null>(null) // Session Header作用域配置
+
+// 过滤选项
+const statusOptions = [
+  { label: '有效', value: 'valid' },
+  { label: '已过期', value: 'expired' },
+]
+
+const priorityOptions = [
+  { label: '高 (80-100)', value: 'high' },
+  { label: '中 (50-79)', value: 'medium' },
+  { label: '低 (0-49)', value: 'low' },
+]
 
 onMounted(() => {
   loadSessionHeaders()
@@ -224,6 +380,7 @@ async function addSessionHeaders() {
           header_value: valueParts.join(':').trim(),
           priority: defaultPriority.value,
           ttl: defaultTtl.value,
+          scope: sessionScope.value, // 添加作用域配置
         })
       }
     }
@@ -308,14 +465,190 @@ function truncate(text: string, length: number) {
   if (text.length <= length) return text
   return text.substring(0, length) + '...'
 }
+
+// 计算属性：过滤后的Session Headers
+const filteredSessionHeaders = computed(() => {
+  let filtered = sessionHeaders.value
+
+  // 搜索过滤
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(header =>
+      header.header_name.toLowerCase().includes(query) ||
+      header.header_value.toLowerCase().includes(query)
+    )
+  }
+
+  // 状态过滤（有效/过期）
+  if (statusFilter.value) {
+    const now = new Date()
+    if (statusFilter.value === 'valid') {
+      filtered = filtered.filter(header => new Date(header.expires_at) > now)
+    } else if (statusFilter.value === 'expired') {
+      filtered = filtered.filter(header => new Date(header.expires_at) <= now)
+    }
+  }
+
+  // 优先级过滤
+  if (priorityFilter.value) {
+    if (priorityFilter.value === 'high') {
+      filtered = filtered.filter(header => (header.priority || 50) >= 80)
+    } else if (priorityFilter.value === 'medium') {
+      filtered = filtered.filter(header => {
+        const priority = header.priority || 50
+        return priority >= 50 && priority < 80
+      })
+    } else if (priorityFilter.value === 'low') {
+      filtered = filtered.filter(header => (header.priority || 50) < 50)
+    }
+  }
+
+  return filtered
+})
+
+// 清除过滤器
+function clearFilters() {
+  searchQuery.value = ''
+  statusFilter.value = null
+  priorityFilter.value = null
+}
+
+// 切换添加菜单
+function toggleAddMenu(event: Event) {
+  addMenu.value.toggle(event)
+}
+
+// 添加菜单项
+const addMenuItems = [
+  {
+    label: '单条添加',
+    icon: 'pi pi-plus',
+    command: () => showAddDialog()
+  },
+  {
+    label: '批量添加',
+    icon: 'pi pi-list',
+    command: () => showBatchImportDialog()
+  },
+  {
+    separator: true
+  },
+  {
+    label: '从文件导入',
+    icon: 'pi pi-file-import',
+    command: () => showFileImportDialog()
+  }
+]
+
+// 显示批量导入对话框
+function showBatchImportDialog() {
+  // 当前Session Headers已经支持批量添加，这里可以扩展更多功能
+  // 例如：从文件导入、从预设模板导入等
+  toast.add({
+    severity: 'info',
+    summary: '功能提示',
+    detail: '当前已支持批量添加，可在弹窗中输入多行Header',
+    life: 3000,
+  })
+}
+
+// 显示文件导入对话框
+function showFileImportDialog() {
+  // TODO: 实现文件导入对话框
+  toast.add({
+    severity: 'info',
+    summary: '功能开发中',
+    detail: '文件导入功能正在开发中',
+    life: 3000,
+  })
+}
 </script>
 
 <style scoped lang="scss">
 .session-headers-config {
-  .toolbar {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 20px;
+  // 搜索过滤工具栏样式
+  .search-filter-card {
+    :deep(.p-card-content) {
+      padding: 1rem;
+    }
+
+    .search-filter-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+
+      .search-area {
+        flex: 1;
+        min-width: 300px;
+
+        .search-input {
+          width: 100%;
+          border-radius: 8px;
+          border: 2px solid var(--surface-border);
+          transition: all 0.2s ease;
+
+          &:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+          }
+        }
+      }
+
+      .filter-area {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+
+        .filter-group {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+
+          .filter-label {
+            font-weight: 500;
+            color: var(--text-color-secondary);
+            white-space: nowrap;
+          }
+
+          .filter-dropdown {
+            min-width: 120px;
+            border-radius: 8px;
+            border: 2px solid var(--surface-border);
+            transition: all 0.2s ease;
+
+            &:focus {
+              border-color: var(--primary-color);
+              box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+            }
+          }
+        }
+      }
+
+      .action-area {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        margin-left: auto;
+
+        .add-button-group {
+          :deep(.p-button) {
+            border-radius: 0;
+
+            &:first-child {
+              border-top-left-radius: 8px;
+              border-bottom-left-radius: 8px;
+            }
+
+            &:last-child {
+              border-top-right-radius: 8px;
+              border-bottom-right-radius: 8px;
+              border-left: none;
+            }
+          }
+        }
+      }
+    }
   }
 
   .session-table {
@@ -333,6 +666,166 @@ function truncate(text: string, length: number) {
 
   code {
     font-family: monospace;
+  }
+}
+
+// Session对话框样式优化
+:deep(.session-dialog) {
+  .p-dialog-content {
+    padding: 0;
+    overflow-y: auto;
+  }
+}
+
+.dialog-content {
+  padding: 1.5rem;
+  max-height: calc(85vh - 140px);
+  overflow-y: auto;
+
+  // 卡片通用样式
+  :deep(.p-card) {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .p-card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+    }
+
+    .p-card-content {
+      padding-top: 0;
+    }
+  }
+
+  // 信息卡片样式
+  .info-card {
+    :deep(.p-card-content) {
+      padding-bottom: 1rem;
+    }
+
+    .format-code {
+      background: var(--primary-50);
+      color: var(--primary-700);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.9em;
+      font-weight: 600;
+      border: 1px solid var(--primary-200);
+    }
+  }
+
+  // 输入区域卡片样式
+  .input-card {
+    .input-area {
+      .headers-textarea {
+        border-radius: 8px;
+        border: 2px solid var(--surface-border);
+        transition: all 0.2s ease;
+        font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        font-size: 0.9em;
+        line-height: 1.6;
+        resize: vertical;
+        min-height: 300px;
+
+        &:focus {
+          border-color: var(--primary-color);
+          box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+        }
+
+        &::placeholder {
+          color: var(--text-color-secondary);
+          opacity: 0.7;
+        }
+      }
+
+      .input-stats {
+        margin-top: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+  }
+
+  // 配置卡片样式
+  .config-card {
+    // 浮动标签优化
+    :deep(.p-float-label) {
+      margin-bottom: 0.5rem;
+
+      label {
+        font-weight: 500;
+        color: var(--text-color-secondary);
+
+        i {
+          color: var(--primary-color);
+        }
+      }
+    }
+
+    // 输入数字组件样式
+    :deep(.p-inputnumber) {
+      .p-inputnumber-input {
+        border-radius: 8px;
+        border: 2px solid var(--surface-border);
+        transition: all 0.2s ease;
+
+        &:focus {
+          border-color: var(--primary-color);
+          box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+        }
+      }
+
+      .p-inputnumber-button {
+        border-radius: 0;
+        border: 2px solid var(--surface-border);
+        border-left: none;
+        background: var(--surface-50);
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: var(--primary-50);
+          border-color: var(--primary-color);
+        }
+
+        &.p-inputnumber-button-up {
+          border-top-right-radius: 8px;
+          border-bottom: 1px solid var(--surface-border);
+        }
+
+        &.p-inputnumber-button-down {
+          border-bottom-right-radius: 8px;
+          border-top: 1px solid var(--surface-border);
+        }
+      }
+    }
+  }
+
+  // 消息组件样式
+  :deep(.p-message) {
+    border-radius: 8px;
+    border: none;
+    margin: 0;
+
+    .p-message-wrapper {
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    &.p-message-info .p-message-wrapper {
+      background: linear-gradient(135deg,
+        var(--blue-50) 0%,
+        var(--blue-100) 100%);
+      border-left: 4px solid var(--blue-500);
+    }
   }
 }
 </style>

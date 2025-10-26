@@ -4,16 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="feat(config):优化自动刷新间隔滑块刻度尺设计&#10;&#10;- 新增带刻度线的滑块尺样式，提升视觉反馈&#10;- 添加主要刻度标记（5、15、30、60分钟）&#10;- 实现激活状态高亮显示当前选中值&#10;- 增加悬停效果增强交互体验&#10;- 调整布局结构以适应新刻度尺组件&#10;- 更新样式细节包括阴影、渐变和过渡动画- 允许标签溢出显示以改善视觉效果&#10;- 恢复滑块容器宽度为100%&#10;- 动态生成刻度颜色实现红黄绿渐变&#10;- 优化PrimeVue滑块背景和范围颜色- 添加3D增强效果和颜色渐变&#10;- 调整刻度线和标签的颜色与阴影&#10;- 改进滑块整体视觉层次和过渡效果">
-      <change afterPath="$PROJECT_DIR$/src/backEnd/api/commonApi/headerController.py" afterDir="false" />
+    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="feat(config): 实现Header规则管理功能&#10;&#10;- 新增HeaderRulesConfig.vue组件，支持持久化规则的CRUD操作- 新增SessionHeadersConfig.vue组件，支持会话Header的批量管理- 在配置页面引入TabView布局，划分系统配置、Header规则、会话Header三个标签页- 定义完整的Header规则类型系统，包括作用域、替换策略等配置- 实现与后端API的完整对接，支持规则的增删改查及会话Header管理&#10;- 提供规则作用域配置功能，支持协议、主机、路径等多维度匹配&#10;- 添加规则优先级、启用状态等管理特性，提升规则应用灵活性&#10;-优化UI交互，提供表格分页、排序、状态标签等可视化功能&#10;- 实现批量添加Session Headers功能，支持TTL和优先级设置- 增加表单验证和用户提示，提升操作安全性与体验">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.qoder/quests/home-stats-expansion-.md" beforeDir="false" afterPath="$PROJECT_DIR$/.qoder/quests/home-stats-expansion-.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/model/HeaderDatabase.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/model/HeaderDatabase.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/model/PersistentHeaderRule.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/model/PersistentHeaderRule.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/model/SessionHeader.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/model/SessionHeader.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/service/headerRuleService.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/service/headerRuleService.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/backEnd/utils/header_processor.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/backEnd/utils/header_processor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/index.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/index.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/Config/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/Config/index.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -285,7 +278,31 @@
       <option name="project" value="LOCAL" />
       <updated>1761456927631</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="feat(header): 实现请求头作用域匹配功能- 在 PersistentHeaderRule 和 SessionHeader 中添加 scope 字段&#10;- 修改数据库表结构，增加 scope_config 列并支持自动添加- 更新 HeaderProcessor 以支持基于目标 URL 的作用域匹配&#10;- 扩展 API 接口，支持传递 target_url 进行作用域匹配&#10;- 在前端预览接口中添加 target_url 参数支持&#10;- 更新数据库查询逻辑以处理 scope 配置的序列化与反序列化&#10;- 增加 ScopeMatcher 工具类用于匹配规则作用域&#10;- 修改样式文件增强暗黑模式下组件的视觉效果- 优化部分 API 返回结构和字段索引">
+      <option name="closed" value="true" />
+      <created>1761467167356</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1761467167356</updated>
+    </task>
+    <task id="LOCAL-00021" summary="feat(header): 后端Header服务作用域扩展设计与实现&#10;&#10;-为持久化规则和会话性请求头添加可选作用域配置&#10;- 支持协议、主机名、IP、端口、路径五个维度的作用域定义&#10;- 实现关键字匹配和正则表达式匹配两种模式- 新增HeaderScope数据模型用于存储作用域配置&#10;- 扩展PersistentHeaderRule和SessionHeader模型以支持作用域&#10;- 修改数据库表结构，新增scope_config字段存储作用域配置- 实现作用域匹配器(ScopeMatcher)核心匹配逻辑&#10;- 增强HeaderProcessor处理器以支持作用域过滤- 调整HeaderRuleService服务层以传递目标URL信息&#10;- 更新API接口以和支持作用域配置目标URL参数- 提供完整的向后兼容性和数据迁移方案- 添加详细的测试策略和性能优化考虑&#10;- 实现安全防护措施防止正则表达式攻击&#10;- 增加监控与日志记录点便于问题追踪">
+      <option name="closed" value="true" />
+      <created>1761468398064</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1761468398064</updated>
+    </task>
+    <task id="LOCAL-00022" summary="feat(config): 实现Header规则管理功能&#10;&#10;- 新增HeaderRulesConfig.vue组件，支持持久化规则的CRUD操作- 新增SessionHeadersConfig.vue组件，支持会话Header的批量管理- 在配置页面引入TabView布局，划分系统配置、Header规则、会话Header三个标签页- 定义完整的Header规则类型系统，包括作用域、替换策略等配置- 实现与后端API的完整对接，支持规则的增删改查及会话Header管理&#10;- 提供规则作用域配置功能，支持协议、主机、路径等多维度匹配&#10;- 添加规则优先级、启用状态等管理特性，提升规则应用灵活性&#10;-优化UI交互，提供表格分页、排序、状态标签等可视化功能&#10;- 实现批量添加Session Headers功能，支持TTL和优先级设置- 增加表单验证和用户提示，提升操作安全性与体验">
+      <option name="closed" value="true" />
+      <created>1761468457229</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1761468457229</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -310,7 +327,10 @@
     <MESSAGE value="feat(config):优化自动刷新间隔滑块刻度尺设计&#10;&#10;- 新增带刻度线的滑块尺样式，提升视觉反馈&#10;- 添加主要刻度标记（5、15、30、60分钟）&#10;- 实现激活状态高亮显示当前选中值&#10;- 增加悬停效果增强交互体验&#10;- 调整布局结构以适应新刻度尺组件&#10;- 更新样式细节包括阴影、渐变和过渡动画" />
     <MESSAGE value="feat(config):优化自动刷新间隔滑块刻度尺设计&#10;&#10;- 新增带刻度线的滑块尺样式，提升视觉反馈&#10;- 添加主要刻度标记（5、15、30、60分钟）&#10;- 实现激活状态高亮显示当前选中值&#10;- 增加悬停效果增强交互体验&#10;- 调整布局结构以适应新刻度尺组件&#10;- 更新样式细节包括阴影、渐变和过渡动画&#10;- 允许标签溢出显示以改善视觉效果- 恢复滑块容器宽度为100%- 动态生成刻度颜色实现红黄绿渐变&#10;- 优化PrimeVue滑块背景和范围颜色- 添加3D增强效果和颜色渐变&#10;- 调整刻度线和标签的颜色与阴影- 改进滑块整体视觉层次和过渡效果" />
     <MESSAGE value="feat(config):优化自动刷新间隔滑块刻度尺设计&#10;&#10;- 新增带刻度线的滑块尺样式，提升视觉反馈&#10;- 添加主要刻度标记（5、15、30、60分钟）&#10;- 实现激活状态高亮显示当前选中值&#10;- 增加悬停效果增强交互体验&#10;- 调整布局结构以适应新刻度尺组件&#10;- 更新样式细节包括阴影、渐变和过渡动画- 允许标签溢出显示以改善视觉效果&#10;- 恢复滑块容器宽度为100%&#10;- 动态生成刻度颜色实现红黄绿渐变&#10;- 优化PrimeVue滑块背景和范围颜色- 添加3D增强效果和颜色渐变&#10;- 调整刻度线和标签的颜色与阴影&#10;- 改进滑块整体视觉层次和过渡效果" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(config):优化自动刷新间隔滑块刻度尺设计&#10;&#10;- 新增带刻度线的滑块尺样式，提升视觉反馈&#10;- 添加主要刻度标记（5、15、30、60分钟）&#10;- 实现激活状态高亮显示当前选中值&#10;- 增加悬停效果增强交互体验&#10;- 调整布局结构以适应新刻度尺组件&#10;- 更新样式细节包括阴影、渐变和过渡动画- 允许标签溢出显示以改善视觉效果&#10;- 恢复滑块容器宽度为100%&#10;- 动态生成刻度颜色实现红黄绿渐变&#10;- 优化PrimeVue滑块背景和范围颜色- 添加3D增强效果和颜色渐变&#10;- 调整刻度线和标签的颜色与阴影&#10;- 改进滑块整体视觉层次和过渡效果" />
+    <MESSAGE value="feat(header): 实现请求头作用域匹配功能- 在 PersistentHeaderRule 和 SessionHeader 中添加 scope 字段&#10;- 修改数据库表结构，增加 scope_config 列并支持自动添加- 更新 HeaderProcessor 以支持基于目标 URL 的作用域匹配&#10;- 扩展 API 接口，支持传递 target_url 进行作用域匹配&#10;- 在前端预览接口中添加 target_url 参数支持&#10;- 更新数据库查询逻辑以处理 scope 配置的序列化与反序列化&#10;- 增加 ScopeMatcher 工具类用于匹配规则作用域&#10;- 修改样式文件增强暗黑模式下组件的视觉效果- 优化部分 API 返回结构和字段索引" />
+    <MESSAGE value="feat(header): 后端Header服务作用域扩展设计与实现&#10;&#10;-为持久化规则和会话性请求头添加可选作用域配置&#10;- 支持协议、主机名、IP、端口、路径五个维度的作用域定义&#10;- 实现关键字匹配和正则表达式匹配两种模式- 新增HeaderScope数据模型用于存储作用域配置&#10;- 扩展PersistentHeaderRule和SessionHeader模型以支持作用域&#10;- 修改数据库表结构，新增scope_config字段存储作用域配置- 实现作用域匹配器(ScopeMatcher)核心匹配逻辑&#10;- 增强HeaderProcessor处理器以支持作用域过滤- 调整HeaderRuleService服务层以传递目标URL信息&#10;- 更新API接口以和支持作用域配置目标URL参数- 提供完整的向后兼容性和数据迁移方案- 添加详细的测试策略和性能优化考虑&#10;- 实现安全防护措施防止正则表达式攻击&#10;- 增加监控与日志记录点便于问题追踪" />
+    <MESSAGE value="feat(config): 实现Header规则管理功能&#10;&#10;- 新增HeaderRulesConfig.vue组件，支持持久化规则的CRUD操作- 新增SessionHeadersConfig.vue组件，支持会话Header的批量管理- 在配置页面引入TabView布局，划分系统配置、Header规则、会话Header三个标签页- 定义完整的Header规则类型系统，包括作用域、替换策略等配置- 实现与后端API的完整对接，支持规则的增删改查及会话Header管理&#10;- 提供规则作用域配置功能，支持协议、主机、路径等多维度匹配&#10;- 添加规则优先级、启用状态等管理特性，提升规则应用灵活性&#10;-优化UI交互，提供表格分页、排序、状态标签等可视化功能&#10;- 实现批量添加Session Headers功能，支持TTL和优先级设置- 增加表单验证和用户提示，提升操作安全性与体验" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(config): 实现Header规则管理功能&#10;&#10;- 新增HeaderRulesConfig.vue组件，支持持久化规则的CRUD操作- 新增SessionHeadersConfig.vue组件，支持会话Header的批量管理- 在配置页面引入TabView布局，划分系统配置、Header规则、会话Header三个标签页- 定义完整的Header规则类型系统，包括作用域、替换策略等配置- 实现与后端API的完整对接，支持规则的增删改查及会话Header管理&#10;- 提供规则作用域配置功能，支持协议、主机、路径等多维度匹配&#10;- 添加规则优先级、启用状态等管理特性，提升规则应用灵活性&#10;-优化UI交互，提供表格分页、排序、状态标签等可视化功能&#10;- 实现批量添加Session Headers功能，支持TTL和优先级设置- 增加表单验证和用户提示，提升操作安全性与体验" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

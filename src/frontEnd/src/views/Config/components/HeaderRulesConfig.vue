@@ -1,32 +1,122 @@
 <template>
   <div class="header-rules-config">
-    <!-- 工具栏 -->
-    <div class="toolbar">
-      <Button
-        label="添加规则"
-        icon="pi pi-plus"
-        @click="showCreateDialog"
-        severity="success"
-      />
-      <Button
-        label="刷新"
-        icon="pi pi-refresh"
-        @click="loadRules"
-        :loading="loading"
-      />
-    </div>
+    <!-- 搜索过滤工具栏 -->
+    <Card class="search-filter-card mb-4">
+      <template #content>
+        <div class="search-filter-toolbar">
+          <!-- 搜索区域 -->
+          <div class="search-area">
+            <IconField iconPosition="left">
+              <InputIcon class="pi pi-search" />
+              <InputText
+                v-model="searchQuery"
+                placeholder="搜索规则名称、Header名称或值..."
+                class="search-input"
+              />
+            </IconField>
+          </div>
+
+          <!-- 过滤器区域 -->
+          <div class="filter-area">
+            <div class="filter-group">
+              <label class="filter-label">状态:</label>
+              <Select
+                v-model="statusFilter"
+                :options="statusOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="全部状态"
+                class="filter-dropdown"
+                :showClear="true"
+              />
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-label">策略:</label>
+              <Select
+                v-model="strategyFilter"
+                :options="strategyOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="全部策略"
+                class="filter-dropdown"
+                :showClear="true"
+              />
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-label">作用域:</label>
+              <Select
+                v-model="scopeFilter"
+                :options="scopeOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="全部"
+                class="filter-dropdown"
+                :showClear="true"
+              />
+            </div>
+          </div>
+
+          <!-- 操作按钮区域 -->
+          <div class="action-area">
+            <Button
+              icon="pi pi-filter-slash"
+              @click="clearFilters"
+              severity="secondary"
+              outlined
+              v-tooltip.top="'清除过滤器'"
+            />
+            <div class="add-button-group">
+              <Button
+                label="单条添加"
+                icon="pi pi-plus"
+                @click="showCreateDialog"
+                severity="success"
+              />
+              <Button
+                icon="pi pi-chevron-down"
+                severity="success"
+                @click="toggleAddMenu"
+                aria-haspopup="true"
+                aria-controls="add_menu"
+              />
+            </div>
+            <Menu
+              ref="addMenu"
+              id="add_menu"
+              :model="addMenuItems"
+              :popup="true"
+            />
+            <Button
+              label="刷新"
+              icon="pi pi-refresh"
+              @click="loadRules"
+              :loading="loading"
+              severity="secondary"
+              outlined
+            />
+          </div>
+        </div>
+      </template>
+    </Card>
 
     <!-- 规则列表 -->
     <DataTable
-      :value="rules"
+      :value="filteredRules"
       :loading="loading"
       stripedRows
       paginator
-      :rows="10"
+      :rows="pageSize"
       :rowsPerPageOptions="[5, 10, 20, 50]"
       sortField="priority"
       :sortOrder="-1"
       class="rules-table"
+      :globalFilterFields="['name', 'header_name', 'header_value']"
+      responsiveLayout="stack"
+      breakpoint="768px"
+      :resizableColumns="true"
+      columnResizeMode="fit"
     >
       <Column field="id" header="ID" sortable style="width: 80px"></Column>
       <Column field="name" header="规则名称" sortable></Column>
@@ -81,210 +171,147 @@
       </Column>
     </DataTable>
 
+    <!-- 批量导入对话框 -->
+    <BatchImportDialog
+      v-model:visible="batchImportVisible"
+      @import="handleBatchImport"
+    />
+
     <!-- 创建/编辑对话框 -->
     <Dialog
       v-model:visible="dialogVisible"
       :header="editingRule ? '编辑规则' : '创建规则'"
-      :style="{ width: '750px' }"
+      :style="{ width: '1000px', maxHeight: '85vh' }"
       modal
+      class="rule-dialog"
     >
-      <!-- 基本信息面板 -->
-      <Panel header="基本信息" class="mb-3">
-        <div class="p-fluid">
-          <div class="field mb-3">
-            <label for="name">
-              <i class="pi pi-bookmark mr-2"></i>
-              规则名称 <span class="text-red-500">*</span>
-            </label>
-            <InputText
-              id="name"
-              v-model="formData.name"
-              placeholder="例如: API认证Token规则"
-            />
-            <small class="text-color-secondary">用于标识此规则的用途</small>
-          </div>
-
-          <div class="field mb-3">
-            <label for="header_name">
-              <i class="pi pi-tag mr-2"></i>
-              Header名称 <span class="text-red-500">*</span>
-            </label>
-            <InputText
-              id="header_name"
-              v-model="formData.header_name"
-              placeholder="例如: Authorization, X-API-Key, Cookie"
-            />
-            <small class="text-color-secondary">HTTP请求头的名称，区分大小写</small>
-          </div>
-
-          <div class="field">
-            <label for="header_value">
-              <i class="pi pi-align-left mr-2"></i>
-              Header值 <span class="text-red-500">*</span>
-            </label>
-            <Textarea
-              id="header_value"
-              v-model="formData.header_value"
-              placeholder="请输入Header值"
-              :autoResize="true"
-              rows="3"
-            />
-            <small class="text-color-secondary">Header的实际值内容</small>
-          </div>
-        </div>
-      </Panel>
-
-      <Divider />
-
-      <!-- 高级配置面板 -->
-      <Panel header="高级配置" :toggleable="true" class="mb-3">
-        <div class="p-fluid">
-          <div class="formgrid grid">
-            <div class="field col-8 mb-3">
-              <label for="replace_strategy">
-                <i class="pi pi-sync mr-2"></i>
-                替换策略
-              </label>
-              <Dropdown
-                id="replace_strategy"
-                v-model="formData.replace_strategy"
-                :options="replaceStrategies"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="选择替换策略"
-              />
-              <small class="text-color-secondary">定义如何处理已存在的Header</small>
+      <div class="dialog-content">
+        <!-- 基本信息卡片 -->
+        <Card class="basic-info-card mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-bookmark text-primary"></i>
+              <span>基本信息</span>
             </div>
+          </template>
+          <template #content>
+            <div class="formgrid grid p-fluid">
+              <div class="field col-12 md:col-6 mb-3">
+                <FloatLabel>
+                  <InputText
+                    id="name"
+                    v-model="formData.name"
+                    :invalid="!formData.name && showValidation"
+                  />
+                  <label for="name">
+                    规则名称 <span class="text-red-500">*</span>
+                  </label>
+                </FloatLabel>
+                <small class="text-color-secondary mt-1">用于标识此规则的用途</small>
+              </div>
 
-            <div class="field col-4 mb-3">
-              <label for="priority">
-                <i class="pi pi-sort-amount-up mr-2"></i>
-                优先级
-              </label>
-              <InputNumber
-                id="priority"
-                v-model="formData.priority"
-                :min="0"
-                :max="100"
-                showButtons
-              />
-              <small class="text-color-secondary">0-100，越大优先级越高</small>
+              <div class="field col-12 md:col-6 mb-3">
+                <FloatLabel>
+                  <InputText
+                    id="header_name"
+                    v-model="formData.header_name"
+                    :invalid="!formData.header_name && showValidation"
+                  />
+                  <label for="header_name">
+                    Header名称 <span class="text-red-500">*</span>
+                  </label>
+                </FloatLabel>
+                <small class="text-color-secondary mt-1">HTTP请求头的名称，区分大小写</small>
+              </div>
+
+              <div class="field col-12 mb-0">
+                <FloatLabel>
+                  <Textarea
+                    id="header_value"
+                    v-model="formData.header_value"
+                    :autoResize="true"
+                    rows="3"
+                    :invalid="!formData.header_value && showValidation"
+                  />
+                  <label for="header_value">
+                    Header值 <span class="text-red-500">*</span>
+                  </label>
+                </FloatLabel>
+                <small class="text-color-secondary mt-1">Header的实际值内容</small>
+              </div>
             </div>
-          </div>
+          </template>
+        </Card>
 
-          <div class="field">
-            <div class="flex align-items-center">
-              <Checkbox
-                inputId="is_active"
-                v-model="formData.is_active"
-                :binary="true"
-              />
-              <label for="is_active" class="ml-2">
-                <i class="pi pi-power-off mr-2"></i>
-                启用此规则
-              </label>
+        <!-- 高级配置卡片 -->
+        <Card class="advanced-config-card mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-cog text-primary"></i>
+              <span>高级配置</span>
             </div>
-            <small class="text-color-secondary ml-4">禁用后规则不会生效</small>
-          </div>
-        </div>
-      </Panel>
+          </template>
+          <template #content>
+            <div class="formgrid grid p-fluid">
+              <div class="field col-12 md:col-8 mb-3">
+                <FloatLabel>
+                  <Select
+                    id="replace_strategy"
+                    v-model="formData.replace_strategy"
+                    :options="replaceStrategies"
+                    optionLabel="label"
+                    optionValue="value"
+                  />
+                  <label for="replace_strategy">替换策略</label>
+                </FloatLabel>
+                <small class="text-color-secondary mt-1">定义如何处理已存在的Header</small>
+              </div>
 
-      <Divider />
+              <div class="field col-12 md:col-4 mb-3">
+                <FloatLabel>
+                  <InputNumber
+                    id="priority"
+                    v-model="formData.priority"
+                    :min="0"
+                    :max="100"
+                    showButtons
+                    buttonLayout="horizontal"
+                    :step="1"
+                  />
+                  <label for="priority">优先级</label>
+                </FloatLabel>
+                <small class="text-color-secondary mt-1">0-100，越大优先级越高</small>
+              </div>
 
-      <!-- 作用域配置面板 -->
-      <Panel :toggleable="true" :collapsed="!hasScope" class="mb-3">
-        <template #header>
-          <div class="flex align-items-center gap-2 w-full">
-            <Checkbox
-              inputId="has_scope"
-              v-model="hasScope"
-              :binary="true"
-              @click.stop
-            />
-            <span>
-              <i class="pi pi-filter mr-2"></i>
-              配置作用域（可选）
-            </span>
-          </div>
-        </template>
-
-        <Message severity="info" :closable="false" class="mb-3">
-          <i class="pi pi-info-circle mr-2"></i>
-          不勾选则对所有请求全局生效。作用域支持协议、主机名、路径等多维度过滤。
-        </Message>
-
-        <div v-if="hasScope" class="p-fluid">
-          <div class="field mb-3">
-            <label for="protocol_pattern">
-              <i class="pi pi-globe mr-2"></i>
-              协议匹配
-            </label>
-            <InputText
-              id="protocol_pattern"
-              v-model="scopeData.protocol_pattern"
-              placeholder="例如: https 或 http,https（多个用逗号分隔）"
-            />
-            <small class="text-color-secondary">限定请求协议类型</small>
-          </div>
-
-          <div class="field mb-3">
-            <label for="host_pattern">
-              <i class="pi pi-server mr-2"></i>
-              主机名匹配
-            </label>
-            <InputText
-              id="host_pattern"
-              v-model="scopeData.host_pattern"
-              placeholder="例如: api.example.com 或 *.example.com（支持通配符*）"
-            />
-            <small class="text-color-secondary">限定请求的目标主机名，支持通配符</small>
-          </div>
-
-          <div class="field mb-3">
-            <label for="path_pattern">
-              <i class="pi pi-link mr-2"></i>
-              路径匹配
-            </label>
-            <InputText
-              id="path_pattern"
-              v-model="scopeData.path_pattern"
-              placeholder="例如: /api/* 或 /v1/users（支持通配符*）"
-            />
-            <small class="text-color-secondary">限定请求的URL路径，支持通配符</small>
-          </div>
-
-          <div class="field mb-3">
-            <div class="flex align-items-center">
-              <Checkbox
-                inputId="use_regex"
-                v-model="scopeData.use_regex"
-                :binary="true"
-              />
-              <label for="use_regex" class="ml-2">
-                <i class="pi pi-code mr-2"></i>
-                使用正则表达式匹配
-              </label>
+              <div class="field col-12 mb-0">
+                <div class="flex align-items-center gap-2">
+                  <Checkbox
+                    inputId="is_active"
+                    v-model="formData.is_active"
+                    :binary="true"
+                  />
+                  <label for="is_active" class="font-medium">
+                    <i class="pi pi-power-off mr-2 text-primary"></i>
+                    启用此规则
+                  </label>
+                </div>
+                <small class="text-color-secondary ml-6">禁用后规则不会生效</small>
+              </div>
             </div>
-            <small class="text-color-secondary ml-4">启用后上述模式将作为正则表达式解析</small>
-          </div>
+          </template>
+        </Card>
 
-          <Divider />
-
-          <Message severity="success" :closable="false">
-            <p class="font-semibold mb-2">
-              <i class="pi pi-lightbulb mr-2"></i>
-              匹配示例
-            </p>
-            <ul class="pl-4 mt-0 mb-0 line-height-3">
-              <li><strong>全局生效：</strong>不勾选"配置作用域"</li>
-              <li><strong>仅HTTPS：</strong>协议=https</li>
-              <li><strong>特定域名：</strong>主机名=api.example.com</li>
-              <li><strong>所有子域名：</strong>主机名=*.example.com</li>
-              <li><strong>API路径：</strong>路径=/api/*</li>
-            </ul>
-          </Message>
-        </div>
-      </Panel>
+        <!-- 作用域配置 -->
+        <ScopeConfigPanel
+          v-model="scopeData"
+          title="配置作用域（可选）"
+          description="不勾选则对所有请求全局生效。作用域支持协议、主机名、路径等多维度过滤。"
+          :show-templates="true"
+          :show-info="true"
+          :show-advanced="false"
+          ref="scopePanel"
+        />
+      </div>
 
       <template #footer>
         <Button 
@@ -305,9 +332,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
+import Select from 'primevue/select'
+import BatchImportDialog from './BatchImportDialog.vue'
+import ScopeConfigPanel from './ScopeConfigPanel.vue'
 import {
   getPersistentRules,
   createPersistentRule,
@@ -317,7 +347,6 @@ import {
 import type {
   PersistentHeaderRule,
   PersistentHeaderRuleCreate,
-  PersistentHeaderRuleUpdate,
   HeaderScope,
   ReplaceStrategy,
 } from '@/types/headerRule'
@@ -330,7 +359,18 @@ const saving = ref(false)
 const dialogVisible = ref(false)
 const rules = ref<PersistentHeaderRule[]>([])
 const editingRule = ref<PersistentHeaderRule | null>(null)
-const hasScope = ref(false)
+const showValidation = ref(false)
+const addMenu = ref() // 菜单引用
+const batchImportVisible = ref(false) // 批量导入对话框显示状态
+const importing = ref(false) // 批量导入状态
+const scopePanel = ref<InstanceType<typeof ScopeConfigPanel>>() // 作用域面板引用
+
+// 搜索和过滤相关
+const searchQuery = ref('')
+const statusFilter = ref<boolean | null>(null)
+const strategyFilter = ref<string | null>(null)
+const scopeFilter = ref<string | null>(null)
+const pageSize = ref(10)
 
 const replaceStrategies = [
   { label: '完全替换', value: 'REPLACE' },
@@ -338,6 +378,41 @@ const replaceStrategies = [
   { label: '前置', value: 'PREPEND' },
   { label: '条件替换', value: 'CONDITIONAL' },
   { label: '存在则替换', value: 'UPSERT' },
+]
+
+// 过滤选项
+const statusOptions = [
+  { label: '启用', value: true },
+  { label: '禁用', value: false },
+]
+
+const strategyOptions = replaceStrategies
+
+const scopeOptions = [
+  { label: '全局', value: 'global' },
+  { label: '有作用域', value: 'scoped' },
+]
+
+// 添加菜单项
+const addMenuItems = [
+  {
+    label: '单条添加',
+    icon: 'pi pi-plus',
+    command: () => showCreateDialog()
+  },
+  {
+    label: '批量添加',
+    icon: 'pi pi-list',
+    command: () => showBatchImportDialog()
+  },
+  {
+    separator: true
+  },
+  {
+    label: '从文件导入',
+    icon: 'pi pi-file-import',
+    command: () => showFileImportDialog()
+  }
 ]
 
 const formData = reactive<PersistentHeaderRuleCreate>({
@@ -349,7 +424,7 @@ const formData = reactive<PersistentHeaderRuleCreate>({
   is_active: true,
 })
 
-const scopeData = reactive<HeaderScope>({
+let scopeData = reactive<HeaderScope>({
   protocol_pattern: '',
   host_pattern: '',
   path_pattern: '',
@@ -395,13 +470,12 @@ function showEditDialog(rule: PersistentHeaderRule) {
   formData.is_active = rule.is_active
 
   // 加载作用域配置
-  if (rule.scope) {
-    hasScope.value = true
-    Object.assign(scopeData, rule.scope)
-  } else {
-    hasScope.value = false
-    resetScope()
-  }
+  Object.assign(scopeData, rule.scope || {
+    protocol_pattern: '',
+    host_pattern: '',
+    path_pattern: '',
+    use_regex: false,
+  })
 
   dialogVisible.value = true
 }
@@ -413,18 +487,13 @@ function resetForm() {
   formData.replace_strategy = 'REPLACE' as ReplaceStrategy
   formData.priority = 50
   formData.is_active = true
-  hasScope.value = false
-  resetScope()
-}
-
-function resetScope() {
-  scopeData.protocol_pattern = ''
-  scopeData.host_pattern = ''
-  scopeData.path_pattern = ''
-  scopeData.use_regex = false
+  showValidation.value = false
 }
 
 async function saveRule() {
+  showValidation.value = true
+
+  // 验证必填字段
   if (!formData.name || !formData.header_name || !formData.header_value) {
     toast.add({
       severity: 'warn',
@@ -435,23 +504,15 @@ async function saveRule() {
     return
   }
 
+  // 验证作用域配置（简化版本，暂时不移交验证给子组件）
+  // TODO: 可以添加更详细的作用域验证逻辑
+
   saving.value = true
   try {
     const payload: any = { ...formData }
     
     // 处理作用域配置
-    if (hasScope.value) {
-      // 只添加非空字段
-      const scope: any = {}
-      if (scopeData.protocol_pattern) scope.protocol_pattern = scopeData.protocol_pattern
-      if (scopeData.host_pattern) scope.host_pattern = scopeData.host_pattern
-      if (scopeData.path_pattern) scope.path_pattern = scopeData.path_pattern
-      scope.use_regex = scopeData.use_regex
-
-      payload.scope = scope
-    } else {
-      payload.scope = null
-    }
+    payload.scope = scopeData
 
     if (editingRule.value) {
       await updatePersistentRule(editingRule.value.id, payload)
@@ -546,20 +607,352 @@ function truncate(text: string, length: number) {
   if (text.length <= length) return text
   return text.substring(0, length) + '...'
 }
+
+// 计算属性：过滤后的规则列表
+const filteredRules = computed(() => {
+  let filtered = rules.value
+
+  // 搜索过滤
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(rule =>
+      rule.name.toLowerCase().includes(query) ||
+      rule.header_name.toLowerCase().includes(query) ||
+      rule.header_value.toLowerCase().includes(query)
+    )
+  }
+
+  // 状态过滤
+  if (statusFilter.value !== null) {
+    filtered = filtered.filter(rule => rule.is_active === statusFilter.value)
+  }
+
+  // 策略过滤
+  if (strategyFilter.value) {
+    filtered = filtered.filter(rule => rule.replace_strategy === strategyFilter.value)
+  }
+
+  // 作用域过滤
+  if (scopeFilter.value) {
+    if (scopeFilter.value === 'global') {
+      filtered = filtered.filter(rule => !rule.scope)
+    } else if (scopeFilter.value === 'scoped') {
+      filtered = filtered.filter(rule => rule.scope)
+    }
+  }
+
+  return filtered
+})
+
+// 清除过滤器
+function clearFilters() {
+  searchQuery.value = ''
+  statusFilter.value = null
+  strategyFilter.value = null
+  scopeFilter.value = null
+}
+
+// 切换添加菜单
+function toggleAddMenu(event: Event) {
+  addMenu.value.toggle(event)
+}
+
+// 显示批量导入对话框
+function showBatchImportDialog() {
+  batchImportVisible.value = true
+}
+
+// 显示文件导入对话框
+function showFileImportDialog() {
+  // TODO: 实现文件导入对话框
+  toast.add({
+    severity: 'info',
+    summary: '功能开发中',
+    detail: '文件导入功能正在开发中',
+    life: 3000,
+  })
+}
+
+// 处理批量导入
+async function handleBatchImport(rules: PersistentHeaderRuleCreate[]) {
+  importing.value = true
+  try {
+    let successCount = 0
+    let errorCount = 0
+
+    // 批量创建规则
+    for (const rule of rules) {
+      try {
+        await createPersistentRule(rule)
+        successCount++
+      } catch (error) {
+        errorCount++
+        console.error('创建规则失败:', error)
+      }
+    }
+
+    if (errorCount === 0) {
+      toast.add({
+        severity: 'success',
+        summary: '批量导入成功',
+        detail: `成功导入 ${successCount} 条规则`,
+        life: 3000,
+      })
+    } else {
+      toast.add({
+        severity: 'warn',
+        summary: '批量导入完成',
+        detail: `成功导入 ${successCount} 条，失败 ${errorCount} 条`,
+        life: 5000,
+      })
+    }
+
+    // 刷新规则列表
+    await loadRules()
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: '批量导入失败',
+      detail: error.message || '导入过程中发生错误',
+      life: 3000,
+    })
+  } finally {
+    importing.value = false
+    batchImportVisible.value = false
+  }
+}
 </script>
 
 <style scoped lang="scss">
 .header-rules-config {
-  .toolbar {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 20px;
+  // 搜索过滤工具栏样式
+  .search-filter-card {
+    :deep(.p-card-content) {
+      padding: 1rem;
+    }
+
+    .search-filter-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+
+      .search-area {
+        flex: 1;
+        min-width: 300px;
+
+        .search-input {
+          width: 100%;
+          border-radius: 8px;
+          border: 2px solid var(--surface-border);
+          transition: all 0.2s ease;
+
+          &:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+          }
+        }
+      }
+
+      .filter-area {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+
+        .filter-group {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+
+          .filter-label {
+            font-weight: 500;
+            color: var(--text-color-secondary);
+            white-space: nowrap;
+          }
+
+          .filter-dropdown {
+            min-width: 120px;
+            border-radius: 8px;
+            border: 2px solid var(--surface-border);
+            transition: all 0.2s ease;
+
+            &:focus {
+              border-color: var(--primary-color);
+              box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+            }
+          }
+        }
+      }
+
+      .action-area {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        margin-left: auto;
+
+        .add-button-group {
+          :deep(.p-button) {
+            border-radius: 0;
+
+            &:first-child {
+              border-top-left-radius: 8px;
+              border-bottom-left-radius: 8px;
+            }
+
+            &:last-child {
+              border-top-right-radius: 8px;
+              border-bottom-right-radius: 8px;
+              border-left: none;
+            }
+          }
+        }
+      }
+    }
   }
 
   .rules-table {
     .header-value {
       font-family: monospace;
       font-size: 0.9em;
+    }
+  }
+}
+
+// 对话框样式优化
+:deep(.rule-dialog) {
+  .p-dialog-content {
+    padding: 0;
+    overflow-y: auto;
+  }
+}
+
+.dialog-content {
+  padding: 1.5rem;
+  max-height: calc(85vh - 140px);
+  overflow-y: auto;
+
+  // 基本信息卡片样式
+  .basic-info-card {
+    :deep(.p-card-title) {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+    }
+
+    :deep(.p-card-content) {
+      padding-top: 0;
+    }
+  }
+
+  // 高级配置卡片样式
+  .advanced-config-card {
+    :deep(.p-card-title) {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+    }
+
+    :deep(.p-card-content) {
+      padding-top: 0;
+    }
+  }
+
+  // 作用域配置面板样式
+  .scope-config-panel {
+    margin-top: 1rem;
+  }
+
+  // 浮动标签优化
+  :deep(.p-float-label) {
+    margin-bottom: 0.5rem;
+
+    label {
+      font-weight: 500;
+      color: var(--text-color-secondary);
+
+      i {
+        color: var(--primary-color);
+      }
+    }
+  }
+
+  // 输入组件样式
+  :deep(.p-inputtext),
+  :deep(.p-dropdown),
+  :deep(.p-inputnumber-input) {
+    border-radius: 8px;
+    border: 2px solid var(--surface-border);
+    transition: all 0.2s ease;
+
+    &:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+    }
+
+    &.p-invalid {
+      border-color: var(--red-500);
+      box-shadow: 0 0 0 3px rgba(var(--red-500-rgb), 0.1);
+    }
+  }
+
+  :deep(.p-inputtextarea) {
+    border-radius: 8px;
+    border: 2px solid var(--surface-border);
+    transition: all 0.2s ease;
+    resize: vertical;
+
+    &:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+    }
+
+    &.p-invalid {
+      border-color: var(--red-500);
+      box-shadow: 0 0 0 3px rgba(var(--red-500-rgb), 0.1);
+    }
+  }
+
+  // 复选框样式
+  :deep(.p-checkbox) {
+    .p-checkbox-box {
+      border-radius: 4px;
+      border: 2px solid var(--surface-border);
+      transition: all 0.2s ease;
+
+      &.p-highlight {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+      }
+    }
+  }
+
+  // 消息组件样式
+  :deep(.p-message) {
+    border-radius: 8px;
+    border: none;
+    margin: 0;
+
+    .p-message-wrapper {
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    &.p-message-info .p-message-wrapper {
+      background: linear-gradient(135deg,
+        var(--blue-50) 0%,
+        var(--blue-100) 100%);
+      border-left: 4px solid var(--blue-500);
+    }
+  }
+
+  // 分隔线样式
+  :deep(.p-divider) {
+    margin: 1.5rem 0;
+
+    &.my-4 {
+      margin: 1.5rem 0;
     }
   }
 }
