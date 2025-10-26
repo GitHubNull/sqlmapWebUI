@@ -4,25 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="feat(config): 调整配置页面布局和宽度&#10;&#10;- 将配置页面宽度设为100%，取消最大宽度限制&#10;- 移除页面水平居中对齐，调整内边距只保留上下方向&#10;- 扩大配置表单最大宽度从600px到800px以适应更多配置项">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.qoder/repowiki/zh/content/API端点参考/API端点参考.md" beforeDir="false" afterPath="$PROJECT_DIR$/.qoder/repowiki/zh/content/API端点参考/API端点参考.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.qoder/repowiki/zh/content/API端点参考/Burp Suite插件API.md" beforeDir="false" afterPath="$PROJECT_DIR$/.qoder/repowiki/zh/content/API端点参考/Burp Suite插件API.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.qoder/repowiki/zh/content/API端点参考/通用API/通用API.md" beforeDir="false" afterPath="$PROJECT_DIR$/.qoder/repowiki/zh/content/API端点参考/通用API/通用API.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.qoder/repowiki/zh/content/业务逻辑层/业务逻辑层.md" beforeDir="false" afterPath="$PROJECT_DIR$/.qoder/repowiki/zh/content/业务逻辑层/业务逻辑层.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.qoder/repowiki/zh/content/业务逻辑层/任务管理/任务管理.md" beforeDir="false" afterPath="$PROJECT_DIR$/.qoder/repowiki/zh/content/业务逻辑层/任务管理/任务管理.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.qoder/repowiki/zh/content/外部系统集成/外部系统集成.md" beforeDir="false" afterPath="$PROJECT_DIR$/.qoder/repowiki/zh/content/外部系统集成/外部系统集成.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.qoder/repowiki/zh/content/监控与日志/监控与日志.md" beforeDir="false" afterPath="$PROJECT_DIR$/.qoder/repowiki/zh/content/监控与日志/监控与日志.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.qoder/repowiki/zh/content/监控与日志/系统监控.md" beforeDir="false" afterPath="$PROJECT_DIR$/.qoder/repowiki/zh/content/监控与日志/系统监控.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.qoder/repowiki/zh/content/部署与配置.md" beforeDir="false" afterPath="$PROJECT_DIR$/.qoder/repowiki/zh/content/部署与配置.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.qoder/repowiki/zh/meta/repowiki-metadata.json" beforeDir="false" afterPath="$PROJECT_DIR$/.qoder/repowiki/zh/meta/repowiki-metadata.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/stores/task.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/stores/task.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/types/task.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/types/task.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/utils/mockData.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/utils/mockData.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/Home/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/Home/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/Layout.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/Layout.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/TaskList/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/TaskList/index.vue" afterDir="false" />
-    </list>
+    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="feat(config):优化自动刷新间隔滑块刻度尺设计&#10;&#10;- 新增带刻度线的滑块尺样式，提升视觉反馈&#10;- 添加主要刻度标记（5、15、30、60分钟）&#10;- 实现激活状态高亮显示当前选中值&#10;- 增加悬停效果增强交互体验&#10;- 调整布局结构以适应新刻度尺组件&#10;- 更新样式细节包括阴影、渐变和过渡动画" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -253,7 +235,31 @@
       <option name="project" value="LOCAL" />
       <updated>1761416472621</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="feat(config): 调整配置页面布局和宽度&#10;&#10;- 将配置页面宽度设为100%，取消最大宽度限制&#10;- 移除页面水平居中对齐，调整内边距只保留上下方向&#10;- 扩大配置表单最大宽度从600px到800px以适应更多配置项">
+      <option name="closed" value="true" />
+      <created>1761451080095</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1761451080095</updated>
+    </task>
+    <task id="LOCAL-00016" summary="feat(api): 添加健康检查端点和智能轮询机制- 新增 `/api/health` 端点用于服务状态监控&#10;- 实现前端智能轮询策略 useSmartPolling.ts&#10;- 更新 API 文档包含健康检查使用示例&#10;- 调整认证机制排除健康检查端点&#10;- 增加健康检查客户端调用方法&#10;- 更新相关文件引用和架构说明&#10;-优化任务列表统计显示未知状态任务&#10;- 调整首页注入状态卡片样式和布局&#10;- 改进任务列表分页器固定显示效果&#10;- 移除底部导航徽章显示逻辑&#10;- 优化模拟数据生成注入状态分布&#10;- 新增任务批量操作流程说明文档&#10;- 更新业务逻辑层批量停止功能描述- 调整页面布局间距和响应式设计&#10;- 增强3D视觉效果和颜色主题适配">
+      <option name="closed" value="true" />
+      <created>1761451255042</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1761451255042</updated>
+    </task>
+    <task id="LOCAL-00017" summary="feat(config):优化自动刷新间隔滑块刻度尺设计&#10;&#10;- 新增带刻度线的滑块尺样式，提升视觉反馈&#10;- 添加主要刻度标记（5、15、30、60分钟）&#10;- 实现激活状态高亮显示当前选中值&#10;- 增加悬停效果增强交互体验&#10;- 调整布局结构以适应新刻度尺组件&#10;- 更新样式细节包括阴影、渐变和过渡动画">
+      <option name="closed" value="true" />
+      <created>1761452091556</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1761452091556</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -274,7 +280,9 @@
     <MESSAGE value="feat(styles): 实现3D立体视觉效果和增强样式系统&#10;&#10;- 添加3D立体效果Mixins，包括凸起、凹陷、浮动等视觉效果&#10;- 实现毛玻璃、渐变按钮、3D卡片等高级样式组件&#10;- 新增多种工具类，如间距、布局、文本对齐等&#10;- 增强暗黑模式下的3D视觉效果和颜色适配-优化过渡动画，添加3D翻转、弹性滑动等效果- 改进滚动条样式，支持自定义容器和组件内滚动条&#10;- 增强PrimeVue组件的3D视觉效果，包括按钮、输入框、开关等&#10;- 添加特殊3D效果，如霓虹发光、彩虹边框、粒子背景等&#10;- 实现终极交互动画，包括磁力悬停、能量脉动、数据流动等- 优化移动端3D效果表现，减少性能消耗" />
     <MESSAGE value="feat(task): 添加任务批量停止功能并优化界面布局- 在任务列表页面新增&quot;停止选中&quot;按钮，支持批量停止运行中的任务&#10;- 实现确认对话框，防止误操作- 添加注入状态列，显示任务是否存在注入情况&#10;-优化任务列表和主页的布局样式，调整宽度和内边距- 增加批量停止任务的API和store方法- 更新扫描URL和主机列支持排序功能&#10;- 调整主内容区域的左右内边距，避免被Dock遮挡" />
     <MESSAGE value="feat(config): 调整配置页面布局和宽度&#10;&#10;- 将配置页面宽度设为100%，取消最大宽度限制&#10;- 移除页面水平居中对齐，调整内边距只保留上下方向&#10;- 扩大配置表单最大宽度从600px到800px以适应更多配置项" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(config): 调整配置页面布局和宽度&#10;&#10;- 将配置页面宽度设为100%，取消最大宽度限制&#10;- 移除页面水平居中对齐，调整内边距只保留上下方向&#10;- 扩大配置表单最大宽度从600px到800px以适应更多配置项" />
+    <MESSAGE value="feat(api): 添加健康检查端点和智能轮询机制- 新增 `/api/health` 端点用于服务状态监控&#10;- 实现前端智能轮询策略 useSmartPolling.ts&#10;- 更新 API 文档包含健康检查使用示例&#10;- 调整认证机制排除健康检查端点&#10;- 增加健康检查客户端调用方法&#10;- 更新相关文件引用和架构说明&#10;-优化任务列表统计显示未知状态任务&#10;- 调整首页注入状态卡片样式和布局&#10;- 改进任务列表分页器固定显示效果&#10;- 移除底部导航徽章显示逻辑&#10;- 优化模拟数据生成注入状态分布&#10;- 新增任务批量操作流程说明文档&#10;- 更新业务逻辑层批量停止功能描述- 调整页面布局间距和响应式设计&#10;- 增强3D视觉效果和颜色主题适配" />
+    <MESSAGE value="feat(config):优化自动刷新间隔滑块刻度尺设计&#10;&#10;- 新增带刻度线的滑块尺样式，提升视觉反馈&#10;- 添加主要刻度标记（5、15、30、60分钟）&#10;- 实现激活状态高亮显示当前选中值&#10;- 增加悬停效果增强交互体验&#10;- 调整布局结构以适应新刻度尺组件&#10;- 更新样式细节包括阴影、渐变和过渡动画" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(config):优化自动刷新间隔滑块刻度尺设计&#10;&#10;- 新增带刻度线的滑块尺样式，提升视觉反馈&#10;- 添加主要刻度标记（5、15、30、60分钟）&#10;- 实现激活状态高亮显示当前选中值&#10;- 增加悬停效果增强交互体验&#10;- 调整布局结构以适应新刻度尺组件&#10;- 更新样式细节包括阴影、渐变和过渡动画" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -168,6 +168,7 @@ function handleRefreshIntervalChange() {
   position: relative;
   z-index: 2;
   transition: $transition-base;
+  overflow: visible;  // 允许60标签溢出显示
 
   &:hover {
     transform: translateY(-2px);
@@ -190,12 +191,13 @@ function handleRefreshIntervalChange() {
 
 .slider-container {
   position: relative;
-  width: 100%;
+  width: 100%;  // 恢复为100%
   padding-bottom: 50px;  // 为刻度尺预留空间
+  overflow: visible;  // 允许右侧标签溢出显示
 }
 
 .refresh-slider {
-  width: 100%;
+  width: 100%;  // 恢复为100%
   height: 20px;
   margin-bottom: 8px;
 }
@@ -203,9 +205,10 @@ function handleRefreshIntervalChange() {
 // ==================== 刻度尺样式 ====================
 .slider-ruler {
   position: relative;
-  width: 100%;
+  width: 100%;  // 与滑块宽度一致
   height: 40px;
   margin-top: 12px;
+  overflow: visible;  // 允许右侧标签溢出
 
   .ruler-mark {
     position: absolute;
@@ -222,6 +225,32 @@ function handleRefreshIntervalChange() {
       border-radius: 1px;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    // 根据位置动态生成颜色
+    @for $i from 1 through 12 {
+      &:nth-child(#{$i}) .mark-line {
+        $percent: ($i - 1) / 11 * 100%;  // 0% 到 100%
+        @if $i <= 4 {
+          // 5-20分钟: 红色系
+          background: linear-gradient(180deg, 
+            rgba(239, 68, 68, 0.4) 0%, 
+            rgba(239, 68, 68, 0.8) 100%
+          );
+        } @else if $i <= 7 {
+          // 25-35分钟: 黄色系
+          background: linear-gradient(180deg, 
+            rgba(251, 191, 36, 0.4) 0%, 
+            rgba(251, 191, 36, 0.8) 100%
+          );
+        } @else {
+          // 40-60分钟: 绿色系
+          background: linear-gradient(180deg, 
+            rgba(34, 197, 94, 0.4) 0%, 
+            rgba(34, 197, 94, 0.8) 100%
+          );
+        }
+      }
     }
 
     .mark-label {
@@ -245,16 +274,55 @@ function handleRefreshIntervalChange() {
       .mark-line {
         height: 20px;
         width: 3px;
-        background: linear-gradient(180deg, rgba(99, 102, 241, 0.5) 0%, rgba(99, 102, 241, 0.9) 100%);
-        box-shadow: 
-          0 2px 4px rgba(99, 102, 241, 0.3),
-          0 0 8px rgba(99, 102, 241, 0.2);
       }
 
       .mark-label {
         font-size: 14px;
         font-weight: 700;
-        color: $primary-color;
+      }
+
+      // 5分钟 - 红色
+      &:nth-child(1) {
+        .mark-line {
+          background: linear-gradient(180deg, rgba(239, 68, 68, 0.6) 0%, #ef4444 100%);
+          box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3), 0 0 8px rgba(239, 68, 68, 0.2);
+        }
+        .mark-label {
+          color: #dc2626;
+        }
+      }
+
+      // 15分钟 - 橙色
+      &:nth-child(3) {
+        .mark-line {
+          background: linear-gradient(180deg, rgba(245, 158, 11, 0.6) 0%, #f59e0b 100%);
+          box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3), 0 0 8px rgba(245, 158, 11, 0.2);
+        }
+        .mark-label {
+          color: #d97706;
+        }
+      }
+
+      // 30分钟 - 黄绿
+      &:nth-child(6) {
+        .mark-line {
+          background: linear-gradient(180deg, rgba(132, 204, 22, 0.6) 0%, #84cc16 100%);
+          box-shadow: 0 2px 4px rgba(132, 204, 22, 0.3), 0 0 8px rgba(132, 204, 22, 0.2);
+        }
+        .mark-label {
+          color: #65a30d;
+        }
+      }
+
+      // 60分钟 - 绿色
+      &:nth-child(12) {
+        .mark-line {
+          background: linear-gradient(180deg, rgba(34, 197, 94, 0.6) 0%, #22c55e 100%);
+          box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3), 0 0 8px rgba(34, 197, 94, 0.2);
+        }
+        .mark-label {
+          color: #16a34a;
+        }
       }
     }
 
@@ -317,16 +385,19 @@ function handleRefreshIntervalChange() {
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-// ==================== PrimeVue滑块3D增强 ====================
+// ==================== PrimeVue滑块3D增强 + 颜色渐变 ====================
 :deep(.p-slider) {
   background:
-    linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+    linear-gradient(90deg, 
+      rgba(239, 68, 68, 0.15) 0%,     // 红色（5分钟）
+      rgba(251, 191, 36, 0.15) 36%,   // 黄色（25分钟）
+      rgba(34, 197, 94, 0.15) 100%    // 绿色（60分钟）
+    );
   border-radius: $border-radius-full;
   height: 12px;
-  border: 2px solid rgba(99, 102, 241, 0.2);
+  border: 2px solid rgba(148, 163, 184, 0.2);
   box-shadow:
     inset 0 2px 6px rgba(0, 0, 0, 0.1),
-    inset 0 0 12px rgba(99, 102, 241, 0.1),
     0 1px 3px rgba(0, 0, 0, 0.1);
   position: relative;
 
@@ -346,13 +417,19 @@ function handleRefreshIntervalChange() {
   }
 
   .p-slider-range {
-    background: $gradient-primary;
+    background: linear-gradient(90deg, 
+      #ef4444 0%,      // 红色（5分钟）- 高频率，资源占用多
+      #f59e0b 18%,     // 橙色（15分钟）
+      #fbbf24 36%,     // 黄色（25分钟）
+      #84cc16 54%,     // 黄绿（35分钟）
+      #22c55e 100%     // 绿色（60分钟）- 低频率，资源占用少
+    );
     border-radius: inherit;
     height: 100%;
     box-shadow:
       inset 0 1px 2px rgba(255, 255, 255, 0.3),
       inset 0 -1px 2px rgba(0, 0, 0, 0.2),
-      0 0 10px rgba(99, 102, 241, 0.4);
+      0 0 10px rgba(34, 197, 94, 0.3);  // 绿色发光
     position: relative;
     overflow: hidden;
 
