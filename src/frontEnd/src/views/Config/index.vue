@@ -7,19 +7,36 @@
           <h3>数据刷新设置</h3>
           <div class="field">
             <label>自动刷新间隔 ({{ configStore.autoRefreshInterval }} 分钟)</label>
-            <Slider 
-              v-model="configStore.autoRefreshInterval" 
-              :min="5" 
-              :max="60" 
-              :step="5"
-              @change="handleRefreshIntervalChange"
-              class="refresh-slider"
-            />
-            <div class="slider-marks">
-              <span>5分钟</span>
-              <span>15分钟</span>
-              <span>30分钟</span>
-              <span>60分钟</span>
+            <div class="slider-container">
+              <Slider 
+                v-model="configStore.autoRefreshInterval" 
+                :min="5" 
+                :max="60" 
+                :step="5"
+                @change="handleRefreshIntervalChange"
+                class="refresh-slider"
+              />
+              <!-- 刻度尺标记 -->
+              <div class="slider-ruler">
+                <div 
+                  v-for="n in 12" 
+                  :key="n" 
+                  class="ruler-mark"
+                  :class="{
+                    'major': n * 5 === 5 || n * 5 === 15 || n * 5 === 30 || n * 5 === 60,
+                    'active': configStore.autoRefreshInterval === n * 5
+                  }"
+                  :style="{ left: `calc(${((n * 5 - 5) / 55) * 100}% + 14px)` }"
+                >
+                  <div class="mark-line"></div>
+                  <div 
+                    v-if="n * 5 === 5 || n * 5 === 15 || n * 5 === 30 || n * 5 === 60" 
+                    class="mark-label"
+                  >
+                    {{ n * 5 }}
+                  </div>
+                </div>
+              </div>
             </div>
             <small class="field-help">
               设置任务列表页面的自动刷新间隔，范围为5-60分钟，每5分钟一个间隔
@@ -171,32 +188,118 @@ function handleRefreshIntervalChange() {
   }
 }
 
+.slider-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 50px;  // 为刻度尺预留空间
+}
+
 .refresh-slider {
   width: 100%;
   height: 20px;
+  margin-bottom: 8px;
 }
 
-.slider-marks {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-  color: $text-color-secondary;
-  font-weight: $font-weight-medium;
-  margin-top: 8px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+// ==================== 刻度尺样式 ====================
+.slider-ruler {
+  position: relative;
+  width: 100%;
+  height: 40px;
+  margin-top: 12px;
 
-  span {
-    padding: 4px 8px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(248, 250, 252, 0.4) 100%);
-    border-radius: $border-radius;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: $shadow-raised;
-    transition: $transition-base;
+  .ruler-mark {
+    position: absolute;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
+    .mark-line {
+      width: 2px;
+      height: 12px;
+      background: linear-gradient(180deg, rgba(148, 163, 184, 0.4) 0%, rgba(148, 163, 184, 0.8) 100%);
+      border-radius: 1px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .mark-label {
+      margin-top: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: $text-color-secondary;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+      padding: 4px 10px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.7) 100%);
+      border-radius: 6px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.08),
+        inset 0 1px 2px rgba(255, 255, 255, 0.6);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    // 主要刻度（5、15、30、60）
+    &.major {
+      .mark-line {
+        height: 20px;
+        width: 3px;
+        background: linear-gradient(180deg, rgba(99, 102, 241, 0.5) 0%, rgba(99, 102, 241, 0.9) 100%);
+        box-shadow: 
+          0 2px 4px rgba(99, 102, 241, 0.3),
+          0 0 8px rgba(99, 102, 241, 0.2);
+      }
+
+      .mark-label {
+        font-size: 14px;
+        font-weight: 700;
+        color: $primary-color;
+      }
+    }
+
+    // 激活状态
+    &.active {
+      .mark-line {
+        height: 24px;
+        width: 4px;
+        background: $gradient-primary;
+        box-shadow: 
+          0 4px 8px rgba(99, 102, 241, 0.4),
+          0 0 16px rgba(99, 102, 241, 0.4),
+          inset 0 1px 2px rgba(255, 255, 255, 0.3);
+        transform: scaleY(1.1);
+      }
+
+      .mark-label {
+        background: $gradient-primary;
+        color: white;
+        transform: translateY(-2px) scale(1.1);
+        box-shadow: 
+          0 4px 12px rgba(99, 102, 241, 0.4),
+          0 0 16px rgba(99, 102, 241, 0.3),
+          inset 0 1px 2px rgba(255, 255, 255, 0.3);
+        border-color: transparent;
+      }
+    }
+
+    // hover效果
     &:hover {
-      transform: translateY(-1px) scale(1.05);
-      box-shadow: $shadow-elevated;
-      color: $primary-color;
+      .mark-line {
+        transform: scaleY(1.2);
+        background: linear-gradient(180deg, rgba(99, 102, 241, 0.6) 0%, rgba(99, 102, 241, 1) 100%);
+        box-shadow: 
+          0 2px 6px rgba(99, 102, 241, 0.4),
+          0 0 12px rgba(99, 102, 241, 0.3);
+      }
+
+      .mark-label {
+        transform: translateY(-2px) scale(1.05);
+        color: $primary-color;
+        box-shadow: 
+          0 4px 8px rgba(0, 0, 0, 0.12),
+          inset 0 1px 2px rgba(255, 255, 255, 0.7);
+      }
     }
   }
 }
