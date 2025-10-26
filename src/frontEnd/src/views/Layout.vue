@@ -76,13 +76,6 @@
             :tabindex="0"
           >
             <i :class="['dock-icon', item.icon]"></i>
-            <Badge 
-              v-if="item.badge !== null && item.badge !== undefined && item.badge > 0" 
-              :value="item.badge > 99 ? '99+' : item.badge" 
-              :severity="item.badgeVariant || 'danger'"
-              class="dock-badge"
-              :class="{ pulse: item.badge > 0 }"
-            />
           </Button>
           <div v-if="isActiveRoute(item.route)" class="active-indicator"></div>
         </div>
@@ -123,8 +116,6 @@ interface DockItem {
   label: string
   icon: string
   route: string
-  badge?: number | null
-  badgeVariant?: string
 }
 
 // Dock导航项配置
@@ -134,30 +125,20 @@ const dockItems = computed<DockItem[]>(() => [
     label: '首页',
     icon: 'pi pi-home',
     route: '/home',
-    badge: null,
   },
   {
     id: 'tasks',
     label: '任务',
     icon: 'pi pi-list',
     route: '/tasks',
-    badge: runningTaskCount.value,
-    badgeVariant: 'danger',
   },
   {
     id: 'config',
     label: '配置',
     icon: 'pi pi-cog',
     route: '/config',
-    badge: null,
   },
 ])
-
-// 计算运行中的任务数量
-const runningTaskCount = computed(() => {
-  // status: 0-等待中, 1-运行中, 2-完成, 3-失败
-  return taskStore.taskList.filter(task => task.status === 1).length
-})
 
 // 判断是否为活跃路由
 function isActiveRoute(routePath: string): boolean {
@@ -177,9 +158,6 @@ function navigateTo(path: string): void {
 
 // 获取Tooltip文本
 function getTooltipText(item: DockItem): string {
-  if (item.badge && item.badge > 0) {
-    return `${item.label} - ${item.badge}个运行中`
-  }
   return item.label
 }
 
@@ -253,7 +231,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  overflow: hidden;
+  overflow: hidden;  // 防止外层滚动条
   background:
     radial-gradient(circle at 25% 25%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
     radial-gradient(circle at 75% 75%, rgba(6, 182, 212, 0.1) 0%, transparent 50%),
@@ -484,8 +462,8 @@ onUnmounted(() => {
 .main-content {
   flex: 1;
   margin-top: 64px;
-  margin-bottom: 140px;  // 增加底部边距，避免被Dock遮挡
-  padding: 16px 4%;  // 左右各占4%，内容占92%
+  margin-bottom: 140px;  // 恢复140px，确保dock栏不遮挡内容
+  padding: 16px 4%;  // 左右各4%，内容占92%
   overflow-y: auto;
   position: relative;
 
@@ -546,7 +524,7 @@ onUnmounted(() => {
 /* ==================== 底部Dock栏(3D增强) ==================== */
 .dock-container {
   position: fixed;
-  bottom: 24px;
+  bottom: 8px;  // 从24px改为8px，减少底部空白
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
@@ -857,13 +835,13 @@ onUnmounted(() => {
 
   .main-content {
     margin-top: 56px;
-    margin-bottom: 100px;
-    padding: 16px;
+    margin-bottom: 116px;  // 保持116px，确保dock栏不遮挡内容
+    padding: 16px;  // 恢复16px
     min-height: calc(100vh - 156px);
   }
 
   .dock-container {
-    bottom: 16px;
+    bottom: 12px;  // 从16px改为12px，减少底部空白
   }
 
   .dock {

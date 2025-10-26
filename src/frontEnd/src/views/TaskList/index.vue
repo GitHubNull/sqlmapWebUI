@@ -61,8 +61,7 @@
           :rows="20"
           :rowsPerPageOptions="[10, 20, 50, 100]"
           :scrollable="true"
-          scrollHeight="calc(100vh - 380px)"
-          :virtualScrollerOptions="{ itemSize: 60 }"
+          scrollHeight="flex"
           showGridlines
           responsiveLayout="scroll"
           sortMode="single"
@@ -70,6 +69,7 @@
           :sortOrder="taskStore.sortConfig.order === 'asc' ? 1 : taskStore.sortConfig.order === 'desc' ? -1 : 0"
           @sort="handleSort"
           dataKey="taskid"
+          class="fixed-paginator-table"
         >
           <!-- 选择列 -->
           <Column selectionMode="multiple" headerStyle="width: 3rem" :exportable="false" frozen />
@@ -693,6 +693,34 @@ function confirmDeleteAll() {
       opacity: 0;
       position: absolute;
     }
+  }
+}
+
+// ==================== 固定分页器样式 ====================
+:deep(.fixed-paginator-table) {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 580px);  // 从540px改为580px，完全消除滚动条
+
+  .p-datatable-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: auto;
+  }
+
+  .p-paginator {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 
+      0 -2px 8px rgba(0, 0, 0, 0.08),
+      inset 0 1px 2px rgba(255, 255, 255, 0.4);
+    border-top: 2px solid rgba(99, 102, 241, 0.1);
+    padding: 12px 16px;
+    margin: 0;
   }
 }
 </style>

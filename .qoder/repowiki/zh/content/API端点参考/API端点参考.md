@@ -12,7 +12,15 @@
 - [Task.py](file://src/backEnd/model/Task.py)
 - [TaskStatus.py](file://src/backEnd/model/TaskStatus.py)
 - [auth.py](file://src/backEnd/utils/auth.py)
+- [useSmartPolling.ts](file://src/frontEnd/src/utils/useSmartPolling.ts)
 </cite>
+
+## 更新摘要
+**变更内容**  
+- 新增了`/api/health`健康检查端点的详细文档
+- 更新了API版本控制与速率限制章节，增加了健康检查机制说明
+- 在使用示例中添加了健康检查的curl命令示例
+- 更新了相关文件引用列表，新增了前端轮询工具文件
 
 ## 目录
 1. [简介](#简介)
@@ -57,6 +65,36 @@
 **Section sources**
 - [app.py](file://src/backEnd/app.py#L40-L44)
 - [config.py](file://src/backEnd/config.py#L8)
+
+### 健康检查
+返回服务健康状态信息，用于前端监控后端服务可用性。
+
+- **HTTP方法**: `GET`
+- **URL路径**: `/api/health`
+- **认证要求**: Bearer Token
+- **成功响应**:
+  ```json
+  {
+    "code": 200,
+    "success": true,
+    "message": "success",
+    "data": {
+      "status": "healthy",
+      "timestamp": 1702252800000,
+      "version": "0.0.1",
+      "uptime": 3600
+    }
+  }
+  ```
+- **响应字段说明**:
+  - `status`: 服务状态，当前固定为"healthy"
+  - `timestamp`: 当前时间戳（毫秒）
+  - `version`: 系统版本号
+  - `uptime`: 服务运行时长（秒）
+
+**Section sources**
+- [app.py](file://src/backEnd/app.py#L46-L64)
+- [useSmartPolling.ts](file://src/frontEnd/src/utils/useSmartPolling.ts#L1-L203)
 
 ## Chrome扩展API
 Chrome扩展API位于`/api/chrome/admin`前缀下，提供任务管理、日志查询和结果检索等功能。
@@ -423,7 +461,7 @@ Burp Suite插件API位于`/api/burpsuite/admin`前缀下，主要用于接收来
 - [TaskRequest.py](file://src/backEnd/model/requestModel/TaskRequest.py#L38-L44)
 
 ## 认证与安全
-所有API端点（除`/version`外）均需要身份验证。
+所有API端点（除`/version`和`/api/health`外）均需要身份验证。
 
 ### 认证机制
 系统采用基于IP地址和Bearer Token的双重认证机制：
@@ -555,6 +593,10 @@ curl -X POST "http://localhost:8000/api/burpsuite/admin/task/add" \
 # 获取任务列表
 curl -X GET "http://localhost:8000/api/chrome/admin/task/list" \
   -H "Authorization: Bearer secret-token"
+
+# 健康检查
+curl -X GET "http://localhost:8000/api/health" \
+  -H "Authorization: Bearer secret-token"
 ```
 
 ### Python客户端代码片段
@@ -585,6 +627,12 @@ def get_task_list():
     response = requests.get(url, headers=HEADERS)
     return response.json()
 
+# 健康检查
+def health_check():
+    url = "http://localhost:8000/api/health"
+    response = requests.get(url, headers=HEADERS)
+    return response.json()
+
 # 使用示例
 if __name__ == "__main__":
     result = add_scan_task(
@@ -600,6 +648,7 @@ if __name__ == "__main__":
 **Section sources**
 - [admin.py](file://src/backEnd/api/burpSuiteExApi/admin.py#L10-L36)
 - [admin.py](file://src/backEnd/api/chromeExApi/admin.py#L27-L31)
+- [app.py](file://src/backEnd/app.py#L46-L64)
 
 ## API版本控制与速率限制
 ### 版本控制策略
@@ -610,6 +659,7 @@ if __name__ == "__main__":
 ### 速率限制机制
 - 当前未实现显式速率限制
 - 通过`MAX_TASKS_COUNT`配置项限制并发任务数（默认3个）
+- 实现了健康检查机制，前端通过`/api/health`端点监控后端服务状态
 - 未来计划基于客户端IP实现请求频率限制
 
 ### 安全最佳实践
@@ -618,8 +668,10 @@ if __name__ == "__main__":
 3. **输入验证**: 对所有请求参数进行严格验证
 4. **日志审计**: 记录所有API调用和任务操作
 5. **资源限制**: 限制单个任务的资源使用，防止DoS攻击
+6. **健康监控**: 前端使用智能轮询机制，根据页面可见性和网络状态调整轮询频率
 
 **Section sources**
 - [config.py](file://src/backEnd/config.py#L1-L8)
 - [app.py](file://src/backEnd/app.py#L10-L24)
 - [auth.py](file://src/backEnd/utils/auth.py#L1-L22)
+- [useSmartPolling.ts](file://src/frontEnd/src/utils/useSmartPolling.ts#L1-L203)

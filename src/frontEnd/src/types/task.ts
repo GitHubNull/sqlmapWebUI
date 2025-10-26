@@ -57,6 +57,7 @@ export interface TaskStats {
   terminated: number // 已终止任务数
   injectable: number // 可注入任务数
   nonInjectable: number // 不可注入任务数
+  unknown: number // 未知注入状态任务数
 }
 
 // 载荷详情模型

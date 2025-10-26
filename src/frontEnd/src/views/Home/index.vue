@@ -129,11 +129,11 @@
               <template #content>
                 <div class="stat-content">
                   <div class="stat-icon">
-                    <i class="pi pi-shield"></i>
+                    <i class="pi pi-exclamation-triangle"></i>
                   </div>
                   <div class="stat-info">
                     <div class="stat-value">{{ taskStore.taskStats.injectable }}</div>
-                    <div class="stat-label">可注入任务</div>
+                    <div class="stat-label">存在注入</div>
                   </div>
                 </div>
               </template>
@@ -143,11 +143,25 @@
               <template #content>
                 <div class="stat-content">
                   <div class="stat-icon">
-                    <i class="pi pi-lock"></i>
+                    <i class="pi pi-check-circle"></i>
                   </div>
                   <div class="stat-info">
                     <div class="stat-value">{{ taskStore.taskStats.nonInjectable }}</div>
-                    <div class="stat-label">不可注入任务</div>
+                    <div class="stat-label">不存在注入</div>
+                  </div>
+                </div>
+              </template>
+            </Card>
+            
+            <Card class="stat-card unknown">
+              <template #content>
+                <div class="stat-content">
+                  <div class="stat-icon">
+                    <i class="pi pi-question-circle"></i>
+                  </div>
+                  <div class="stat-info">
+                    <div class="stat-value">{{ taskStore.taskStats.unknown }}</div>
+                    <div class="stat-label">未知状态</div>
                   </div>
                 </div>
               </template>
@@ -291,7 +305,11 @@ async function refreshData() {
   }
 
   &.injection-stats {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+
+    @media (max-width: 1024px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
 
     @media (max-width: 767px) {
       grid-template-columns: 1fr;
@@ -592,7 +610,7 @@ async function refreshData() {
 // ==================== 注入类卡片3D颜色效果 ====================
 .stat-card.injectable {
   .stat-icon {
-    background: $gradient-fire;
+    background: $gradient-danger;
     color: white;
 
     &:hover {
@@ -601,7 +619,7 @@ async function refreshData() {
   }
 
   .stat-value {
-    background: $gradient-fire;
+    background: $gradient-danger;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -611,18 +629,18 @@ async function refreshData() {
     box-shadow:
       $shadow-floating,
       inset 0 2px 4px rgba(255, 255, 255, 0.4),
-      0 0 40px rgba(240, 147, 251, 0.4);
+      0 0 40px rgba(239, 68, 68, 0.4);
   }
 }
 
 .stat-card.non-injectable {
   .stat-icon {
-    background: $gradient-secondary;
+    background: $gradient-success;
     color: white;
   }
 
   .stat-value {
-    background: $gradient-secondary;
+    background: $gradient-success;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -632,7 +650,28 @@ async function refreshData() {
     box-shadow:
       $shadow-floating,
       inset 0 2px 4px rgba(255, 255, 255, 0.4),
-      0 0 40px rgba(6, 182, 212, 0.4);
+      0 0 40px rgba(16, 185, 129, 0.4);
+  }
+}
+
+.stat-card.unknown {
+  .stat-icon {
+    background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+    color: white;
+  }
+
+  .stat-value {
+    background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  &:hover {
+    box-shadow:
+      $shadow-floating,
+      inset 0 2px 4px rgba(255, 255, 255, 0.4),
+      0 0 40px rgba(156, 163, 175, 0.4);
   }
 }
 

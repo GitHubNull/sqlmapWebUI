@@ -95,15 +95,42 @@ function generateNormalUrl(host: string): string {
  * @param mode 数据生成模式
  */
 export function generateMockTask(index: number, mode: MockDataMode = MockDataMode.NORMAL): Task {
+  // 增加已完成任务的比例，确保有足够的数据显示注入状态
   const statuses = [
-    TaskStatus.PENDING,
-    TaskStatus.RUNNING,
+    TaskStatus.SUCCESS,    // 60%
     TaskStatus.SUCCESS,
-    TaskStatus.FAILED,
-    TaskStatus.STOPPED,
+    TaskStatus.SUCCESS,
+    TaskStatus.PENDING,    // 10%
+    TaskStatus.RUNNING,    // 10%
+    TaskStatus.FAILED,     // 10%
+    TaskStatus.STOPPED,    // 10%
   ]
   
   const randomStatus = Mock.Random.pick(statuses)
+  
+  // 根据状态生成注入状态
+  let injected: boolean | undefined
+  
+  if (randomStatus === TaskStatus.SUCCESS) {
+    // 已完成的任务：60%存在注入，40%不存在注入
+    injected = Mock.Random.float(0, 1) < 0.6
+  } else if (randomStatus === TaskStatus.FAILED) {
+    // 失败的任务：全部未知
+    injected = undefined
+  } else if (randomStatus === TaskStatus.RUNNING || randomStatus === TaskStatus.PENDING) {
+    // 运行中或等待中：全部未知
+    injected = undefined
+  } else {
+    // 停止的任务：50%未知，30%存在注入，20%不存在注入
+    const rand = Mock.Random.float(0, 1)
+    if (rand < 0.5) {
+      injected = undefined
+    } else if (rand < 0.8) {
+      injected = true
+    } else {
+      injected = false
+    }
+  }
   
   // 根据模式生成不同的主机名和URL
   let host: string
@@ -171,6 +198,7 @@ export function generateMockTask(index: number, mode: MockDataMode = MockDataMod
       threads: Mock.Random.integer(1, 10),
     },
     updateTime: createTime,
+    injected,  // 添加注入状态
   }
 }
 
@@ -220,6 +248,30 @@ export function generateMockTasks(
   }
   
   console.log(`✅ Mock数据生成完成！`)
+  
+  // 统计注入状态分布
+  const injectedCount = tasks.filter(t => t.injected === true).length
+  const notInjectedCount = tasks.filter(t => t.injected === false).length
+  const unknownCount = tasks.filter(t => t.injected === undefined).length
+  
+  console.log(`📈 注入状态统计：`)
+  console.log(`  - 存在注入: ${injectedCount} 条 (${(injectedCount / count * 100).toFixed(1)}%)`)
+  console.log(`  - 不存在注入: ${notInjectedCount} 条 (${(notInjectedCount / count * 100).toFixed(1)}%)`)
+  console.log(`  - 未知状态: ${unknownCount} 条 (${(unknownCount / count * 100).toFixed(1)}%)`)
+  
+  // 统计任务状态分布
+  const statusCounts = tasks.reduce((acc, task) => {
+    acc[task.status] = (acc[task.status] || 0) + 1
+    return acc
+  }, {} as Record<number, number>)
+  
+  console.log(`📊 任务状态统计：`)
+  console.log(`  - 已完成(SUCCESS): ${statusCounts[TaskStatus.SUCCESS] || 0} 条`)
+  console.log(`  - 运行中(RUNNING): ${statusCounts[TaskStatus.RUNNING] || 0} 条`)
+  console.log(`  - 等待中(PENDING): ${statusCounts[TaskStatus.PENDING] || 0} 条`)
+  console.log(`  - 失败(FAILED): ${statusCounts[TaskStatus.FAILED] || 0} 条`)
+  console.log(`  - 已停止(STOPPED): ${statusCounts[TaskStatus.STOPPED] || 0} 条`)
+  
   return tasks
 }
 

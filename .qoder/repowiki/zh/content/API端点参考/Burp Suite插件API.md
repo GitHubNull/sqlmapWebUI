@@ -15,6 +15,14 @@
 - [session_header_manager.py](file://src/backEnd/utils/session_header_manager.py)
 </cite>
 
+## 更新摘要
+**变更内容**   
+- 更新了API端点`/api/burpsuite/admin/task/add`的详细说明
+- 新增了请求模型`TaskAddRequest`的字段描述
+- 更新了任务创建流程的序列图
+- 增强了认证机制的说明
+- 更新了核心组件和架构概述部分以反映最新代码状态
+
 ## 目录
 1. [简介](#简介)
 2. [项目结构](#项目结构)
@@ -28,7 +36,7 @@
 10. [附录](#附录) (如有必要)
 
 ## 简介
-本文档详细描述了Burp Suite插件API，重点介绍在`burpSuiteExApi/admin.py`中定义的专用端点。该API旨在与Burp Suite安全测试工具集成，提供拦截请求转发、扫描任务创建和结果回传等功能。文档详细说明了`POST /api/burp/intercept`端点，该端点用于接收从Burp Suite插件发送的拦截请求，并触发SQL注入检测任务。此外，还涵盖了如何处理Burp Suite发送的会话数据、请求上下文和扫描配置。
+本文档详细描述了Burp Suite插件API，重点介绍在`burpSuiteExApi/admin.py`中定义的专用端点。该API旨在与Burp Suite安全测试工具集成，提供拦截请求转发、扫描任务创建和结果回传等功能。文档详细说明了`POST /api/burpsuite/admin/task/add`端点，该端点用于接收从Burp Suite插件发送的拦截请求，并触发SQL注入检测任务。此外，还涵盖了如何处理Burp Suite发送的会话数据、请求上下文和扫描配置。
 
 ## 项目结构
 该项目是一个基于Python的后端服务，使用FastAPI框架构建。主要目录结构包括API接口、模型定义、服务逻辑和第三方库。API接口分为Burp Suite扩展API和Chrome扩展API，其中Burp Suite API是本文档的重点。模型层定义了请求和响应的数据结构，服务层实现了业务逻辑，而工具模块则提供了认证、请求头处理等辅助功能。

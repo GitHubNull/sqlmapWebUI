@@ -137,6 +137,7 @@ export const useTaskStore = defineStore('task', () => {
       terminated: 0,
       injectable: 0,
       nonInjectable: 0,
+      unknown: 0,
     }
 
     taskList.value.forEach((task) => {
@@ -164,8 +165,11 @@ export const useTaskStore = defineStore('task', () => {
       // 统计注入状态
       if (task.injected === true) {
         stats.injectable++
-      } else if (task.injected === false && task.status === TaskStatus.SUCCESS) {
+      } else if (task.injected === false) {
         stats.nonInjectable++
+      } else {
+        // injected === undefined 或 null
+        stats.unknown++
       }
     })
 
