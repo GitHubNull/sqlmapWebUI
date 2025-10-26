@@ -4,14 +4,26 @@
       <template #title>配置管理</template>
       <template #content>
         <!-- Tab导航 -->
-        <TabView v-model:activeIndex="activeTab" class="config-tabs">
-          <!-- 系统配置 -->
-          <TabPanel value="0">
-            <template #header>
+        <Tabs v-model:value="activeTab" class="config-tabs">
+          <TabList>
+            <Tab value="0">
               <i class="pi pi-cog"></i>
               <span>系统配置</span>
-            </template>
-            <div class="config-section">
+            </Tab>
+            <Tab value="1">
+              <i class="pi pi-list"></i>
+              <span>Header规则管理</span>
+            </Tab>
+            <Tab value="2">
+              <i class="pi pi-clock"></i>
+              <span>会话Header管理</span>
+            </Tab>
+          </TabList>
+
+          <TabPanels>
+            <!-- 系统配置 -->
+            <TabPanel value="0">
+              <div class="config-section">
               <h3>数据刷新设置</h3>
               <div class="field">
                 <label>自动刷新间隔 ({{ configStore.autoRefreshInterval }} 分钟)</label>
@@ -51,26 +63,19 @@
                 </small>
               </div>
             </div>
-          </TabPanel>
+            </TabPanel>
 
-          <!-- Header规则管理 -->
-          <TabPanel value="1">
-            <template #header>
-              <i class="pi pi-list"></i>
-              <span>Header规则管理</span>
-            </template>
-            <HeaderRulesConfig />
-          </TabPanel>
+            <!-- Header规则管理 -->
+            <TabPanel value="1">
+              <HeaderRulesConfig />
+            </TabPanel>
 
-          <!-- 会话Header管理 -->
-          <TabPanel value="2">
-            <template #header>
-              <i class="pi pi-clock"></i>
-              <span>会话Header管理</span>
-            </template>
-            <SessionHeadersConfig />
-          </TabPanel>
-        </TabView>
+            <!-- 会话Header管理 -->
+            <TabPanel value="2">
+              <SessionHeadersConfig />
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
       </template>
     </Card>
   </div>
@@ -79,11 +84,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useConfigStore } from '@/stores/config'
+import Tabs from 'primevue/tabs'
+import TabList from 'primevue/tablist'
+import Tab from 'primevue/tab'
+import TabPanels from 'primevue/tabpanels'
+import TabPanel from 'primevue/tabpanel'
 import HeaderRulesConfig from './components/HeaderRulesConfig.vue'
 import SessionHeadersConfig from './components/SessionHeadersConfig.vue'
 
 const configStore = useConfigStore()
-const activeTab = ref(0)
+const activeTab = ref('0') // 改为字符串类型
 
 function handleRefreshIntervalChange() {
   configStore.updateAutoRefreshInterval(configStore.autoRefreshInterval)
@@ -123,7 +133,7 @@ function handleRefreshIntervalChange() {
 
 // ==================== Tab样式 ====================
 :deep(.config-tabs) {
-  .p-tabview-nav {
+  .p-tablist {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.7) 100%);
     border-radius: $border-radius-lg $border-radius-lg 0 0;
     border: 2px solid rgba(255, 255, 255, 0.3);
@@ -134,7 +144,7 @@ function handleRefreshIntervalChange() {
     display: flex;
   }
 
-  .p-tabview-nav-link {
+  .p-tab {
     background: transparent;
     border: none;
     padding: 14px 28px; // 增加内边距
@@ -144,6 +154,7 @@ function handleRefreshIntervalChange() {
     display: flex;
     align-items: center;
     gap: 10px; // 增加图标和文字之间的间距
+    cursor: pointer;
 
     i {
       font-size: 1.2rem; // 稍微增大图标
@@ -166,7 +177,7 @@ function handleRefreshIntervalChange() {
     }
   }
 
-  .p-tabview-nav-link.p-highlight {
+  .p-tab[data-p-active="true"] {
     background: $gradient-primary;
     color: white;
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
@@ -176,7 +187,7 @@ function handleRefreshIntervalChange() {
     }
   }
 
-  .p-tabview-panels {
+  .p-tabpanels {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.6) 100%);
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 0 0 $border-radius-lg $border-radius-lg;

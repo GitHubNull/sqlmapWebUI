@@ -85,132 +85,220 @@
     <Dialog
       v-model:visible="dialogVisible"
       :header="editingRule ? '编辑规则' : '创建规则'"
-      :style="{ width: '600px' }"
+      :style="{ width: '750px' }"
       modal
     >
-      <div class="dialog-content">
-        <div class="field">
-          <label for="name">规则名称 *</label>
-          <InputText
-            id="name"
-            v-model="formData.name"
-            placeholder="请输入规则名称"
-            class="w-full"
-          />
-        </div>
+      <!-- 基本信息面板 -->
+      <Panel header="基本信息" class="mb-3">
+        <div class="p-fluid">
+          <div class="field mb-3">
+            <label for="name">
+              <i class="pi pi-bookmark mr-2"></i>
+              规则名称 <span class="text-red-500">*</span>
+            </label>
+            <InputText
+              id="name"
+              v-model="formData.name"
+              placeholder="例如: API认证Token规则"
+            />
+            <small class="text-color-secondary">用于标识此规则的用途</small>
+          </div>
 
-        <div class="field">
-          <label for="header_name">Header名称 *</label>
-          <InputText
-            id="header_name"
-            v-model="formData.header_name"
-            placeholder="例如: Authorization"
-            class="w-full"
-          />
-        </div>
+          <div class="field mb-3">
+            <label for="header_name">
+              <i class="pi pi-tag mr-2"></i>
+              Header名称 <span class="text-red-500">*</span>
+            </label>
+            <InputText
+              id="header_name"
+              v-model="formData.header_name"
+              placeholder="例如: Authorization, X-API-Key, Cookie"
+            />
+            <small class="text-color-secondary">HTTP请求头的名称，区分大小写</small>
+          </div>
 
-        <div class="field">
-          <label for="header_value">Header值 *</label>
-          <Textarea
-            id="header_value"
-            v-model="formData.header_value"
-            placeholder="请输入Header值"
-            rows="3"
-            class="w-full"
-          />
+          <div class="field">
+            <label for="header_value">
+              <i class="pi pi-align-left mr-2"></i>
+              Header值 <span class="text-red-500">*</span>
+            </label>
+            <Textarea
+              id="header_value"
+              v-model="formData.header_value"
+              placeholder="请输入Header值"
+              :autoResize="true"
+              rows="3"
+            />
+            <small class="text-color-secondary">Header的实际值内容</small>
+          </div>
         </div>
+      </Panel>
 
-        <div class="field">
-          <label for="replace_strategy">替换策略</label>
-          <Dropdown
-            id="replace_strategy"
-            v-model="formData.replace_strategy"
-            :options="replaceStrategies"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="选择替换策略"
-            class="w-full"
-          />
+      <Divider />
+
+      <!-- 高级配置面板 -->
+      <Panel header="高级配置" :toggleable="true" class="mb-3">
+        <div class="p-fluid">
+          <div class="formgrid grid">
+            <div class="field col-8 mb-3">
+              <label for="replace_strategy">
+                <i class="pi pi-sync mr-2"></i>
+                替换策略
+              </label>
+              <Dropdown
+                id="replace_strategy"
+                v-model="formData.replace_strategy"
+                :options="replaceStrategies"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="选择替换策略"
+              />
+              <small class="text-color-secondary">定义如何处理已存在的Header</small>
+            </div>
+
+            <div class="field col-4 mb-3">
+              <label for="priority">
+                <i class="pi pi-sort-amount-up mr-2"></i>
+                优先级
+              </label>
+              <InputNumber
+                id="priority"
+                v-model="formData.priority"
+                :min="0"
+                :max="100"
+                showButtons
+              />
+              <small class="text-color-secondary">0-100，越大优先级越高</small>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="flex align-items-center">
+              <Checkbox
+                inputId="is_active"
+                v-model="formData.is_active"
+                :binary="true"
+              />
+              <label for="is_active" class="ml-2">
+                <i class="pi pi-power-off mr-2"></i>
+                启用此规则
+              </label>
+            </div>
+            <small class="text-color-secondary ml-4">禁用后规则不会生效</small>
+          </div>
         </div>
+      </Panel>
 
-        <div class="field">
-          <label for="priority">优先级 (0-100)</label>
-          <InputNumber
-            id="priority"
-            v-model="formData.priority"
-            :min="0"
-            :max="100"
-            showButtons
-            class="w-full"
-          />
-        </div>
+      <Divider />
 
-        <div class="field-checkbox">
-          <Checkbox
-            id="is_active"
-            v-model="formData.is_active"
-            :binary="true"
-          />
-          <label for="is_active">启用规则</label>
-        </div>
-
-        <!-- 作用域配置 -->
-        <div class="field">
-          <div class="scope-header">
+      <!-- 作用域配置面板 -->
+      <Panel :toggleable="true" :collapsed="!hasScope" class="mb-3">
+        <template #header>
+          <div class="flex align-items-center gap-2 w-full">
             <Checkbox
-              id="has_scope"
+              inputId="has_scope"
               v-model="hasScope"
               :binary="true"
+              @click.stop
             />
-            <label for="has_scope">配置作用域（不勾选则全局生效）</label>
+            <span>
+              <i class="pi pi-filter mr-2"></i>
+              配置作用域（可选）
+            </span>
           </div>
-          
-          <div v-if="hasScope" class="scope-config">
-            <div class="field">
-              <label for="protocol_pattern">协议匹配</label>
-              <InputText
-                id="protocol_pattern"
-                v-model="scopeData.protocol_pattern"
-                placeholder="例如: https 或 http,https"
-                class="w-full"
-              />
-            </div>
+        </template>
 
-            <div class="field">
-              <label for="host_pattern">主机名匹配</label>
-              <InputText
-                id="host_pattern"
-                v-model="scopeData.host_pattern"
-                placeholder="例如: api.example.com 或 *.example.com"
-                class="w-full"
-              />
-            </div>
+        <Message severity="info" :closable="false" class="mb-3">
+          <i class="pi pi-info-circle mr-2"></i>
+          不勾选则对所有请求全局生效。作用域支持协议、主机名、路径等多维度过滤。
+        </Message>
 
-            <div class="field">
-              <label for="path_pattern">路径匹配</label>
-              <InputText
-                id="path_pattern"
-                v-model="scopeData.path_pattern"
-                placeholder="例如: /api/* 或 /v1/users"
-                class="w-full"
-              />
-            </div>
+        <div v-if="hasScope" class="p-fluid">
+          <div class="field mb-3">
+            <label for="protocol_pattern">
+              <i class="pi pi-globe mr-2"></i>
+              协议匹配
+            </label>
+            <InputText
+              id="protocol_pattern"
+              v-model="scopeData.protocol_pattern"
+              placeholder="例如: https 或 http,https（多个用逗号分隔）"
+            />
+            <small class="text-color-secondary">限定请求协议类型</small>
+          </div>
 
-            <div class="field-checkbox">
+          <div class="field mb-3">
+            <label for="host_pattern">
+              <i class="pi pi-server mr-2"></i>
+              主机名匹配
+            </label>
+            <InputText
+              id="host_pattern"
+              v-model="scopeData.host_pattern"
+              placeholder="例如: api.example.com 或 *.example.com（支持通配符*）"
+            />
+            <small class="text-color-secondary">限定请求的目标主机名，支持通配符</small>
+          </div>
+
+          <div class="field mb-3">
+            <label for="path_pattern">
+              <i class="pi pi-link mr-2"></i>
+              路径匹配
+            </label>
+            <InputText
+              id="path_pattern"
+              v-model="scopeData.path_pattern"
+              placeholder="例如: /api/* 或 /v1/users（支持通配符*）"
+            />
+            <small class="text-color-secondary">限定请求的URL路径，支持通配符</small>
+          </div>
+
+          <div class="field mb-3">
+            <div class="flex align-items-center">
               <Checkbox
-                id="use_regex"
+                inputId="use_regex"
                 v-model="scopeData.use_regex"
                 :binary="true"
               />
-              <label for="use_regex">使用正则表达式匹配</label>
+              <label for="use_regex" class="ml-2">
+                <i class="pi pi-code mr-2"></i>
+                使用正则表达式匹配
+              </label>
             </div>
+            <small class="text-color-secondary ml-4">启用后上述模式将作为正则表达式解析</small>
           </div>
+
+          <Divider />
+
+          <Message severity="success" :closable="false">
+            <p class="font-semibold mb-2">
+              <i class="pi pi-lightbulb mr-2"></i>
+              匹配示例
+            </p>
+            <ul class="pl-4 mt-0 mb-0 line-height-3">
+              <li><strong>全局生效：</strong>不勾选"配置作用域"</li>
+              <li><strong>仅HTTPS：</strong>协议=https</li>
+              <li><strong>特定域名：</strong>主机名=api.example.com</li>
+              <li><strong>所有子域名：</strong>主机名=*.example.com</li>
+              <li><strong>API路径：</strong>路径=/api/*</li>
+            </ul>
+          </Message>
         </div>
-      </div>
+      </Panel>
 
       <template #footer>
-        <Button label="取消" severity="secondary" @click="dialogVisible = false" />
-        <Button label="保存" @click="saveRule" :loading="saving" />
+        <Button 
+          label="取消" 
+          icon="pi pi-times"
+          severity="secondary" 
+          @click="dialogVisible = false" 
+        />
+        <Button 
+          label="保存" 
+          icon="pi pi-check"
+          @click="saveRule" 
+          :loading="saving" 
+        />
       </template>
     </Dialog>
   </div>
@@ -472,46 +560,6 @@ function truncate(text: string, length: number) {
     .header-value {
       font-family: monospace;
       font-size: 0.9em;
-    }
-  }
-
-  .dialog-content {
-    .field {
-      margin-bottom: 20px;
-
-      label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 600;
-      }
-    }
-
-    .field-checkbox {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-
-    .scope-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--surface-border);
-
-      label {
-        font-weight: 600;
-        color: var(--primary-color);
-      }
-    }
-
-    .scope-config {
-      padding: 16px;
-      background: var(--surface-50);
-      border-radius: 8px;
-      border: 1px solid var(--surface-border);
     }
   }
 }

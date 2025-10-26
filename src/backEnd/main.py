@@ -96,6 +96,7 @@ except ImportError:
 
 from model.Database import Database
 from model.DataStore import DataStore
+from model.HeaderDatabase import HeaderDatabase
 # from model.DataStore import data_store
 
 FORMATTER = logging.Formatter("[%(asctime)s] [%(levelname)s] [%(module)s] [%(filename)s] [Line: %(lineno)d] %(message)s", "%Y-%m-%d %H:%M:%S")
@@ -140,6 +141,12 @@ def main(username, password):
         DataStore.current_db.connect()
         DataStore.current_db.init()
         logger.info("[*] IPC database initialized")
+        
+        # Initialize Header database
+        DataStore.header_db = HeaderDatabase()
+        DataStore.header_db.connect()
+        DataStore.header_db.init()
+        logger.info("[*] Header database initialized")
 
         scheduler = BackgroundScheduler()
         scheduler.add_job(monitor, 'interval', seconds=3)  # 每10秒执行一次

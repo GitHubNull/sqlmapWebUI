@@ -1,9 +1,10 @@
 <template>
   <div class="session-headers-config">
-    <div class="info-banner">
-      <i class="pi pi-info-circle"></i>
-      <span>会话Header仅在当前浏览器会话中有效，关闭浏览器后将自动清除</span>
-    </div>
+    <!-- 信息提示 -->
+    <Message severity="info" :closable="false" class="mb-3">
+      <i class="pi pi-info-circle mr-2"></i>
+      会话Header仅在当前浏览器会话中有效，关闭浏览器后将自动清除
+    </Message>
 
     <!-- 工具栏 -->
     <div class="toolbar">
@@ -62,52 +63,85 @@
     <Dialog
       v-model:visible="dialogVisible"
       header="添加Session Headers"
-      :style="{ width: '600px' }"
+      :style="{ width: '700px' }"
       modal
     >
-      <div class="dialog-content">
-        <p class="help-text">
-          每行一个Header，格式：<code>Header-Name: Header-Value</code>
+      <!-- 使用说明 -->
+      <Message severity="info" :closable="false" class="mb-3">
+        <p class="font-semibold mb-2">
+          <i class="pi pi-book mr-2"></i>
+          批量添加格式说明
         </p>
+        <p class="mb-0">
+          每行一个Header，格式：<code class="px-2 py-1 bg-primary-50 text-primary-700 border-round">Header-Name: Header-Value</code>
+        </p>
+      </Message>
 
+      <!-- Header输入区域 -->
+      <Panel header="Header列表" class="mb-3">
         <Textarea
           v-model="rawHeaders"
           rows="10"
           placeholder="例如:
-Authorization: Bearer your-token
-X-Custom-Header: custom-value"
+Authorization: Bearer your-token-here
+X-Custom-Header: custom-value
+Cookie: session_id=abc123"
           class="w-full"
         />
+      </Panel>
 
-        <div class="field">
-          <label for="priority">优先级 (0-100)</label>
-          <InputNumber
-            id="priority"
-            v-model="defaultPriority"
-            :min="0"
-            :max="100"
-            showButtons
-            class="w-full"
-          />
-        </div>
+      <Divider />
 
-        <div class="field">
-          <label for="ttl">生存时间 (秒)</label>
-          <InputNumber
-            id="ttl"
-            v-model="defaultTtl"
-            :min="60"
-            :max="86400"
-            showButtons
-            class="w-full"
-          />
-          <small class="field-help">默认3600秒(1小时)，最大86400秒(24小时)</small>
+      <!-- 配置选项 -->
+      <Panel header="配置选项" :toggleable="true">
+        <div class="p-fluid">
+          <div class="formgrid grid">
+            <div class="field col-6 mb-3">
+              <label for="priority">
+                <i class="pi pi-sort-amount-up mr-2"></i>
+                优先级 (0-100)
+              </label>
+              <InputNumber
+                id="priority"
+                v-model="defaultPriority"
+                :min="0"
+                :max="100"
+                showButtons
+              />
+              <small class="text-color-secondary">数值越大优先级越高</small>
+            </div>
+
+            <div class="field col-6 mb-0">
+              <label for="ttl">
+                <i class="pi pi-clock mr-2"></i>
+                生存时间 (秒)
+              </label>
+              <InputNumber
+                id="ttl"
+                v-model="defaultTtl"
+                :min="60"
+                :max="86400"
+                showButtons
+              />
+              <small class="text-color-secondary">默认3600秒(1小时)，最大86400秒(24小时)</small>
+            </div>
+          </div>
         </div>
-      </div>
+      </Panel>
 
       <template #footer>
-        <Button label="取消" severity="secondary" @click="dialogVisible = false" />
-        <Button label="添加" @click="addSessionHeaders" :loading="saving" />
+        <Button 
+          label="取消" 
+          icon="pi pi-times"
+          severity="secondary" 
+          @click="dialogVisible = false" 
+        />
+        <Button 
+          label="添加" 
+          icon="pi pi-check"
+          @click="addSessionHeaders" 
+          :loading="saving" 
+        />
       </template>
     </Dialog>
   </div>
@@ -278,23 +312,6 @@ function truncate(text: string, length: number) {
 
 <style scoped lang="scss">
 .session-headers-config {
-  .info-banner {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px;
-    margin-bottom: 20px;
-    background: var(--blue-50);
-    border: 1px solid var(--blue-200);
-    border-radius: 8px;
-    color: var(--blue-900);
-
-    i {
-      font-size: 1.5rem;
-      color: var(--blue-500);
-    }
-  }
-
   .toolbar {
     display: flex;
     gap: 12px;
@@ -314,39 +331,8 @@ function truncate(text: string, length: number) {
     }
   }
 
-  .dialog-content {
-    .help-text {
-      margin-bottom: 16px;
-      padding: 12px;
-      background: var(--surface-50);
-      border-radius: 6px;
-      color: var(--text-color-secondary);
-
-      code {
-        padding: 2px 6px;
-        background: var(--surface-100);
-        border-radius: 4px;
-        font-family: monospace;
-        color: var(--primary-color);
-      }
-    }
-
-    .field {
-      margin-top: 20px;
-
-      label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 600;
-      }
-
-      .field-help {
-        display: block;
-        margin-top: 6px;
-        color: var(--text-color-secondary);
-        font-size: 0.9em;
-      }
-    }
+  code {
+    font-family: monospace;
   }
 }
 </style>

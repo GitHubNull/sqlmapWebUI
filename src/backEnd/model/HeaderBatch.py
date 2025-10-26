@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from PersistentHeaderRule import ReplaceStrategy
+from model.PersistentHeaderRule import ReplaceStrategy
 
 
 class FormatHint(str, Enum):
