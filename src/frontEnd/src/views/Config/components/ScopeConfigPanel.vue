@@ -2,14 +2,15 @@
   <div class="scope-config-panel">
     <Card class="scope-card">
       <template #title>
-        <div class="flex align-items-center gap-2 w-full cursor-pointer" @click="handleScopeToggle">
+        <div class="flex align-items-center gap-2 w-full cursor-pointer">
           <Checkbox
+            ref="hasScopeCheckboxRef"
             inputId="has_scope"
             v-model="hasScope"
             :binary="true"
           />
           <i class="pi pi-filter text-primary"></i>
-          <span>{{ title }}</span>
+          <label for="has_scope" class="cursor-pointer m-0" @click="handleScopeToggle">{{ title }}</label>
           <div class="scope-info" v-if="showInfo" @click.stop>
             <Button
               icon="pi pi-info-circle"
@@ -130,8 +131,9 @@
             <!-- 高级选项 -->
             <div class="field col-12 mb-0">
               <div class="flex align-items-center justify-content-between">
-                <div class="flex align-items-center gap-2 cursor-pointer" @click="scopeData.use_regex = !scopeData.use_regex">
+                <div class="flex align-items-center gap-2">
                   <Checkbox
+                    ref="useRegexCheckboxRef"
                     inputId="use_regex"
                     v-model="scopeData.use_regex"
                     :binary="true"
@@ -321,7 +323,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, nextTick } from 'vue'
 import type { HeaderScope } from '@/types/headerRule'
 
 const props = defineProps<{
@@ -343,6 +345,8 @@ const hasScope = ref(false)
 const showAdvanced = ref(props.showAdvanced || false)
 const showTemplateSelector = ref(false)
 const showHelpDialog = ref(false)
+const hasScopeCheckboxRef = ref<InstanceType<any>>()
+const useRegexCheckboxRef = ref<InstanceType<any>>()
 
 const scopeData = reactive<HeaderScope>({
   protocol_pattern: '',
@@ -351,6 +355,36 @@ const scopeData = reactive<HeaderScope>({
   port_pattern: '',
   ip_pattern: '',
   use_regex: false,
+})
+
+// 监听hasScope变化
+watch(hasScope, async (newValue) => {
+  await nextTick()
+  if (hasScopeCheckboxRef.value?.$el) {
+    const checkboxBox = hasScopeCheckboxRef.value.$el.querySelector('.p-checkbox-box')
+    if (checkboxBox) {
+      if (newValue) {
+        checkboxBox.classList.add('p-highlight')
+      } else {
+        checkboxBox.classList.remove('p-highlight')
+      }
+    }
+  }
+})
+
+// 监听use_regex变化
+watch(() => scopeData.use_regex, async (newValue) => {
+  await nextTick()
+  if (useRegexCheckboxRef.value?.$el) {
+    const checkboxBox = useRegexCheckboxRef.value.$el.querySelector('.p-checkbox-box')
+    if (checkboxBox) {
+      if (newValue) {
+        checkboxBox.classList.add('p-highlight')
+      } else {
+        checkboxBox.classList.remove('p-highlight')
+      }
+    }
+  }
 })
 
 // 验证错误
@@ -753,6 +787,7 @@ defineExpose({
   }
 
   // 复选框样式
+  // 复选框样式
   :deep(.p-checkbox) {
     .p-checkbox-box {
       border-radius: 4px;
@@ -762,6 +797,14 @@ defineExpose({
       &.p-highlight {
         background: var(--primary-color);
         border-color: var(--primary-color);
+
+        // 修复：确保SVG图标显示
+        .p-checkbox-icon {
+          display: inline-flex !important;
+          color: white !important;
+          width: 14px !important;
+          height: 14px !important;
+        }
       }
     }
   }

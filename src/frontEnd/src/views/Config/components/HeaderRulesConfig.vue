@@ -284,8 +284,9 @@
               </div>
 
               <div class="field col-12 mb-0">
-                <div class="flex align-items-center gap-2 cursor-pointer" @click="formData.is_active = !formData.is_active">
+                <div class="flex align-items-center gap-2">
                   <Checkbox
+                    ref="isActiveCheckboxRef"
                     inputId="is_active"
                     v-model="formData.is_active"
                     :binary="true"
@@ -332,7 +333,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, watch, nextTick } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import Select from 'primevue/select'
@@ -363,6 +364,7 @@ const showValidation = ref(false)
 const batchImportVisible = ref(false) // 批量导入对话框显示状态
 const importing = ref(false) // 批量导入状态
 const scopePanel = ref<InstanceType<typeof ScopeConfigPanel>>() // 作用域面板引用
+const isActiveCheckboxRef = ref<InstanceType<any>>() // 启用规则复选框引用
 
 // 搜索和过滤相关
 const searchQuery = ref('')
@@ -410,6 +412,21 @@ let scopeData = reactive<HeaderScope>({
 
 onMounted(() => {
   loadRules()
+})
+
+// 监听启用状态变化，手动添加/移除p-highlight类
+watch(() => formData.is_active, async (newValue) => {
+  await nextTick()
+  if (isActiveCheckboxRef.value) {
+    const checkboxBox = isActiveCheckboxRef.value.$el?.querySelector('.p-checkbox-box')
+    if (checkboxBox) {
+      if (newValue) {
+        checkboxBox.classList.add('p-highlight')
+      } else {
+        checkboxBox.classList.remove('p-highlight')
+      }
+    }
+  }
 })
 
 async function loadRules() {
@@ -1048,6 +1065,14 @@ async function handleBatchImport(rules: PersistentHeaderRuleCreate[]) {
       &.p-highlight {
         background: var(--primary-color);
         border-color: var(--primary-color);
+
+        // 修复：确保SVG图标显示
+        .p-checkbox-icon {
+          display: inline-flex !important;
+          color: white !important;  // SVG图标使用currentColor，设置color即可
+          width: 14px !important;
+          height: 14px !important;
+        }
       }
     }
   }
