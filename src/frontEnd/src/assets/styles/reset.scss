@@ -89,4 +89,5 @@ textarea,
 select {
   font-family: inherit;
   font-size: inherit;
+  // 不重置边框，允许组件自定义边框样式
 }

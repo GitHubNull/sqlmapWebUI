@@ -907,29 +907,36 @@ async function handleBatchImport(rules: PersistentHeaderRuleCreate[]) {
   // 输入组件样式
   :deep(.p-inputtext),
   :deep(.p-inputnumber-input) {
-    width: 100%;
-    padding: 0.75rem;
-    font-size: 0.95rem;
-    border: 1px solid var(--surface-border);
-    border-radius: 6px;
-    transition: all 0.2s ease;
-    background: var(--surface-0);
+    width: 100% !important;
+    padding: 0.75rem !important;
+    font-size: 0.95rem !important;
+    border: 1px solid var(--p-form-field-border-color, #cbd5e1) !important;
+    border-style: solid !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+    background: var(--surface-0) !important;
 
     &:enabled:hover {
-      border-color: var(--primary-color);
+      border-color: var(--p-primary-color, #10b981) !important;
+      border-style: solid !important;
+      box-shadow: 0 0 0 1px var(--p-primary-color, #10b981) !important;
     }
 
     &:enabled:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.1);
-      outline: none;
+      border: 2px solid var(--p-primary-color, #10b981) !important;
+      border-style: solid !important;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+      outline: none !important;
     }
 
     &.p-invalid {
-      border-color: var(--red-500);
+      border-color: var(--p-inputtext-invalid-border-color, #f87171) !important;
+      border-style: solid !important;
 
       &:enabled:focus {
-        box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.1);
+        border-width: 2px !important;
+        border-style: solid !important;
+        box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.15) !important;
       }
     }
   }
@@ -937,32 +944,64 @@ async function handleBatchImport(rules: PersistentHeaderRuleCreate[]) {
   :deep(.p-inputtextarea),
   :deep(.p-textarea) {
     width: 100% !important;
-    padding: 0.75rem;
-    font-size: 0.95rem;
-    border: 1px solid var(--surface-border);
-    border-radius: 6px;
-    transition: all 0.2s ease;
-    resize: vertical;
-    min-height: 80px;
-    background: var(--surface-0);
-    font-family: inherit;
-    line-height: 1.5;
+    padding: 0.75rem !important;
+    font-size: 0.95rem !important;
+    border: 1px solid var(--p-form-field-border-color, #cbd5e1) !important;
+    border-style: solid !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+    resize: vertical !important;
+    min-height: 80px !important;
+    background: var(--surface-0) !important;
+    font-family: inherit !important;
+    line-height: 1.5 !important;
 
     &:enabled:hover {
-      border-color: var(--primary-color);
+      border-color: var(--p-primary-color, #10b981) !important;
+      border-style: solid !important;
+      box-shadow: 0 0 0 1px var(--p-primary-color, #10b981) !important;
     }
 
     &:enabled:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.1);
-      outline: none;
+      border: 2px solid var(--p-primary-color, #10b981) !important;
+      border-style: solid !important;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+      outline: none !important;
     }
 
     &.p-invalid {
-      border-color: var(--red-500);
+      border-color: var(--p-inputtext-invalid-border-color, #f87171) !important;
+      border-style: solid !important;
 
       &:enabled:focus {
-        box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.1);
+        border-width: 2px !important;
+        border-style: solid !important;
+        box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.15) !important;
+      }
+    }
+  }
+
+  // 针对FloatLabel容器内的textarea额外强化
+  :deep(.p-floatlabel) {
+    .p-inputtextarea,
+    .p-textarea,
+    textarea {
+      border: 1px solid var(--p-form-field-border-color, #cbd5e1) !important;
+      border-style: solid !important;
+      
+      &:hover {
+        border: 1px solid var(--p-primary-color, #10b981) !important;
+        border-style: solid !important;
+        box-shadow: 0 0 0 1px var(--p-primary-color, #10b981) !important;
+      }
+      
+      &:focus {
+        border: 2px solid var(--p-primary-color, #10b981) !important;
+        border-style: solid !important;
+        border-width: 2px !important;
+        border-color: var(--p-primary-color, #10b981) !important;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+        outline: none !important;
       }
     }
   }
