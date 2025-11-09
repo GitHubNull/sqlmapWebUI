@@ -180,7 +180,7 @@
     <Dialog
       v-model:visible="dialogVisible"
       :header="editingRule ? '编辑规则' : '创建规则'"
-      :style="{ width: '1000px', maxHeight: '85vh' }"
+      :style="{ width: '1200px', maxHeight: '90vh' }"
       modal
       class="rule-dialog"
     >
@@ -195,49 +195,45 @@
           </template>
           <template #content>
             <div class="formgrid grid p-fluid">
-              <div class="field col-12 md:col-6 mb-3">
-                <FloatLabel>
-                  <InputText
-                    id="name"
-                    v-model="formData.name"
-                    :invalid="!formData.name && showValidation"
-                  />
-                  <label for="name">
-                    规则名称 <span class="text-red-500">*</span>
-                  </label>
-                </FloatLabel>
-                <small class="text-color-secondary mt-1">用于标识此规则的用途</small>
+              <div class="field col-12 md:col-6 mb-4">
+                <label for="name" class="block mb-2 font-medium">
+                  规则名称 <span class="text-red-500">*</span>
+                </label>
+                <InputText
+                  id="name"
+                  v-model="formData.name"
+                  :invalid="!formData.name && showValidation"
+                  class="w-full"
+                />
+                <small class="text-color-secondary mt-1 block">用于标识此规则的用途</small>
               </div>
 
-              <div class="field col-12 md:col-6 mb-3">
-                <FloatLabel>
-                  <InputText
-                    id="header_name"
-                    v-model="formData.header_name"
-                    :invalid="!formData.header_name && showValidation"
-                  />
-                  <label for="header_name">
-                    Header名称 <span class="text-red-500">*</span>
-                  </label>
-                </FloatLabel>
-                <small class="text-color-secondary mt-1">HTTP请求头的名称，区分大小写</small>
+              <div class="field col-12 md:col-6 mb-4">
+                <label for="header_name" class="block mb-2 font-medium">
+                  Header名称 <span class="text-red-500">*</span>
+                </label>
+                <InputText
+                  id="header_name"
+                  v-model="formData.header_name"
+                  :invalid="!formData.header_name && showValidation"
+                  class="w-full"
+                />
+                <small class="text-color-secondary mt-1 block">HTTP请求头的名称，区分大小写</small>
               </div>
 
               <div class="field col-12 mb-0">
-                <FloatLabel class="w-full">
-                  <Textarea
-                    id="header_value"
-                    v-model="formData.header_value"
-                    :autoResize="true"
-                    rows="3"
-                    :invalid="!formData.header_value && showValidation"
-                    class="w-full"
-                  />
-                  <label for="header_value">
-                    Header值 <span class="text-red-500">*</span>
-                  </label>
-                </FloatLabel>
-                <small class="text-color-secondary mt-1">Header的实际值内容</small>
+                <label for="header_value" class="block mb-2 font-medium">
+                  Header值 <span class="text-red-500">*</span>
+                </label>
+                <Textarea
+                  id="header_value"
+                  v-model="formData.header_value"
+                  :autoResize="true"
+                  rows="3"
+                  :invalid="!formData.header_value && showValidation"
+                  class="w-full"
+                />
+                <small class="text-color-secondary mt-1 block">Header的实际值内容</small>
               </div>
             </div>
           </template>
@@ -253,34 +249,32 @@
           </template>
           <template #content>
             <div class="formgrid grid p-fluid">
-              <div class="field col-12 md:col-8 mb-3">
-                <FloatLabel>
-                  <Select
-                    id="replace_strategy"
-                    v-model="formData.replace_strategy"
-                    :options="replaceStrategies"
-                    optionLabel="label"
-                    optionValue="value"
-                  />
-                  <label for="replace_strategy">替换策略</label>
-                </FloatLabel>
-                <small class="text-color-secondary mt-1">定义如何处理已存在的Header</small>
+              <div class="field col-12 md:col-8 mb-4">
+                <label for="replace_strategy" class="block mb-2 font-medium">替换策略</label>
+                <Select
+                  id="replace_strategy"
+                  v-model="formData.replace_strategy"
+                  :options="replaceStrategies"
+                  optionLabel="label"
+                  optionValue="value"
+                  class="w-full"
+                />
+                <small class="text-color-secondary mt-1 block">定义如何处理已存在的Header</small>
               </div>
 
-              <div class="field col-12 md:col-4 mb-3">
-                <FloatLabel>
-                  <InputNumber
-                    id="priority"
-                    v-model="formData.priority"
-                    :min="0"
-                    :max="100"
-                    showButtons
-                    buttonLayout="horizontal"
-                    :step="1"
-                  />
-                  <label for="priority">优先级</label>
-                </FloatLabel>
-                <small class="text-color-secondary mt-1">0-100，越大优先级越高</small>
+              <div class="field col-12 md:col-4 mb-4">
+                <label for="priority" class="block mb-2 font-medium">优先级</label>
+                <InputNumber
+                  id="priority"
+                  v-model="formData.priority"
+                  :min="0"
+                  :max="100"
+                  showButtons
+                  buttonLayout="horizontal"
+                  :step="1"
+                  class="w-full"
+                />
+                <small class="text-color-secondary mt-1 block">0-100，越大优先级越高</small>
               </div>
 
               <div class="field col-12 mb-0">

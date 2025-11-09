@@ -420,6 +420,9 @@ export function generateMockHeaderRules(count: number = 20): PersistentHeaderRul
 /**
  * 生成随机Session Header
  */
+// Mock数据ID计数器
+let mockSessionHeaderIdCounter = 1000
+
 export function generateMockSessionHeader(index: number): any {
   const headerNames = [
     'Authorization',
@@ -454,12 +457,16 @@ export function generateMockSessionHeader(index: number): any {
   const expiresAt = new Date(createdAt.getTime() + ttl * 1000)
 
   return {
+    id: mockSessionHeaderIdCounter++, // 添加唯一ID
     header_name: headerName,
     header_value: headerValue,
+    replace_strategy: Mock.Random.pick(Object.values(ReplaceStrategy)), // 添加替换策略
     priority: Mock.Random.integer(0, 100),
+    is_active: Mock.Random.boolean(), // 添加启用状态
     ttl,
     scope: generateMockScope(),
     created_at: createdAt.toISOString(),
+    updated_at: createdAt.toISOString(), // 添加更新时间
     expires_at: expiresAt.toISOString(),
   }
 }

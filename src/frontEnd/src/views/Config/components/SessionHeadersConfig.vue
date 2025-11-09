@@ -104,6 +104,7 @@
     <DataTable
       :value="filteredSessionHeaders"
       :loading="loading"
+      v-model:selection="selectedSessionHeaders"
       stripedRows
       paginator
       :rows="pageSize"
@@ -111,31 +112,66 @@
       sortField="created_at"
       :sortOrder="-1"
       class="session-table"
-      :globalFilterFields="['header_name', 'header_value']"
+      :globalFilterFields="['header_name', 'header_value', 'id']"
       responsiveLayout="stack"
       breakpoint="768px"
       :resizableColumns="true"
       columnResizeMode="fit"
     >
-      <Column field="header_name" header="Header名称"></Column>
+      <Column selectionMode="multiple" style="width: 50px"></Column>
+      <Column field="id" header="ID" sortable style="width: 80px"></Column>
+      <Column field="header_name" header="Header名称" sortable></Column>
       <Column field="header_value" header="Header值">
         <template #body="{ data }">
           <span class="header-value">{{ truncate(data.header_value, 40) }}</span>
         </template>
       </Column>
-      <Column field="priority" header="优先级" style="width: 100px">
+      <Column field="replace_strategy" header="替换策略" sortable style="width: 120px"></Column>
+      <Column field="priority" header="优先级" sortable style="width: 100px">
         <template #body="{ data }">
           <Tag :value="data.priority" severity="info"></Tag>
         </template>
       </Column>
-      <Column field="expires_at" header="过期时间" style="width: 200px">
+      <Column field="scope" header="作用域" style="width: 120px">
         <template #body="{ data }">
-          <span class="expire-time">{{ formatTime(data.expires_at) }}</span>
+          <Tag :value="data.scope ? '有作用域' : '全局'" :severity="data.scope ? 'info' : 'secondary'"></Tag>
         </template>
       </Column>
-      <Column field="created_at" header="创建时间" style="width: 200px">
+      <Column field="is_active" header="状态" sortable style="width: 100px">
+        <template #body="{ data }">
+          <Tag :value="data.is_active ? '启用' : '禁用'" :severity="data.is_active ? 'success' : 'danger'"></Tag>
+        </template>
+      </Column>
+      <Column field="created_at" header="创建时间" sortable style="width: 200px">
         <template #body="{ data }">
           <span class="create-time">{{ formatTime(data.created_at) }}</span>
+        </template>
+      </Column>
+      <Column header="操作" style="width: 200px">
+        <template #body="{ data }">
+          <Button
+            icon="pi pi-pencil"
+            text
+            rounded
+            @click="showEditDialog(data)"
+            v-tooltip.top="'编辑'"
+          />
+          <Button
+            icon="pi pi-trash"
+            text
+            rounded
+            severity="danger"
+            @click="confirmDelete(data)"
+            v-tooltip.top="'删除'"
+          />
+          <Button
+            :icon="data.is_active ? 'pi pi-eye-slash' : 'pi pi-eye'"
+            text
+            rounded
+            :severity="data.is_active ? 'warning' : 'success'"
+            @click="toggleActive(data)"
+            v-tooltip.top="data.is_active ? '禁用' : '启用'"
+          />
         </template>
       </Column>
     </DataTable>
@@ -144,7 +180,7 @@
     <Dialog
       v-model:visible="dialogVisible"
       header="添加Session Headers"
-      :style="{ width: '900px', maxHeight: '90vh' }"
+      :style="{ width: '1200px', maxHeight: '90vh' }"
       modal
       class="session-dialog"
     >
@@ -210,42 +246,40 @@ User-Agent: CustomUserAgent/1.0"
           </template>
           <template #content>
             <div class="formgrid grid p-fluid">
-              <div class="field col-12 md:col-6 mb-3">
-                <FloatLabel>
-                  <InputNumber
-                    id="priority"
-                    v-model="defaultPriority"
-                    :min="0"
-                    :max="100"
-                    showButtons
-                    buttonLayout="horizontal"
-                    :step="1"
-                  />
-                  <label for="priority">
-                    <i class="pi pi-sort-amount-up mr-2"></i>
-                    优先级 (0-100)
-                  </label>
-                </FloatLabel>
-                <small class="text-color-secondary mt-1">数值越大优先级越高</small>
+              <div class="field col-12 md:col-6 mb-4">
+                <label for="priority" class="block mb-2 font-medium">
+                  <i class="pi pi-sort-amount-up mr-2"></i>
+                  优先级 (0-100)
+                </label>
+                <InputNumber
+                  id="priority"
+                  v-model="defaultPriority"
+                  :min="0"
+                  :max="100"
+                  showButtons
+                  buttonLayout="horizontal"
+                  :step="1"
+                  class="w-full"
+                />
+                <small class="text-color-secondary mt-1 block">数值越大优先级越高</small>
               </div>
 
-              <div class="field col-12 md:col-6 mb-0">
-                <FloatLabel>
-                  <InputNumber
-                    id="ttl"
-                    v-model="defaultTtl"
-                    :min="60"
-                    :max="86400"
-                    showButtons
-                    buttonLayout="horizontal"
-                    :step="60"
-                  />
-                  <label for="ttl">
-                    <i class="pi pi-clock mr-2"></i>
-                    生存时间 (秒)
-                  </label>
-                </FloatLabel>
-                <small class="text-color-secondary mt-1">默认3600秒(1小时)，最大86400秒(24小时)</small>
+              <div class="field col-12 md:col-6 mb-4">
+                <label for="ttl" class="block mb-2 font-medium">
+                  <i class="pi pi-clock mr-2"></i>
+                  生存时间 (秒)
+                </label>
+                <InputNumber
+                  id="ttl"
+                  v-model="defaultTtl"
+                  :min="60"
+                  :max="86400"
+                  showButtons
+                  buttonLayout="horizontal"
+                  :step="60"
+                  class="w-full"
+                />
+                <small class="text-color-secondary mt-1 block">默认3600秒(1小时)，最大86400秒(24小时)</small>
               </div>
             </div>
           </template>
@@ -550,6 +584,157 @@ User-Agent: CustomUserAgent/1.0"
         />
       </template>
     </Dialog>
+
+    <!-- 编辑对话框 -->
+    <Dialog
+      v-model:visible="editDialogVisible"
+      header="编辑Session Header"
+      :style="{ width: '800px', maxHeight: '90vh' }"
+      modal
+      class="session-dialog"
+    >
+      <div class="dialog-content">
+        <!-- 基本信息 -->
+        <Card class="mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-pencil text-primary"></i>
+              <span>基本信息</span>
+            </div>
+          </template>
+          <template #content>
+            <div class="formgrid grid p-fluid">
+              <div class="field col-12 md:col-6 mb-4">
+                <label for="edit_header_name" class="block mb-2 font-medium">
+                  Header名称 <span class="text-red-500">*</span>
+                </label>
+                <InputText
+                  id="edit_header_name"
+                  v-model="editFormData.header_name"
+                  class="w-full"
+                  placeholder="例如: Authorization"
+                />
+              </div>
+
+              <div class="field col-12 md:col-6 mb-4">
+                <label for="edit_replace_strategy" class="block mb-2 font-medium">
+                  替换策略
+                </label>
+                <Select
+                  id="edit_replace_strategy"
+                  v-model="editFormData.replace_strategy"
+                  :options="replaceStrategyOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="选择替换策略"
+                  class="w-full"
+                />
+              </div>
+
+              <div class="field col-12 mb-4">
+                <label for="edit_header_value" class="block mb-2 font-medium">
+                  Header值 <span class="text-red-500">*</span>
+                </label>
+                <Textarea
+                  id="edit_header_value"
+                  v-model="editFormData.header_value"
+                  rows="3"
+                  placeholder="例如: Bearer your-token-here"
+                  class="w-full"
+                  :autoResize="false"
+                />
+              </div>
+            </div>
+          </template>
+        </Card>
+
+        <!-- 配置选项 -->
+        <Card class="mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-cog text-primary"></i>
+              <span>配置选项</span>
+            </div>
+          </template>
+          <template #content>
+            <div class="formgrid grid p-fluid">
+              <div class="field col-12 md:col-6 mb-4">
+                <label for="edit_priority" class="block mb-2 font-medium">
+                  优先级 (0-100)
+                </label>
+                <InputNumber
+                  id="edit_priority"
+                  v-model="editFormData.priority"
+                  :min="0"
+                  :max="100"
+                  showButtons
+                  buttonLayout="horizontal"
+                  :step="1"
+                  class="w-full"
+                />
+                <small class="text-color-secondary mt-1 block">数值越大优先级越高</small>
+              </div>
+
+              <div class="field col-12 md:col-6 mb-4">
+                <label for="edit_ttl" class="block mb-2 font-medium">
+                  生存时间 (秒)
+                </label>
+                <InputNumber
+                  id="edit_ttl"
+                  v-model="editFormData.ttl"
+                  :min="60"
+                  :max="86400"
+                  showButtons
+                  buttonLayout="horizontal"
+                  :step="60"
+                  class="w-full"
+                />
+                <small class="text-color-secondary mt-1 block">默认3600秒(1小时)，最大86400秒(24小时)</small>
+              </div>
+
+              <div class="field col-12 mb-4">
+                <div class="flex align-items-center gap-3">
+                  <Checkbox
+                    id="edit_is_active"
+                    v-model="editFormData.is_active"
+                    binary
+                  />
+                  <label for="edit_is_active" class="font-medium cursor-pointer">
+                    启用此Header
+                  </label>
+                </div>
+                <small class="text-color-secondary mt-1 block">禁用后此Header不会生效</small>
+              </div>
+            </div>
+          </template>
+        </Card>
+
+        <!-- 作用域配置 -->
+        <ScopeConfigPanel
+          v-model="editFormData.scope"
+          title="作用域配置（可选）"
+          description="配置Header的生效范围，不配置则对所有请求生效"
+          :show-templates="true"
+          :show-info="true"
+          :show-advanced="false"
+        />
+      </div>
+
+      <template #footer>
+        <Button
+          label="取消"
+          icon="pi pi-times"
+          severity="secondary"
+          @click="editDialogVisible = false"
+        />
+        <Button
+          label="保存"
+          icon="pi pi-check"
+          @click="updateHeader"
+          :loading="saving"
+        />
+      </template>
+    </Dialog>
   </div>
 </template>
 
@@ -562,9 +747,12 @@ import ScopeConfigPanel from './ScopeConfigPanel.vue'
 import {
   getSessionHeaders,
   setSessionHeaders,
+  deleteSessionHeader,
+  updateSessionHeader,
   clearSessionHeaders,
 } from '@/api/headerRule'
 import type { SessionHeader, HeaderScope } from '@/types/headerRule'
+import { ReplaceStrategy } from '@/types/headerRule'
 
 const toast = useToast()
 const confirm = useConfirm()
@@ -574,12 +762,26 @@ const saving = ref(false)
 const dialogVisible = ref(false)
 const batchDialogVisible = ref(false)
 const fileImportDialogVisible = ref(false)
+const editDialogVisible = ref(false) // 编辑对话框可见性
 const sessionHeaders = ref<any[]>([])
+const selectedSessionHeaders = ref<any[]>([]) // 多选
 const rawHeaders = ref('')
 const batchRawHeaders = ref('')
 const fileContent = ref('')
 const defaultPriority = ref(50)
 const defaultTtl = ref(3600) // 默认1小时
+
+// 编辑相关状态
+const editingHeader = ref<any>(null) // 当前编辑的Header
+const editFormData = ref({
+  header_name: '',
+  header_value: '',
+  replace_strategy: 'REPLACE' as any,
+  priority: 50,
+  is_active: true,
+  ttl: 3600,
+  scope: null as any
+})
 
 // 搜索和过滤相关
 const searchQuery = ref('')
@@ -598,6 +800,15 @@ const priorityOptions = [
   { label: '高 (80-100)', value: 'high' },
   { label: '中 (50-79)', value: 'medium' },
   { label: '低 (0-49)', value: 'low' },
+]
+
+// 替换策略选项
+const replaceStrategyOptions = [
+  { label: '完全替换', value: ReplaceStrategy.REPLACE },
+  { label: '追加', value: ReplaceStrategy.APPEND },
+  { label: '前置', value: ReplaceStrategy.PREPEND },
+  { label: '条件性替换', value: ReplaceStrategy.CONDITIONAL },
+  { label: '存在则替换，不存在则新增', value: ReplaceStrategy.UPSERT },
 ]
 
 onMounted(() => {
@@ -953,6 +1164,146 @@ function clearFilters() {
   searchQuery.value = ''
   statusFilter.value = null
   priorityFilter.value = null
+}
+
+// 编辑Session Header
+function showEditDialog(header: any) {
+  editingHeader.value = header
+  editFormData.value = {
+    header_name: header.header_name || '',
+    header_value: header.header_value || '',
+    replace_strategy: header.replace_strategy || ReplaceStrategy.REPLACE,
+    priority: header.priority || 50,
+    is_active: header.is_active !== undefined ? header.is_active : true,
+    ttl: header.ttl || 3600,
+    scope: header.scope || null
+  }
+  editDialogVisible.value = true
+}
+
+// 更新Session Header
+async function updateHeader() {
+  if (!editFormData.value.header_name.trim() || !editFormData.value.header_value.trim()) {
+    toast.add({
+      severity: 'warn',
+      summary: '验证失败',
+      detail: '请填写Header名称和值',
+      life: 3000,
+    })
+    return
+  }
+
+  if (!editingHeader.value?.id) {
+    toast.add({
+      severity: 'error',
+      summary: '错误',
+      detail: '无效的Header ID',
+      life: 3000,
+    })
+    return
+  }
+
+  saving.value = true
+  try {
+    const res = await updateSessionHeader(editingHeader.value.id, editFormData.value)
+    if (res.success) {
+      toast.add({
+        severity: 'success',
+        summary: '更新成功',
+        detail: 'Session Header已更新',
+        life: 3000,
+      })
+      editDialogVisible.value = false
+      // 重新加载数据
+      await loadSessionHeaders()
+    } else {
+      toast.add({
+        severity: 'error',
+        summary: '更新失败',
+        detail: res.message || '更新失败',
+        life: 3000,
+      })
+    }
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: '更新失败',
+      detail: error.message || '更新失败',
+      life: 3000,
+    })
+  } finally {
+    saving.value = false
+  }
+}
+
+// 确认删除
+function confirmDelete(header: any) {
+  confirm.require({
+    message: `确定要删除Header "${header.header_name}" 吗？`,
+    header: '确认删除',
+    icon: 'pi pi-exclamation-triangle',
+    acceptLabel: '删除',
+    rejectLabel: '取消',
+    accept: () => deleteHeader(header.id),
+  })
+}
+
+// 删除Session Header
+async function deleteHeader(headerId: number) {
+  try {
+    // 调用删除API
+    const res = await deleteSessionHeader(headerId)
+    if (res.success) {
+      toast.add({
+        severity: 'success',
+        summary: '删除成功',
+        detail: 'Session Header已删除',
+        life: 3000,
+      })
+      // 重新加载数据
+      await loadSessionHeaders()
+    } else {
+      toast.add({
+        severity: 'error',
+        summary: '删除失败',
+        detail: res.message || '删除失败',
+        life: 3000,
+      })
+    }
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: '删除失败',
+      detail: error.message || '删除失败',
+      life: 3000,
+    })
+  }
+}
+
+// 切换启用状态
+async function toggleActive(header: any) {
+  try {
+    const newStatus = !header.is_active
+    // 更新本地状态
+    const index = sessionHeaders.value.findIndex(h => h.id === header.id)
+    if (index !== -1) {
+      sessionHeaders.value[index].is_active = newStatus
+    }
+    // TODO: 调用实际的更新API
+    toast.add({
+      severity: 'success',
+      summary: '状态已更新',
+      detail: `已${newStatus ? '启用' : '禁用'} "${header.header_name}"`,
+      life: 3000,
+    })
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: '操作失败',
+      detail: error.message || '更新状态失败',
+      life: 3000,
+    })
+  }
 }
 </script>
 

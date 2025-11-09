@@ -24,6 +24,7 @@ const USE_MOCK_DATA = true
 let mockHeaderRules: PersistentHeaderRule[] = []
 let mockSessionHeaders: any[] = []
 let mockRuleIdCounter = 1000
+let mockSessionHeaderIdCounter = 1000
 
 // 初始化Mock数据
 if (USE_MOCK_DATA) {
@@ -180,12 +181,16 @@ export async function setSessionHeaders(headers: SessionHeaderBatchCreate) {
     // 添加新的session headers
     const now = new Date()
     const newHeaders = headers.headers.map(h => ({
+      id: mockSessionHeaderIdCounter++, // 添加唯一ID
       header_name: h.header_name,
       header_value: h.header_value,
+      replace_strategy: h.replace_strategy || ReplaceStrategy.REPLACE, // 添加替换策略
       priority: h.priority ?? 50,
+      is_active: h.is_active ?? true, // 添加启用状态，默认为true
       ttl: h.ttl ?? 3600,
       scope: h.scope ?? null,
       created_at: now.toISOString(),
+      updated_at: now.toISOString(), // 添加更新时间
       expires_at: new Date(now.getTime() + (h.ttl ?? 3600) * 1000).toISOString(),
     }))
     mockSessionHeaders.unshift(...newHeaders)
@@ -217,6 +222,60 @@ export async function getSessionHeaders() {
     }
   }
   return request.get('/commonApi/header/session-headers')
+}
+
+/**
+ * 删除单个会话性请求头
+ */
+export async function deleteSessionHeader(headerId: number) {
+  if (USE_MOCK_DATA) {
+    await delay(300)
+    const index = mockSessionHeaders.findIndex(h => h.id === headerId)
+    if (index !== -1) {
+      mockSessionHeaders.splice(index, 1)
+      return {
+        success: true,
+        data: null,
+        message: '删除成功',
+      }
+    }
+    return {
+      success: false,
+      data: null,
+      message: 'Header不存在',
+    }
+  }
+  return request.delete(`/commonApi/header/session-headers/${headerId}`)
+}
+
+/**
+ * 更新单个会话性请求头
+ */
+export async function updateSessionHeader(headerId: number, header: Partial<any>) {
+  if (USE_MOCK_DATA) {
+    await delay(400)
+    const index = mockSessionHeaders.findIndex(h => h.id === headerId)
+    if (index !== -1) {
+      const existingHeader = mockSessionHeaders[index]!
+      const updatedHeader = {
+        ...existingHeader,
+        ...header,
+        updated_at: new Date().toISOString(),
+      }
+      mockSessionHeaders[index] = updatedHeader
+      return {
+        success: true,
+        data: updatedHeader,
+        message: '更新成功',
+      }
+    }
+    return {
+      success: false,
+      data: null,
+      message: 'Header不存在',
+    }
+  }
+  return request.put(`/commonApi/header/session-headers/${headerId}`, header)
 }
 
 /**
