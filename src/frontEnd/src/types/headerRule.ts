@@ -70,11 +70,16 @@ export interface PersistentHeaderRuleUpdate {
  * 会话请求头
  */
 export interface SessionHeader {
+  id?: number              // 唯一标识
   header_name: string
   header_value: string
+  replace_strategy?: ReplaceStrategy  // 替换策略
   priority?: number
+  is_active?: boolean      // 启用状态
   ttl?: number // 生存时间(秒)
   scope?: HeaderScope | null // 作用域配置(可选)
+  created_at?: string      // 创建时间
+  updated_at?: string      // 更新时间
 }
 
 /**
