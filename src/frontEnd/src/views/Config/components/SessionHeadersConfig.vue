@@ -109,11 +109,57 @@
       会话Header仅在当前浏览器会话中有效，关闭浏览器后将自动清除
     </Message>
 
+    <!-- 批量操作工具栏 -->
+    <div v-if="selectedSessionHeaders.length > 0" class="batch-actions-toolbar mb-4">
+      <Card>
+        <template #content>
+          <div class="flex align-items-center justify-content-between">
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-check-square text-primary text-xl"></i>
+              <span class="font-medium">已选择 {{ selectedSessionHeaders.length }} 项</span>
+            </div>
+            <div class="flex align-items-center gap-2">
+              <Button
+                label="批量删除"
+                icon="pi pi-trash"
+                severity="danger"
+                @click="confirmBatchDeleteHeaders"
+                size="small"
+              />
+              <Button
+                label="批量启用"
+                icon="pi pi-eye"
+                severity="success"
+                @click="batchToggleActiveHeaders(true)"
+                size="small"
+              />
+              <Button
+                label="批量禁用"
+                icon="pi pi-eye-slash"
+                severity="warning"
+                @click="batchToggleActiveHeaders(false)"
+                size="small"
+              />
+              <Button
+                label="取消选择"
+                icon="pi pi-times"
+                severity="secondary"
+                @click="clearSelection"
+                size="small"
+                outlined
+              />
+            </div>
+          </div>
+        </template>
+      </Card>
+    </div>
+
     <!-- Session Headers列表 -->
     <DataTable
       :value="filteredSessionHeaders"
       :loading="loading"
       v-model:selection="selectedSessionHeaders"
+      dataKey="id"
       stripedRows
       paginator
       :rows="pageSize"
@@ -1732,6 +1778,112 @@ async function toggleActive(header: any) {
     })
   }
 }
+
+// 批量操作函数
+function clearSelection() {
+  selectedSessionHeaders.value = []
+}
+
+function confirmBatchDeleteHeaders() {
+  if (selectedSessionHeaders.value.length === 0) return
+  
+  confirm.require({
+    message: `确定要删除选中的 ${selectedSessionHeaders.value.length} 条会话Header吗？此操作不可撤销。`,
+    header: '批量删除确认',
+    icon: 'pi pi-exclamation-triangle',
+    rejectClass: 'p-button-secondary p-button-outlined',
+    rejectLabel: '取消',
+    acceptLabel: '删除',
+    acceptClass: 'p-button-danger',
+    accept: () => {
+      batchDeleteHeaders()
+    },
+  })
+}
+
+async function batchDeleteHeaders() {
+  if (selectedSessionHeaders.value.length === 0) return
+  
+  let successCount = 0
+  let errorCount = 0
+  
+  for (const header of selectedSessionHeaders.value) {
+    try {
+      await deleteHeader(header.id)
+      successCount++
+    } catch (error) {
+      errorCount++
+      console.error('删除会话Header失败:', error)
+    }
+  }
+  
+  await loadSessionHeaders()
+  
+  if (errorCount === 0) {
+    toast.add({
+      severity: 'success',
+      summary: '批量删除成功',
+      detail: `成功删除 ${successCount} 条会话Header`,
+      life: 3000,
+    })
+  } else {
+    toast.add({
+      severity: 'warning',
+      summary: '批量删除部分成功',
+      detail: `成功删除 ${successCount} 条，失败 ${errorCount} 条`,
+      life: 3000,
+    })
+  }
+  
+  clearSelection()
+}
+
+async function batchToggleActiveHeaders(isActive: boolean) {
+  if (selectedSessionHeaders.value.length === 0) return
+  
+  let successCount = 0
+  let errorCount = 0
+  
+  for (const header of selectedSessionHeaders.value) {
+    try {
+      // 调用updateHeader来更新状态
+      await updateHeader(header.id, {
+        header_name: header.header_name,
+        header_value: header.header_value,
+        replace_strategy: header.replace_strategy,
+        priority: header.priority,
+        scope: header.scope,
+        is_active: isActive
+      })
+      successCount++
+    } catch (error) {
+      errorCount++
+      console.error(`${isActive ? '启用' : '禁用'}会话Header失败:`, error)
+    }
+  }
+  
+  await loadSessionHeaders()
+  
+  const action = isActive ? '启用' : '禁用'
+  
+  if (errorCount === 0) {
+    toast.add({
+      severity: 'success',
+      summary: `批量${action}成功`,
+      detail: `成功${action} ${successCount} 条会话Header`,
+      life: 3000,
+    })
+  } else {
+    toast.add({
+      severity: 'warning',
+      summary: `批量${action}部分成功`,
+      detail: `成功${action} ${successCount} 条，失败 ${errorCount} 条`,
+      life: 3000,
+    })
+  }
+  
+  clearSelection()
+}
 </script>
 
 <style scoped lang="scss">
@@ -1888,13 +2040,58 @@ async function toggleActive(header: any) {
     .p-radiobutton {
       max-width: 100%;
       box-sizing: border-box;
-      overflow: hidden;
     }
 
     .field-help {
       @apply text-xs mt-2 block;
       word-wrap: break-word;
       max-width: 100%;
+    }
+
+    // 复选框样式 - 使用更高优先级
+    :deep(.p-checkbox) {
+      .p-checkbox-box {
+        width: 18px !important;
+        height: 18px !important;
+        border-radius: 4px !important;
+        border: 1px solid var(--surface-border) !important;
+        background: var(--surface-0) !important;
+        transition: all 0.2s ease !important;
+        position: relative !important;
+
+        &.p-highlight {
+          background: var(--primary-color) !important;
+          border-color: var(--primary-color) !important;
+
+          // 确保SVG图标显示
+          .p-checkbox-icon {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: white !important;
+            width: 14px !important;
+            height: 14px !important;
+            position: absolute !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            z-index: 10 !important;
+          }
+        }
+      }
+    }
+
+    // 全局强制样式
+    :deep(.p-datatable .p-checkbox-box.p-highlight) {
+      background: var(--primary-color) !important;
+      border-color: var(--primary-color) !important;
+    }
+
+    :deep(.p-datatable .p-checkbox-box.p-highlight .p-checkbox-icon) {
+      display: flex !important;
+      color: white !important;
+      visibility: visible !important;
+      opacity: 1 !important;
     }
   }
 }

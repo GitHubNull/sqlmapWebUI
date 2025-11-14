@@ -1208,3 +1208,112 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.6);
   }
 }
+
+// ==================== PrimeVue Checkbox 强制修复方案 ====================
+
+// 这个修复方案解决PrimeVue checkbox图标不显示的问题
+// 使用CSS伪元素强制创建勾选图标
+
+.p-datatable,
+.p-datatable-wrapper {
+  // 强制所有checkbox box显示勾选图标
+  .p-checkbox-box {
+    position: relative !important;
+
+    // 当checkbox被选中时，使用伪元素创建勾选图标
+    &.p-highlight::after {
+      content: '✓' !important;
+      position: absolute !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      color: white !important;
+      font-size: 14px !important;
+      font-weight: bold !important;
+      line-height: 1 !important;
+      z-index: 9999 !important;
+      pointer-events: none !important;
+    }
+
+    // 即使没有p-highlight类，如果父元素有选中状态也显示图标
+    &:not(.p-highlight):has(input:checked)::after {
+      content: '✓' !important;
+      position: absolute !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      color: white !important;
+      font-size: 14px !important;
+      font-weight: bold !important;
+      line-height: 1 !important;
+      z-index: 9999 !important;
+      pointer-events: none !important;
+    }
+  }
+
+  // 确保选中状态的checkbox box有正确的背景色
+  .p-checkbox-box.p-highlight {
+    background-color: var(--primary-color, #6366f1) !important;
+    border-color: var(--primary-color, #6366f1) !important;
+  }
+
+  // 针对父元素是选中状态的情况
+  .p-checkbox.p-highlight .p-checkbox-box,
+  .p-checkbox.p-checkbox-checked .p-checkbox-box {
+    background-color: var(--primary-color, #6366f1) !important;
+    border-color: var(--primary-color, #6366f1) !important;
+
+    &::after {
+      content: '✓' !important;
+      position: absolute !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      color: white !important;
+      font-size: 14px !important;
+      font-weight: bold !important;
+      line-height: 1 !important;
+      z-index: 9999 !important;
+      pointer-events: none !important;
+    }
+  }
+}
+
+// 全局checkbox修复（影响页面中所有checkbox）
+.p-checkbox {
+  .p-checkbox-box {
+    &.p-highlight::after {
+      content: '✓' !important;
+      position: absolute !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      color: white !important;
+      font-size: 14px !important;
+      font-weight: bold !important;
+      line-height: 1 !important;
+      z-index: 9999 !important;
+      pointer-events: none !important;
+    }
+  }
+
+  &.p-highlight .p-checkbox-box,
+  &.p-checkbox-checked .p-checkbox-box {
+    background-color: var(--primary-color, #6366f1) !important;
+    border-color: var(--primary-color, #6366f1) !important;
+
+    &::after {
+      content: '✓' !important;
+      position: absolute !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      color: white !important;
+      font-size: 14px !important;
+      font-weight: bold !important;
+      line-height: 1 !important;
+      z-index: 9999 !important;
+      pointer-events: none !important;
+    }
+  }
+}
