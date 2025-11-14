@@ -5,9 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="style(config):优化批量导入和配置界面样式&#10;&#10;- 统一设置textarea全宽显示，改善输入区域布局- 更新复选框和标签样式，增强点击区域和视觉效果&#10;-重构对话框和卡片组件样式，提升整体视觉一致性-优化表单字段和浮动标签样式，改善用户输入体验&#10;- 调整消息提示和信息展示样式，提高可读性&#10;- 更新输入组件边框、圆角和焦点状态样式&#10;- 改进文件预览和统计信息显示样式&#10;-优化移动端响应式布局和组件间距">
+      <change beforePath="$PROJECT_DIR$/.claude/settings.local.json" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/settings.local.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/reset.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/reset.scss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/Config/components/HeaderRulesConfig.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/Config/components/HeaderRulesConfig.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
