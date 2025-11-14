@@ -61,17 +61,24 @@
               severity="success"
             />
             <Button
-              label="批量添加"
-              icon="pi pi-list"
-              @click="showBatchAddDialog"
-              severity="success"
+              label="文本导入"
+              icon="pi pi-file-edit"
+              @click="showTextImportDialog"
+              severity="info"
+              outlined
+            />
+            <Button
+              label="JSON导入"
+              icon="pi pi-code"
+              @click="showJsonImportDialog"
+              severity="info"
               outlined
             />
             <Button
               label="文件导入"
               icon="pi pi-file-import"
               @click="showFileImportDialog"
-              severity="success"
+              severity="info"
               outlined
             />
             <Button
@@ -180,7 +187,11 @@
     <Dialog
       v-model:visible="dialogVisible"
       header="添加Session Headers"
-      :style="{ width: '1200px', maxHeight: '90vh' }"
+      :style="{
+        width: '90vw',
+        maxWidth: '1200px',
+        maxHeight: '85vh'
+      }"
       modal
       class="session-dialog"
     >
@@ -223,7 +234,7 @@ X-Custom-Header: custom-value
 Cookie: session_id=abc123
 X-API-Key: your-api-key
 User-Agent: CustomUserAgent/1.0"
-                class="headers-textarea"
+                class="uniform-textarea"
                 :autoResize="false"
               />
               <div class="input-stats">
@@ -246,40 +257,44 @@ User-Agent: CustomUserAgent/1.0"
           </template>
           <template #content>
             <div class="formgrid grid p-fluid">
-              <div class="field col-12 md:col-6 mb-4">
-                <label for="priority" class="block mb-2 font-medium">
+              <div class="field-horizontal mb-6">
+                <label for="priority" class="field-label-left">
                   <i class="pi pi-sort-amount-up mr-2"></i>
                   优先级 (0-100)
                 </label>
-                <InputNumber
-                  id="priority"
-                  v-model="defaultPriority"
-                  :min="0"
-                  :max="100"
-                  showButtons
-                  buttonLayout="horizontal"
-                  :step="1"
-                  class="w-full"
-                />
-                <small class="text-color-secondary mt-1 block">数值越大优先级越高</small>
+                <div class="field-content">
+                  <InputNumber
+                    id="priority"
+                    v-model="defaultPriority"
+                    :min="0"
+                    :max="100"
+                    showButtons
+                    buttonLayout="horizontal"
+                    :step="1"
+                    class="uniform-input w-full"
+                  />
+                  <small class="field-help text-color-secondary">数值越大优先级越高</small>
+                </div>
               </div>
 
-              <div class="field col-12 md:col-6 mb-4">
-                <label for="ttl" class="block mb-2 font-medium">
+              <div class="field-horizontal mb-6">
+                <label for="ttl" class="field-label-left">
                   <i class="pi pi-clock mr-2"></i>
                   生存时间 (秒)
                 </label>
-                <InputNumber
-                  id="ttl"
-                  v-model="defaultTtl"
-                  :min="60"
-                  :max="86400"
-                  showButtons
-                  buttonLayout="horizontal"
-                  :step="60"
-                  class="w-full"
-                />
-                <small class="text-color-secondary mt-1 block">默认3600秒(1小时)，最大86400秒(24小时)</small>
+                <div class="field-content">
+                  <InputNumber
+                    id="ttl"
+                    v-model="defaultTtl"
+                    :min="60"
+                    :max="86400"
+                    showButtons
+                    buttonLayout="horizontal"
+                    :step="60"
+                    class="uniform-input w-full"
+                  />
+                  <small class="field-help text-color-secondary">默认3600秒(1小时)，最大86400秒(24小时)</small>
+                </div>
               </div>
             </div>
           </template>
@@ -316,7 +331,11 @@ User-Agent: CustomUserAgent/1.0"
     <Dialog
       v-model:visible="batchDialogVisible"
       header="批量添加Session Headers"
-      :style="{ width: '900px', maxHeight: '90vh' }"
+      :style="{
+        width: '90vw',
+        maxWidth: '900px',
+        maxHeight: '85vh'
+      }"
       modal
       class="session-dialog"
     >
@@ -382,37 +401,40 @@ User-Agent: CustomUserAgent/1.0"
           </template>
           <template #content>
             <div class="formgrid grid p-fluid">
-              <div class="field col-12 md:col-6 mb-3">
-                <FloatLabel>
+              <div class="field-horizontal mb-6">
+                <label for="batch_priority" class="field-label-left">
+                  <i class="pi pi-sort-numeric-down mr-2"></i>
+                  默认优先级
+                </label>
+                <div class="field-content">
                   <InputNumber
                     id="batch_priority"
                     v-model="defaultPriority"
                     :min="0"
                     :max="100"
+                    suffix=" 分"
+                    class="w-full"
                   />
-                  <label for="batch_priority">
-                    <i class="pi pi-sort-numeric-down mr-2"></i>
-                    默认优先级
-                  </label>
-                </FloatLabel>
-                <small class="text-color-secondary mt-1">0-100，越大优先级越高</small>
+                  <small class="field-help text-color-secondary">0-100，越大优先级越高</small>
+                </div>
               </div>
 
-              <div class="field col-12 md:col-6 mb-0">
-                <FloatLabel>
+              <div class="field-horizontal mb-6">
+                <label for="batch_ttl" class="field-label-left">
+                  <i class="pi pi-clock mr-2"></i>
+                  默认过期时间
+                </label>
+                <div class="field-content">
                   <InputNumber
                     id="batch_ttl"
                     v-model="defaultTtl"
                     :min="60"
                     :max="86400"
                     suffix=" 秒"
+                    class="w-full"
                   />
-                  <label for="batch_ttl">
-                    <i class="pi pi-clock mr-2"></i>
-                    默认过期时间
-                  </label>
-                </FloatLabel>
-                <small class="text-color-secondary mt-1">60-86400秒（1分钟-24小时）</small>
+                  <small class="field-help text-color-secondary">60-86400秒（1分钟-24小时）</small>
+                </div>
               </div>
             </div>
           </template>
@@ -449,7 +471,11 @@ User-Agent: CustomUserAgent/1.0"
     <Dialog
       v-model:visible="fileImportDialogVisible"
       header="从文件导入Session Headers"
-      :style="{ width: '900px', maxHeight: '90vh' }"
+      :style="{
+        width: '90vw',
+        maxWidth: '900px',
+        maxHeight: '85vh'
+      }"
       modal
       class="session-dialog"
     >
@@ -488,15 +514,32 @@ User-Agent: CustomUserAgent/1.0"
           </template>
           <template #content>
             <div class="file-upload-area">
-              <input
-                type="file"
-                ref="fileInput"
-                accept=".txt,.json"
-                @change="handleFileSelect"
-                class="file-input"
-              />
+              <!-- 文件选择按钮 -->
+              <div class="mb-4">
+                <Button
+                  label="选择文件"
+                  icon="pi pi-folder-open"
+                  @click="selectFile"
+                  severity="secondary"
+                  outlined
+                  class="mb-3"
+                />
+                <input
+                  type="file"
+                  ref="fileInput"
+                  accept=".txt,.json"
+                  @change="handleFileSelect"
+                  class="file-input"
+                  style="display: none"
+                />
+                <div class="field-help text-color-secondary">
+                  支持 .txt 和 .json 格式文件
+                </div>
+              </div>
+
+              <!-- 文件预览区域 -->
               <div class="file-preview" v-if="fileContent">
-                <div class="file-preview-header">
+                <div class="file-preview-header mb-3">
                   <span class="font-semibold">文件内容预览：</span>
                 </div>
                 <Textarea
@@ -511,62 +554,7 @@ User-Agent: CustomUserAgent/1.0"
           </template>
         </Card>
 
-        <!-- 配置选项卡片 -->
-        <Card class="config-card mb-4">
-          <template #title>
-            <div class="flex align-items-center gap-2">
-              <i class="pi pi-cog text-primary"></i>
-              <span>配置选项</span>
-            </div>
-          </template>
-          <template #content>
-            <div class="formgrid grid p-fluid">
-              <div class="field col-12 md:col-6 mb-3">
-                <FloatLabel>
-                  <InputNumber
-                    id="file_priority"
-                    v-model="defaultPriority"
-                    :min="0"
-                    :max="100"
-                  />
-                  <label for="file_priority">
-                    <i class="pi pi-sort-numeric-down mr-2"></i>
-                    默认优先级
-                  </label>
-                </FloatLabel>
-                <small class="text-color-secondary mt-1">0-100，越大优先级越高</small>
-              </div>
-
-              <div class="field col-12 md:col-6 mb-0">
-                <FloatLabel>
-                  <InputNumber
-                    id="file_ttl"
-                    v-model="defaultTtl"
-                    :min="60"
-                    :max="86400"
-                    suffix=" 秒"
-                  />
-                  <label for="file_ttl">
-                    <i class="pi pi-clock mr-2"></i>
-                    默认过期时间
-                  </label>
-                </FloatLabel>
-                <small class="text-color-secondary mt-1">60-86400秒（1分钟-24小时）</small>
-              </div>
-            </div>
-          </template>
-        </Card>
-
-        <!-- 域控配置 -->
-        <ScopeConfigPanel
-          v-model="sessionScope"
-          title="作用域配置（可选）"
-          description="为导入的Header统一设置作用域，不配置则对所有请求生效"
-          :show-templates="true"
-          :show-info="true"
-          :show-advanced="false"
-        />
-      </div>
+        </div>
 
       <template #footer>
         <Button 
@@ -589,7 +577,11 @@ User-Agent: CustomUserAgent/1.0"
     <Dialog
       v-model:visible="editDialogVisible"
       header="编辑Session Header"
-      :style="{ width: '800px', maxHeight: '90vh' }"
+      :style="{
+        width: '90vw',
+        maxWidth: '800px',
+        maxHeight: '85vh'
+      }"
       modal
       class="session-dialog"
     >
@@ -611,7 +603,7 @@ User-Agent: CustomUserAgent/1.0"
                 <InputText
                   id="edit_header_name"
                   v-model="editFormData.header_name"
-                  class="w-full"
+                  class="uniform-input w-full"
                   placeholder="例如: Authorization"
                 />
               </div>
@@ -627,7 +619,7 @@ User-Agent: CustomUserAgent/1.0"
                   optionLabel="label"
                   optionValue="value"
                   placeholder="选择替换策略"
-                  class="w-full"
+                  class="uniform-input w-full"
                 />
               </div>
 
@@ -640,7 +632,7 @@ User-Agent: CustomUserAgent/1.0"
                   v-model="editFormData.header_value"
                   rows="3"
                   placeholder="例如: Bearer your-token-here"
-                  class="w-full"
+                  class="uniform-textarea w-full"
                   :autoResize="false"
                 />
               </div>
@@ -670,7 +662,7 @@ User-Agent: CustomUserAgent/1.0"
                   showButtons
                   buttonLayout="horizontal"
                   :step="1"
-                  class="w-full"
+                  class="uniform-input w-full"
                 />
                 <small class="text-color-secondary mt-1 block">数值越大优先级越高</small>
               </div>
@@ -687,7 +679,7 @@ User-Agent: CustomUserAgent/1.0"
                   showButtons
                   buttonLayout="horizontal"
                   :step="60"
-                  class="w-full"
+                  class="uniform-input w-full"
                 />
                 <small class="text-color-secondary mt-1 block">默认3600秒(1小时)，最大86400秒(24小时)</small>
               </div>
@@ -735,6 +727,282 @@ User-Agent: CustomUserAgent/1.0"
         />
       </template>
     </Dialog>
+
+    <!-- 文本导入对话框 -->
+    <Dialog
+      v-model:visible="textImportDialogVisible"
+      header="文本导入Session Headers"
+      :style="{
+        width: '90vw',
+        maxWidth: '900px',
+        maxHeight: '85vh'
+      }"
+      modal
+      class="session-dialog"
+    >
+      <div class="dialog-content">
+        <!-- 使用说明卡片 -->
+        <Card class="info-card mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-file-edit text-primary"></i>
+              <span>文本导入格式说明</span>
+            </div>
+          </template>
+          <template #content>
+            <Message severity="info" :closable="false">
+              <div class="flex align-items-center gap-2">
+                <i class="pi pi-info-circle"></i>
+                <span>每行一个Header，格式：</span>
+                <code class="format-code">Header-Name: Header-Value</code>
+              </div>
+            </Message>
+          </template>
+        </Card>
+
+        <!-- 文本输入区域卡片 -->
+        <Card class="input-card mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-list text-primary"></i>
+              <span>Header列表</span>
+            </div>
+          </template>
+          <template #content>
+            <div class="input-area">
+              <Textarea
+                v-model="fileContent"
+                rows="12"
+                class="uniform-textarea"
+                placeholder="例如:
+Authorization: Bearer your-token-here
+X-Custom-Header: custom-value
+Cookie: session_id=abc123
+X-API-Key: your-api-key
+User-Agent: CustomUserAgent/1.0"
+              />
+              <div class="input-stats mt-2">
+                <small class="text-color-secondary">输入行数: {{ fileContent.split('\n').filter(line => line.trim()).length }}</small>
+              </div>
+            </div>
+          </template>
+        </Card>
+
+        <!-- 配置选项卡片 -->
+        <Card class="config-card mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-cog text-primary"></i>
+              <span>配置选项</span>
+            </div>
+          </template>
+          <template #content>
+            <div class="field-horizontal mb-6">
+              <label for="priority" class="field-label-left">
+                <i class="pi pi-sort-amount-up mr-2"></i>
+                默认优先级
+              </label>
+              <div class="field-content">
+                <InputNumber
+                  id="priority"
+                  v-model="defaultPriority"
+                  class="w-full"
+                  :min="0"
+                  :max="100"
+                />
+                <small class="field-help text-color-secondary">0-100，数值越大优先级越高</small>
+              </div>
+            </div>
+
+            <div class="field-horizontal mb-6">
+              <label for="ttl" class="field-label-left">
+                <i class="pi pi-clock mr-2"></i>
+                默认过期时间
+              </label>
+              <div class="field-content">
+                <InputNumber
+                  id="ttl"
+                  v-model="defaultTtl"
+                  class="w-full"
+                  :min="60"
+                  :max="86400"
+                  suffix=" 秒"
+                />
+                <small class="field-help text-color-secondary">60-86400秒（1分钟-24小时）</small>
+              </div>
+            </div>
+          </template>
+        </Card>
+
+        <!-- 作用域配置 -->
+        <ScopeConfigPanel
+          v-model="sessionScope"
+          :title="'作用域配置（可选）'"
+          :description="'为导入的Header统一设置作用域，不配置则对所有请求生效'"
+          :show-templates="true"
+          :show-info="true"
+          :show-advanced="false"
+        />
+      </div>
+
+      <template #footer>
+        <Button
+          label="取消"
+          icon="pi pi-times"
+          severity="secondary"
+          @click="textImportDialogVisible = false"
+        />
+        <Button
+          label="导入"
+          icon="pi pi-check"
+          @click="handleTextImport"
+          :loading="saving"
+        />
+      </template>
+    </Dialog>
+
+    <!-- JSON导入对话框 -->
+    <Dialog
+      v-model:visible="jsonImportDialogVisible"
+      header="JSON导入Session Headers"
+      :style="{
+        width: '90vw',
+        maxWidth: '900px',
+        maxHeight: '85vh'
+      }"
+      modal
+      class="session-dialog"
+    >
+      <div class="dialog-content">
+        <!-- 使用说明卡片 -->
+        <Card class="info-card mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-code text-primary"></i>
+              <span>JSON导入格式说明</span>
+            </div>
+          </template>
+          <template #content>
+            <Message severity="info" :closable="false">
+              <div class="flex flex-col gap-2">
+                <div><i class="pi pi-info-circle mr-2"></i>JSON格式，对象数组：</div>
+                <code class="format-code">
+[
+  {
+    "header_name": "Authorization",
+    "header_value": "Bearer token123",
+    "replace_strategy": "REPLACE",
+    "priority": 80
+  }
+]
+                </code>
+              </div>
+            </Message>
+          </template>
+        </Card>
+
+        <!-- JSON输入区域卡片 -->
+        <Card class="input-card mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-code text-primary"></i>
+              <span>JSON数据</span>
+            </div>
+          </template>
+          <template #content>
+            <div class="input-area">
+              <Textarea
+                v-model="fileContent"
+                rows="12"
+                class="uniform-textarea"
+                placeholder='[
+  {
+    "header_name": "Authorization",
+    "header_value": "Bearer your-token-here",
+    "replace_strategy": "REPLACE",
+    "priority": 80
+  }
+]'
+              />
+              <div class="input-stats mt-2">
+                <small class="text-color-secondary">JSON数据长度: {{ fileContent.length }} 字符</small>
+              </div>
+            </div>
+          </template>
+        </Card>
+
+        <!-- 配置选项卡片 -->
+        <Card class="config-card mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-cog text-primary"></i>
+              <span>配置选项</span>
+            </div>
+          </template>
+          <template #content>
+            <div class="field-horizontal mb-6">
+              <label for="priority" class="field-label-left">
+                <i class="pi pi-sort-amount-up mr-2"></i>
+                默认优先级
+              </label>
+              <div class="field-content">
+                <InputNumber
+                  id="priority"
+                  v-model="defaultPriority"
+                  class="w-full"
+                  :min="0"
+                  :max="100"
+                />
+                <small class="field-help text-color-secondary">当JSON中未指定优先级时使用</small>
+              </div>
+            </div>
+
+            <div class="field-horizontal mb-6">
+              <label for="ttl" class="field-label-left">
+                <i class="pi pi-clock mr-2"></i>
+                默认过期时间
+              </label>
+              <div class="field-content">
+                <InputNumber
+                  id="ttl"
+                  v-model="defaultTtl"
+                  class="w-full"
+                  :min="60"
+                  :max="86400"
+                  suffix=" 秒"
+                />
+                <small class="field-help text-color-secondary">当JSON中未指定过期时间时使用</small>
+              </div>
+            </div>
+          </template>
+        </Card>
+
+        <!-- 作用域配置 -->
+        <ScopeConfigPanel
+          v-model="sessionScope"
+          :title="'作用域配置（可选）'"
+          :description="'为导入的Header统一设置作用域，不配置则对所有请求生效'"
+          :show-templates="true"
+          :show-info="true"
+          :show-advanced="false"
+        />
+      </div>
+
+      <template #footer>
+        <Button
+          label="取消"
+          icon="pi pi-times"
+          severity="secondary"
+          @click="jsonImportDialogVisible = false"
+        />
+        <Button
+          label="导入"
+          icon="pi pi-check"
+          @click="handleJsonImport"
+          :loading="saving"
+        />
+      </template>
+    </Dialog>
   </div>
 </template>
 
@@ -762,6 +1030,8 @@ const saving = ref(false)
 const dialogVisible = ref(false)
 const batchDialogVisible = ref(false)
 const fileImportDialogVisible = ref(false)
+const textImportDialogVisible = ref(false) // 文本导入对话框可见性
+const jsonImportDialogVisible = ref(false) // JSON导入对话框可见性
 const editDialogVisible = ref(false) // 编辑对话框可见性
 const sessionHeaders = ref<any[]>([])
 const selectedSessionHeaders = ref<any[]>([]) // 多选
@@ -789,6 +1059,7 @@ const statusFilter = ref<string | null>(null)
 const priorityFilter = ref<string | null>(null)
 const pageSize = ref(10)
 const sessionScope = ref<HeaderScope | null>(null) // Session Header作用域配置
+const fileInput = ref<HTMLInputElement | null>(null) // 文件输入引用
 
 // 过滤选项
 const statusOptions = [
@@ -851,10 +1122,22 @@ function showBatchAddDialog() {
 
 function showFileImportDialog() {
   fileContent.value = ''
-  defaultPriority.value = 50
-  defaultTtl.value = 3600
-  sessionScope.value = null
   fileImportDialogVisible.value = true
+}
+
+// 文件选择方法
+function selectFile() {
+  fileInput.value?.click()
+}
+
+function showTextImportDialog() {
+  fileContent.value = ''
+  textImportDialogVisible.value = true
+}
+
+function showJsonImportDialog() {
+  fileContent.value = ''
+  jsonImportDialogVisible.value = true
 }
 
 async function addSessionHeaders() {
@@ -912,6 +1195,148 @@ async function addSessionHeaders() {
       severity: 'error',
       summary: '添加失败',
       detail: error.message || '添加Session Headers失败',
+      life: 3000,
+    })
+  } finally {
+    saving.value = false
+  }
+}
+
+// 文本导入处理
+async function handleTextImport() {
+  if (!fileContent.value.trim()) {
+    toast.add({
+      severity: 'warn',
+      summary: '输入为空',
+      detail: '请输入要导入的文本内容',
+      life: 3000,
+    })
+    return
+  }
+
+  saving.value = true
+  try {
+    // 解析文本格式
+    const lines = fileContent.value.split('\n').filter(line => line.trim())
+    const headers = []
+
+    for (const line of lines) {
+      const trimmedLine = line.trim()
+      if (trimmedLine && trimmedLine.includes(':')) {
+        const [name, ...valueParts] = trimmedLine.split(':')
+        if (name && valueParts.length > 0) {
+          headers.push({
+            header_name: name.trim(),
+            header_value: valueParts.join(':').trim(),
+            priority: defaultPriority.value,
+            ttl: defaultTtl.value,
+            scope: sessionScope.value
+          })
+        }
+      }
+    }
+
+    if (headers.length === 0) {
+      toast.add({
+        severity: 'warn',
+        summary: '解析失败',
+        detail: '未找到有效的Header格式，请检查输入格式',
+        life: 3000,
+      })
+      return
+    }
+
+    // 调用相同的导入逻辑
+    const res = await setSessionHeaders(headers)
+    if (res.success) {
+      toast.add({
+        severity: 'success',
+        summary: '导入成功',
+        detail: `成功导入 ${headers.length} 个Header`,
+        life: 3000,
+      })
+      textImportDialogVisible.value = false
+      fileContent.value = ''
+      await loadSessionHeaders()
+    } else {
+      throw new Error(res.message || '导入失败')
+    }
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: '导入失败',
+      detail: error.message || '文本导入失败',
+      life: 3000,
+    })
+  } finally {
+    saving.value = false
+  }
+}
+
+// JSON导入处理
+async function handleJsonImport() {
+  if (!fileContent.value.trim()) {
+    toast.add({
+      severity: 'warn',
+      summary: '输入为空',
+      detail: '请输入要导入的JSON内容',
+      life: 3000,
+    })
+    return
+  }
+
+  saving.value = true
+  try {
+    // 解析JSON格式
+    const jsonData = JSON.parse(fileContent.value)
+
+    if (!Array.isArray(jsonData)) {
+      throw new Error('JSON格式错误：必须是对象数组')
+    }
+
+    const headers = []
+    for (const item of jsonData) {
+      if (item.header_name && item.header_value) {
+        headers.push({
+          header_name: item.header_name,
+          header_value: item.header_value,
+          priority: item.priority || defaultPriority.value,
+          ttl: item.ttl || defaultTtl.value,
+          scope: item.scope || sessionScope.value
+        })
+      }
+    }
+
+    if (headers.length === 0) {
+      toast.add({
+        severity: 'warn',
+        summary: '解析失败',
+        detail: 'JSON中未找到有效的Header数据',
+        life: 3000,
+      })
+      return
+    }
+
+    // 调用相同的导入逻辑
+    const res = await setSessionHeaders(headers)
+    if (res.success) {
+      toast.add({
+        severity: 'success',
+        summary: '导入成功',
+        detail: `成功导入 ${headers.length} 个Header`,
+        life: 3000,
+      })
+      jsonImportDialogVisible.value = false
+      fileContent.value = ''
+      await loadSessionHeaders()
+    } else {
+      throw new Error(res.message || '导入失败')
+    }
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: '导入失败',
+      detail: 'JSON导入失败：' + error.message,
       life: 3000,
     })
   } finally {
@@ -1413,6 +1838,9 @@ async function toggleActive(header: any) {
 
 // Session对话框样式优化
 :deep(.session-dialog) {
+  max-width: calc(100vw - 4rem);
+  max-height: calc(100vh - 4rem);
+
   .p-dialog-header {
     padding: 1.5rem;
     border-bottom: 1px solid var(--surface-border);
@@ -1424,53 +1852,279 @@ async function toggleActive(header: any) {
   }
 
   .p-dialog-footer {
-    padding: 1.25rem 1.5rem;
+    padding: 1.5rem 2rem 2rem 2rem !important; // 增加底部padding，避免按钮贴边
     border-top: 1px solid var(--surface-border);
     background: var(--surface-50);
+    display: flex;
+    gap: 0.75rem; // 按钮之间的间距
+    justify-content: flex-end; // 按钮右对齐
   }
 }
 
+// 左标签布局样式
+.field-horizontal {
+  @apply flex flex-col lg:flex-row lg:items-start lg:gap-4 mb-6;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+
+  .field-label-left {
+    @apply lg:w-48 lg:pt-2 lg:text-right font-medium text-sm mb-2 lg:mb-0;
+    min-width: 120px;
+    max-width: 100%;
+    flex-shrink: 0;
+  }
+
+  .field-content {
+    @apply flex-1 min-w-0 max-w-full;
+
+    // 应用统一的输入组件样式
+    .p-inputtext,
+    .p-inputnumber input,
+    .p-dropdown,
+    .p-multiselect {
+      @extend .uniform-input;
+    }
+
+    .p-textarea {
+      @extend .uniform-textarea;
+    }
+
+    .p-checkbox,
+    .p-radiobutton {
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .field-help {
+      @apply text-xs mt-2 block;
+      word-wrap: break-word;
+      max-width: 100%;
+    }
+  }
+}
+
+// 防止长文本溢出
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// 统一输入框样式
+.uniform-input {
+  width: 100% !important;
+  height: 40px !important;
+  border: 2px solid var(--surface-border) !important;
+  border-radius: 8px !important;
+  padding: 0 0.75rem !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  transition: all 0.2s ease !important;
+  box-sizing: border-box !important;
+  background: var(--surface-0) !important;
+  color: var(--text-color) !important;
+
+  &:hover:not(.p-disabled) {
+    border-color: var(--primary-color) !important;
+  }
+
+  &:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1) !important;
+    outline: none !important;
+  }
+
+  &::placeholder {
+    color: var(--text-color-secondary) !important;
+    opacity: 0.7 !important;
+  }
+}
+
+// 统一文本域样式
+.uniform-textarea {
+  width: 100% !important;
+  min-height: 120px !important;
+  border: 2px solid var(--surface-border) !important;
+  border-radius: 8px !important;
+  padding: 0.75rem !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  transition: all 0.2s ease !important;
+  box-sizing: border-box !important;
+  background: var(--surface-0) !important;
+  color: var(--text-color) !important;
+  resize: vertical !important;
+  font-family: inherit !important;
+
+  &:hover:not(.p-disabled) {
+    border-color: var(--primary-color) !important;
+  }
+
+  &:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1) !important;
+    outline: none !important;
+  }
+
+  &::placeholder {
+    color: var(--text-color-secondary) !important;
+    opacity: 0.7 !important;
+  }
+}
+
+// 统一按钮配色
+.uniform-button {
+  transition: all 0.2s ease !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+
+  &:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  &:active {
+    transform: translateY(0) !important;
+  }
+}
+
+// 统一卡片配色
+.uniform-card {
+  border-radius: 12px !important;
+  border: 1px solid var(--surface-border) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  background: var(--surface-0) !important;
+  transition: all 0.3s ease !important;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+    border-color: var(--primary-200) !important;
+  }
+
+  .p-card-header {
+    background: linear-gradient(135deg, var(--surface-50) 0%, var(--surface-100) 100%) !important;
+    border-bottom: 1px solid var(--surface-border) !important;
+    border-radius: 12px 12px 0 0 !important;
+  }
+
+  .p-card-title {
+    color: var(--text-color) !important;
+    font-weight: 600 !important;
+    font-size: 16px !important;
+    margin: 0 !important;
+
+    i {
+      color: var(--primary-color) !important;
+      font-size: 18px !important;
+    }
+  }
+
+  .p-card-content {
+    padding: 1.5rem !important;
+    color: var(--text-color) !important;
+  }
+}
+
+// 统一图标配色
+.uniform-icon {
+  color: var(--primary-color) !important;
+  font-size: 16px !important;
+
+  &.success {
+    color: var(--green-500) !important;
+  }
+
+  &.info {
+    color: var(--blue-500) !important;
+  }
+
+  &.warning {
+    color: var(--orange-500) !important;
+  }
+
+  &.danger {
+    color: var(--red-500) !important;
+  }
+}
+
+// 统一标签配色
+.uniform-tag {
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 0.25rem 0.75rem !important;
+
+  &.success {
+    background: var(--green-50) !important;
+    color: var(--green-700) !important;
+    border: 1px solid var(--green-200) !important;
+  }
+
+  &.info {
+    background: var(--blue-50) !important;
+    color: var(--blue-700) !important;
+    border: 1px solid var(--blue-200) !important;
+  }
+
+  &.warning {
+    background: var(--orange-50) !important;
+    color: var(--orange-700) !important;
+    border: 1px solid var(--orange-200) !important;
+  }
+
+  &.danger {
+    background: var(--red-50) !important;
+    color: var(--red-700) !important;
+    border: 1px solid var(--red-200) !important;
+  }
+}
+
+.text-break {
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
 .dialog-content {
-  padding: 2rem;
-  max-height: calc(80vh - 180px);
+  padding: 2rem 2rem 3rem 2rem; // 增加底部padding，避免按钮贴边
+  max-height: calc(85vh - 200px);
   overflow-y: auto;
   overflow-x: hidden;
 
+  // 防止内容溢出的通用设置
+  * {
+    box-sizing: border-box;
+  }
+
+  // 自定义滚动条样式
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--surface-100);
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--surface-300);
+    border-radius: 4px;
+
+    &:hover {
+      background: var(--surface-400);
+    }
+  }
+
   // 卡片通用样式
   :deep(.p-card) {
-    border-radius: 12px;
-    border: 1px solid var(--surface-border);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    @extend .uniform-card;
     margin-bottom: 1.5rem;
-    background: var(--surface-0);
 
     &:last-child {
       margin-bottom: 0;
-    }
-
-    .p-card-header {
-      padding: 1.25rem 1.5rem;
-      border-bottom: 1px solid var(--surface-border);
-      background: var(--surface-50);
-    }
-
-    .p-card-title {
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--text-color);
-      margin: 0;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-
-      i {
-        color: var(--primary-color);
-        font-size: 1.1rem;
-      }
-    }
-
-    .p-card-content {
-      padding: 1.5rem;
     }
   }
 

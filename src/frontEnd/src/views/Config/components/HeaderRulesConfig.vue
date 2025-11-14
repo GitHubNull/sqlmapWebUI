@@ -74,17 +74,24 @@
               severity="success"
             />
             <Button
-              label="批量添加"
-              icon="pi pi-list"
-              @click="showBatchImportDialog"
-              severity="success"
+              label="文本导入"
+              icon="pi pi-file-edit"
+              @click="showTextImportDialog"
+              severity="info"
+              outlined
+            />
+            <Button
+              label="JSON导入"
+              icon="pi pi-code"
+              @click="showJsonImportDialog"
+              severity="info"
               outlined
             />
             <Button
               label="文件导入"
               icon="pi pi-file-import"
               @click="showFileImportDialog"
-              severity="success"
+              severity="info"
               outlined
             />
             <Button
@@ -323,6 +330,189 @@
         />
       </template>
     </Dialog>
+
+    <!-- 文本导入对话框 -->
+    <Dialog
+      v-model:visible="textImportVisible"
+      header="文本导入规则"
+      :style="{ width: '60vw', maxWidth: '800px' }"
+      :maximizable="true"
+      :modal="true"
+    >
+      <div class="field-horizontal mb-6">
+        <div class="field-label-left">
+          <label><i class="pi pi-file-edit mr-2"></i>文本内容</label>
+        </div>
+        <div class="field-content">
+          <textarea
+            v-model="textImportContent"
+            class="uniform-textarea"
+            rows="12"
+            placeholder="请输入规则文本，每行一条规则，格式：&#10;规则名称|Header名称|Header值|替换策略|优先级&#10;例如：&#10;User-Agent Override|User-Agent|Mozilla/5.0 (Custom)|replace|100&#10;Authorization Header|Authorization|Bearer token|append|80"
+          ></textarea>
+          <div class="field-help">
+            支持批量导入，每行一条规则。字段顺序：规则名称、Header名称、Header值、替换策略、优先级（可选）
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <Button
+          label="取消"
+          icon="pi pi-times"
+          severity="secondary"
+          @click="textImportVisible = false"
+        />
+        <Button
+          label="导入规则"
+          icon="pi pi-upload"
+          @click="handleTextImport"
+          :loading="importing"
+        />
+      </template>
+    </Dialog>
+
+    <!-- JSON导入对话框 -->
+    <Dialog
+      v-model:visible="jsonImportVisible"
+      header="JSON导入规则"
+      :style="{ width: '60vw', maxWidth: '800px' }"
+      :maximizable="true"
+      :modal="true"
+    >
+      <div class="field-horizontal mb-6">
+        <div class="field-label-left">
+          <label><i class="pi pi-code mr-2"></i>JSON内容</label>
+        </div>
+        <div class="field-content">
+          <textarea
+            v-model="jsonImportContent"
+            class="uniform-textarea"
+            rows="12"
+            placeholder='请输入JSON格式的规则数据，例如：&#10;[&#10;  {&#10;    &quot;name&quot;: &quot;User-Agent Override&quot;,&#10;    &quot;header_name&quot;: &quot;User-Agent&quot;,&#10;    &quot;header_value&quot;: &quot;Mozilla/5.0 (Custom)&quot;,&#10;    &quot;replace_strategy&quot;: &quot;replace&quot;,&#10;    &quot;priority&quot;: 100&#10;  }&#10;]'
+          ></textarea>
+          <div class="field-help">
+            请输入有效的JSON格式数据，可以是单个规则对象或规则数组
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <Button
+          label="取消"
+          icon="pi pi-times"
+          severity="secondary"
+          @click="jsonImportVisible = false"
+        />
+        <Button
+          label="导入规则"
+          icon="pi pi-upload"
+          @click="handleJsonImport"
+          :loading="importing"
+        />
+      </template>
+    </Dialog>
+
+    <!-- 文件导入对话框 -->
+    <Dialog
+      v-model:visible="fileImportVisible"
+      header="文件导入规则"
+      :style="{ width: '60vw', maxWidth: '800px' }"
+      :maximizable="true"
+      :modal="true"
+    >
+      <div class="dialog-content">
+        <!-- 文件选择区域 -->
+        <Card class="mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-file-import text-primary"></i>
+              <span>选择文件</span>
+            </div>
+          </template>
+          <template #content>
+            <div class="field-horizontal mb-6">
+              <div class="field-label-left">
+                <label><i class="pi pi-file mr-2"></i>选择文件</label>
+              </div>
+              <div class="field-content">
+                <input
+                  ref="fileInput"
+                  type="file"
+                  accept=".txt,.json"
+                  @change="onFileSelect"
+                  style="display: none"
+                />
+                <Button
+                  label="选择文件"
+                  icon="pi pi-folder-open"
+                  @click="selectFile"
+                  severity="secondary"
+                  outlined
+                />
+                <div v-if="selectedFile" class="mt-3">
+                  <Message severity="info" :closable="false">
+                    <div class="flex align-items-center gap-2">
+                      <i class="pi pi-file"></i>
+                      <span>{{ selectedFile.name }}</span>
+                      <small>({{ formatFileSize(selectedFile.size) }})</small>
+                    </div>
+                  </Message>
+                </div>
+                <div class="field-help">
+                  支持 .txt 和 .json 格式文件
+                </div>
+              </div>
+            </div>
+          </template>
+        </Card>
+
+        <!-- 文件预览区域 -->
+        <Card v-if="filePreview" class="mb-4">
+          <template #title>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-eye text-primary"></i>
+              <span>文件预览</span>
+            </div>
+          </template>
+          <template #content>
+            <div class="field-horizontal mb-6">
+              <div class="field-label-left">
+                <label><i class="pi pi-code mr-2"></i>文件内容</label>
+              </div>
+              <div class="field-content">
+                <textarea
+                  v-model="filePreview"
+                  class="uniform-textarea"
+                  rows="8"
+                  readonly
+                  placeholder="文件内容将在此处显示..."
+                ></textarea>
+                <div class="field-help">
+                  文件内容预览（只读）
+                </div>
+              </div>
+            </div>
+          </template>
+        </Card>
+      </div>
+
+      <template #footer>
+        <Button
+          label="取消"
+          icon="pi pi-times"
+          severity="secondary"
+          @click="fileImportVisible = false"
+        />
+        <Button
+          label="导入规则"
+          icon="pi pi-upload"
+          @click="handleFileImport"
+          :loading="importing"
+          :disabled="!selectedFile"
+        />
+      </template>
+    </Dialog>
   </div>
 </template>
 
@@ -356,7 +546,19 @@ const rules = ref<PersistentHeaderRule[]>([])
 const editingRule = ref<PersistentHeaderRule | null>(null)
 const showValidation = ref(false)
 const batchImportVisible = ref(false) // 批量导入对话框显示状态
+const textImportVisible = ref(false) // 文本导入对话框显示状态
+const jsonImportVisible = ref(false) // JSON导入对话框显示状态
+const fileImportVisible = ref(false) // 文件导入对话框显示状态
 const importing = ref(false) // 批量导入状态
+
+// 导入内容状态
+const textImportContent = ref('') // 文本导入内容
+const jsonImportContent = ref('') // JSON导入内容
+
+// 文件导入状态
+const selectedFile = ref<File | null>(null) // 选中的文件
+const filePreview = ref('') // 文件预览内容
+const fileInput = ref<HTMLInputElement | null>(null) // 文件输入引用
 const scopePanel = ref<InstanceType<typeof ScopeConfigPanel>>() // 作用域面板引用
 const isActiveCheckboxRef = ref<InstanceType<any>>() // 启用规则复选框引用
 
@@ -647,13 +849,15 @@ function showBatchImportDialog() {
 
 // 显示文件导入对话框
 function showFileImportDialog() {
-  // TODO: 实现文件导入对话框
-  toast.add({
-    severity: 'info',
-    summary: '功能开发中',
-    detail: '文件导入功能正在开发中',
-    life: 3000,
-  })
+  fileImportVisible.value = true
+}
+
+function showTextImportDialog() {
+  textImportVisible.value = true
+}
+
+function showJsonImportDialog() {
+  jsonImportVisible.value = true
 }
 
 // 处理批量导入
@@ -702,6 +906,325 @@ async function handleBatchImport(rules: PersistentHeaderRuleCreate[]) {
   } finally {
     importing.value = false
     batchImportVisible.value = false
+  }
+}
+
+// 处理文本导入
+async function handleTextImport() {
+  if (!textImportContent.value.trim()) {
+    toast.add({
+      severity: 'warn',
+      summary: '导入失败',
+      detail: '请输入要导入的文本内容',
+      life: 3000,
+    })
+    return
+  }
+
+  importing.value = true
+  try {
+    const lines = textImportContent.value.trim().split('\n')
+    const rules: PersistentHeaderRuleCreate[] = []
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim()
+      if (!line) continue
+
+      const parts = line.split('|').map(part => part.trim())
+      if (parts.length < 4) {
+        throw new Error(`第 ${i + 1} 行格式错误：至少需要4个字段（规则名称|Header名称|Header值|替换策略）`)
+      }
+
+      const [name, header_name, header_value, replace_strategy, priorityStr] = parts
+      const priority = priorityStr ? parseInt(priorityStr, 10) : 50
+
+      if (isNaN(priority) || priority < 0 || priority > 100) {
+        throw new Error(`第 ${i + 1} 行优先级错误：必须是0-100之间的数字`)
+      }
+
+      if (!['replace', 'append', 'skip'].includes(replace_strategy)) {
+        throw new Error(`第 ${i + 1} 行替换策略错误：必须是 replace、append 或 skip`)
+      }
+
+      rules.push({
+        name,
+        header_name,
+        header_value,
+        replace_strategy: replace_strategy as 'replace' | 'append' | 'skip',
+        priority,
+        is_active: true
+      })
+    }
+
+    await handleBatchImport(rules)
+    textImportContent.value = ''
+    textImportVisible.value = false
+
+    toast.add({
+      severity: 'success',
+      summary: '文本导入成功',
+      detail: `成功导入 ${rules.length} 条规则`,
+      life: 3000,
+    })
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: '文本导入失败',
+      detail: error.message || '导入过程中发生错误',
+      life: 3000,
+    })
+  } finally {
+    importing.value = false
+  }
+}
+
+// 处理JSON导入
+async function handleJsonImport() {
+  if (!jsonImportContent.value.trim()) {
+    toast.add({
+      severity: 'warn',
+      summary: '导入失败',
+      detail: '请输入要导入的JSON内容',
+      life: 3000,
+    })
+    return
+  }
+
+  importing.value = true
+  try {
+    const jsonData = JSON.parse(jsonImportContent.value)
+    let rules: PersistentHeaderRuleCreate[] = []
+
+    if (Array.isArray(jsonData)) {
+      rules = jsonData
+    } else if (typeof jsonData === 'object') {
+      rules = [jsonData]
+    } else {
+      throw new Error('JSON格式错误：必须是对象或数组')
+    }
+
+    // 验证规则格式
+    for (let i = 0; i < rules.length; i++) {
+      const rule = rules[i]
+      if (!rule.name || !rule.header_name || !rule.header_value || !rule.replace_strategy) {
+        throw new Error(`第 ${i + 1} 条规则缺少必要字段：name、header_name、header_value、replace_strategy`)
+      }
+
+      if (!['replace', 'append', 'skip'].includes(rule.replace_strategy)) {
+        throw new Error(`第 ${i + 1} 条规则替换策略错误：必须是 replace、append 或 skip`)
+      }
+
+      if (rule.priority !== undefined) {
+        if (typeof rule.priority !== 'number' || rule.priority < 0 || rule.priority > 100) {
+          throw new Error(`第 ${i + 1} 条规则优先级错误：必须是0-100之间的数字`)
+        }
+      } else {
+        rule.priority = 50
+      }
+
+      rule.is_active = rule.is_active !== undefined ? rule.is_active : true
+    }
+
+    await handleBatchImport(rules)
+    jsonImportContent.value = ''
+    jsonImportVisible.value = false
+
+    toast.add({
+      severity: 'success',
+      summary: 'JSON导入成功',
+      detail: `成功导入 ${rules.length} 条规则`,
+      life: 3000,
+    })
+  } catch (error: any) {
+    if (error instanceof SyntaxError) {
+      toast.add({
+        severity: 'error',
+        summary: 'JSON解析失败',
+        detail: '请输入有效的JSON格式数据',
+        life: 3000,
+      })
+    } else {
+      toast.add({
+        severity: 'error',
+        summary: 'JSON导入失败',
+        detail: error.message || '导入过程中发生错误',
+        life: 3000,
+      })
+    }
+  } finally {
+    importing.value = false
+  }
+}
+
+// 文件选择方法
+function selectFile() {
+  fileInput.value?.click()
+}
+
+// 文件选择处理
+function onFileSelect(event: Event) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+
+  if (!file) return
+
+  // 检查文件类型
+  const fileName = file.name.toLowerCase()
+  if (!fileName.endsWith('.txt') && !fileName.endsWith('.json')) {
+    toast.add({
+      severity: 'warn',
+      summary: '文件格式错误',
+      detail: '只支持 .txt 和 .json 格式文件',
+      life: 3000,
+    })
+    return
+  }
+
+  selectedFile.value = file
+
+  // 读取文件内容进行预览
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const content = e.target?.result as string
+    filePreview.value = content
+  }
+  reader.onerror = () => {
+    toast.add({
+      severity: 'error',
+      summary: '文件读取失败',
+      detail: '无法读取文件内容，请重试',
+      life: 3000,
+    })
+  }
+  reader.readAsText(file)
+}
+
+// 格式化文件大小
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  const size = sizes[i]
+  if (!size) return '0 Bytes'
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + size
+}
+
+// 处理文件导入
+async function handleFileImport() {
+  if (!selectedFile.value || !filePreview.value.trim()) {
+    toast.add({
+      severity: 'warn',
+      summary: '导入失败',
+      detail: '请选择要导入的文件',
+      life: 3000,
+    })
+    return
+  }
+
+  importing.value = true
+  try {
+    const fileName = selectedFile.value.name.toLowerCase()
+    let rules: PersistentHeaderRuleCreate[] = []
+
+    if (fileName.endsWith('.json')) {
+      // JSON文件导入
+      try {
+        const jsonData = JSON.parse(filePreview.value)
+        if (Array.isArray(jsonData)) {
+          rules = jsonData
+        } else if (typeof jsonData === 'object') {
+          rules = [jsonData]
+        } else {
+          throw new Error('JSON格式错误：必须是对象或数组')
+        }
+
+        // 验证规则格式
+        for (let i = 0; i < rules.length; i++) {
+          const rule = rules[i]
+          if (!rule.name || !rule.header_name || !rule.header_value || !rule.replace_strategy) {
+            throw new Error(`第 ${i + 1} 条规则缺少必要字段：name、header_name、header_value、replace_strategy`)
+          }
+
+          if (!['replace', 'append', 'skip'].includes(rule.replace_strategy)) {
+            throw new Error(`第 ${i + 1} 条规则替换策略错误：必须是 replace、append 或 skip`)
+          }
+
+          if (rule.priority !== undefined) {
+            if (typeof rule.priority !== 'number' || rule.priority < 0 || rule.priority > 100) {
+              throw new Error(`第 ${i + 1} 条规则优先级错误：必须是0-100之间的数字`)
+            }
+          } else {
+            rule.priority = 50
+          }
+
+          rule.is_active = rule.is_active !== undefined ? rule.is_active : true
+        }
+      } catch (error: any) {
+        if (error instanceof SyntaxError) {
+          throw new Error('JSON解析失败：请输入有效的JSON格式数据')
+        } else {
+          throw error
+        }
+      }
+    } else if (fileName.endsWith('.txt')) {
+      // 文本文件导入
+      const lines = filePreview.value.trim().split('\n')
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim()
+        if (!line) continue
+
+        const parts = line.split('|').map(part => part.trim())
+        if (parts.length < 4) {
+          throw new Error(`第 ${i + 1} 行格式错误：至少需要4个字段（规则名称|Header名称|Header值|替换策略）`)
+        }
+
+        const [name, header_name, header_value, replace_strategy, priorityStr] = parts
+        const priority = priorityStr ? parseInt(priorityStr, 10) : 50
+
+        if (isNaN(priority) || priority < 0 || priority > 100) {
+          throw new Error(`第 ${i + 1} 行优先级错误：必须是0-100之间的数字`)
+        }
+
+        if (!['replace', 'append', 'skip'].includes(replace_strategy)) {
+          throw new Error(`第 ${i + 1} 行替换策略错误：必须是 replace、append 或 skip`)
+        }
+
+        rules.push({
+          name,
+          header_name,
+          header_value,
+          replace_strategy: replace_strategy as 'replace' | 'append' | 'skip',
+          priority,
+          is_active: true
+        })
+      }
+    }
+
+    // 执行批量导入
+    await handleBatchImport(rules)
+
+    // 清理状态
+    selectedFile.value = null
+    filePreview.value = ''
+    fileImportVisible.value = false
+
+    toast.add({
+      severity: 'success',
+      summary: '文件导入成功',
+      detail: `成功从 ${selectedFile.value?.name} 导入 ${rules.length} 条规则`,
+      life: 3000,
+    })
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: '文件导入失败',
+      detail: error.message || '导入过程中发生错误',
+      life: 3000,
+    })
+  } finally {
+    importing.value = false
   }
 }
 </script>
@@ -813,14 +1336,17 @@ async function handleBatchImport(rules: PersistentHeaderRuleCreate[]) {
   }
 
   .p-dialog-footer {
-    padding: 1.25rem 1.5rem;
+    padding: 1.5rem 1.5rem 1.25rem 1.5rem; // 增加顶部padding，提供更好间距
     border-top: 1px solid var(--surface-border);
     background: var(--surface-50);
+    display: flex;
+    gap: 0.75rem; // 按钮之间的间距
+    justify-content: flex-end; // 按钮右对齐
   }
 }
 
 .dialog-content {
-  padding: 2rem;
+  padding: 2rem 2rem 3rem 2rem; // 增加底部padding，避免按钮贴边
   max-height: calc(80vh - 180px);
   overflow-y: auto;
   overflow-x: hidden;
@@ -1092,5 +1618,317 @@ async function handleBatchImport(rules: PersistentHeaderRuleCreate[]) {
       border-left: 3px solid var(--blue-500);
     }
   }
+
+  // 统一输入框样式
+  .uniform-input {
+    width: 100% !important;
+    height: 40px !important;
+    border: 2px solid var(--surface-border) !important;
+    border-radius: 8px !important;
+    padding: 0 0.75rem !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    transition: all 0.2s ease !important;
+    box-sizing: border-box !important;
+    background: var(--surface-0) !important;
+    color: var(--text-color) !important;
+
+    &:hover:not(.p-disabled) {
+      border-color: var(--primary-color) !important;
+    }
+
+    &:focus {
+      border-color: var(--primary-color) !important;
+      box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1) !important;
+      outline: none !important;
+    }
+
+    &::placeholder {
+      color: var(--text-color-secondary) !important;
+      opacity: 0.7 !important;
+    }
+  }
+
+  // 统一文本域样式
+  .uniform-textarea {
+    width: 100% !important;
+    min-height: 120px !important;
+    border: 2px solid var(--surface-border) !important;
+    border-radius: 8px !important;
+    padding: 0.75rem !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    transition: all 0.2s ease !important;
+    box-sizing: border-box !important;
+    background: var(--surface-0) !important;
+    color: var(--text-color) !important;
+    resize: vertical !important;
+    font-family: inherit !important;
+
+    &:hover:not(.p-disabled) {
+      border-color: var(--primary-color) !important;
+    }
+
+    &:focus {
+      border-color: var(--primary-color) !important;
+      box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1) !important;
+      outline: none !important;
+    }
+
+    &::placeholder {
+      color: var(--text-color-secondary) !important;
+      opacity: 0.7 !important;
+    }
+  }
+
+  // 统一配色方案 - 按钮样式
+  .uniform-button {
+    background: var(--primary-color) !important;
+    border: 1px solid var(--primary-color) !important;
+    color: white !important;
+    padding: 0.5rem 1.5rem !important;
+    font-size: 0.95rem !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+
+    &:hover {
+      background: var(--primary-100) !important;
+      border-color: var(--primary-100) !important;
+      transform: translateY(-1px) !important;
+    }
+
+    &.p-button-secondary {
+      background: var(--surface-100) !important;
+      border-color: var(--surface-300) !important;
+      color: var(--text-color) !important;
+
+      &:hover {
+        background: var(--surface-200) !important;
+        border-color: var(--surface-400) !important;
+      }
+    }
+
+    &.p-button-danger {
+      background: var(--red-500) !important;
+      border-color: var(--red-500) !important;
+
+      &:hover {
+        background: var(--red-600) !important;
+        border-color: var(--red-600) !important;
+      }
+    }
+
+    &.p-button-success {
+      background: var(--green-500) !important;
+      border-color: var(--green-500) !important;
+
+      &:hover {
+        background: var(--green-600) !important;
+        border-color: var(--green-600) !important;
+      }
+    }
+
+    &.p-button-warning {
+      background: var(--orange-500) !important;
+      border-color: var(--orange-500) !important;
+
+      &:hover {
+        background: var(--orange-600) !important;
+        border-color: var(--orange-600) !important;
+      }
+    }
+
+    &.p-button-info {
+      background: var(--blue-500) !important;
+      border-color: var(--blue-500) !important;
+
+      &:hover {
+        background: var(--blue-600) !important;
+        border-color: var(--blue-600) !important;
+      }
+    }
+  }
+
+  // 统一配色方案 - 卡片样式
+  .uniform-card {
+    background: var(--surface-card) !important;
+    border: 1px solid var(--surface-border) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    transition: all 0.3s ease !important;
+
+    &:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+      border-color: var(--primary-200) !important;
+    }
+
+    .p-card-header {
+      background: linear-gradient(135deg, var(--surface-0), var(--surface-50)) !important;
+      border-bottom: 1px solid var(--surface-border) !important;
+      border-radius: 12px 12px 0 0 !important;
+      padding: 1rem 1.5rem !important;
+    }
+
+    .p-card-content {
+      padding: 1.5rem !important;
+    }
+
+    .p-card-title {
+      color: var(--text-color) !important;
+      font-size: 1.1rem !important;
+      font-weight: 600 !important;
+      margin: 0 !important;
+    }
+
+    .p-card-subtitle {
+      color: var(--text-color-secondary) !important;
+      font-size: 0.9rem !important;
+      margin-top: 0.25rem !important;
+    }
+  }
+
+  // 统一配色方案 - 图标样式
+  .uniform-icon {
+    color: var(--primary-color) !important;
+
+    &.text-success {
+      color: var(--green-500) !important;
+    }
+
+    &.text-info {
+      color: var(--blue-500) !important;
+    }
+
+    &.text-warning {
+      color: var(--orange-500) !important;
+    }
+
+    &.text-danger {
+      color: var(--red-500) !important;
+    }
+  }
+
+  // 统一配色方案 - 标签样式
+  .uniform-tag {
+    background: var(--primary-50) !important;
+    color: var(--primary-600) !important;
+    border: 1px solid var(--primary-200) !important;
+    border-radius: 16px !important;
+    padding: 0.25rem 0.75rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+
+    &.success {
+      background: var(--green-50) !important;
+      color: var(--green-600) !important;
+      border-color: var(--green-200) !important;
+    }
+
+    &.info {
+      background: var(--blue-50) !important;
+      color: var(--blue-600) !important;
+      border-color: var(--blue-200) !important;
+    }
+
+    &.warning {
+      background: var(--orange-50) !important;
+      color: var(--orange-600) !important;
+      border-color: var(--orange-200) !important;
+    }
+
+    &.danger {
+      background: var(--red-50) !important;
+      color: var(--red-600) !important;
+      border-color: var(--red-200) !important;
+    }
+
+    &.secondary {
+      background: var(--surface-100) !important;
+      color: var(--text-color-secondary) !important;
+      border-color: var(--surface-300) !important;
+    }
+  }
+
+  // 应用统一样式到卡片组件
+  :deep(.p-card) {
+    @extend .uniform-card;
+    margin-bottom: 1.5rem;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  // 在field-horizontal中应用统一样式
+  .field-horizontal {
+    @apply flex flex-col lg:flex-row lg:items-start lg:gap-4 mb-6;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+
+    .field-label-left {
+      @apply lg:w-48 lg:pt-2 lg:text-right font-medium text-sm mb-2 lg:mb-0;
+      min-width: 120px;
+      max-width: 100%;
+      flex-shrink: 0;
+    }
+
+    .field-content {
+      @apply flex-1 min-w-0 max-w-full;
+
+      // 应用统一的输入组件样式
+      .p-inputtext,
+      .p-inputnumber input,
+      .p-dropdown,
+      .p-multiselect {
+        @extend .uniform-input;
+      }
+
+      .p-textarea {
+        @extend .uniform-textarea;
+      }
+
+      .p-checkbox,
+      .p-radiobutton {
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+
+      .field-help {
+        @apply text-xs mt-2 block;
+        word-wrap: break-word;
+        max-width: 100%;
+      }
+    }
+  }
+}
+</style>
+
+<!-- 暴力强制的全局样式，强制修复footer间距问题 -->
+<style lang="scss">
+/* 强制覆盖所有Dialog组件的footer样式 */
+.p-dialog-footer {
+  padding: 1.5rem 2rem 2rem 2rem !important;
+  display: flex !important;
+  gap: 0.75rem !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  border-top: 1px solid var(--surface-border) !important;
+  background: var(--surface-50) !important;
+}
+
+/* 超暴力强制样式，使用更高权重 */
+div.p-dialog > div.p-dialog-footer {
+  padding: 1.5rem 2rem 2rem 2rem !important;
+}
+
+div[class*="p-dialog"] > div[class*="p-dialog-footer"] {
+  padding: 1.5rem 2rem 2rem 2rem !important;
+}
+
+/* 最后的保险措施 */
+.p-dialog-content + .p-dialog-footer {
+  padding: 1.5rem 2rem 2rem 2rem !important;
 }
 </style>

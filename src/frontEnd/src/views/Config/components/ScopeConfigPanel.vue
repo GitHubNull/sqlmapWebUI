@@ -34,98 +34,103 @@
         <Fieldset v-if="hasScope" legend="作用域规则配置" class="scope-fieldset">
           <div class="formgrid grid p-fluid">
             <!-- 协议匹配 -->
-            <div class="field col-12 md:col-6 mb-3">
-              <FloatLabel>
+            <div class="field-horizontal mb-6">
+              <label for="protocol_pattern" class="field-label-left">
+                <i class="pi pi-globe mr-2"></i>
+                协议匹配
+              </label>
+              <div class="field-content">
                 <InputText
                   id="protocol_pattern"
                   v-model="scopeData.protocol_pattern"
                   :invalid="!!validationErrors.protocol_pattern"
+                  class="w-full"
                 />
-                <label for="protocol_pattern">
-                  <i class="pi pi-globe mr-2"></i>
-                  协议匹配
-                </label>
-              </FloatLabel>
-              <small class="text-color-secondary mt-1">例如: https 或 http,https（多个用逗号分隔）</small>
-              <InlineMessage v-if="validationErrors.protocol_pattern" severity="error" class="mt-1">
-                {{ validationErrors.protocol_pattern }}
-              </InlineMessage>
+                <small class="field-help text-color-secondary">例如: https 或 http,https（多个用逗号分隔）</small>
+                <InlineMessage v-if="validationErrors.protocol_pattern" severity="error" class="mt-1">
+                  {{ validationErrors.protocol_pattern }}
+                </InlineMessage>
+              </div>
             </div>
 
             <!-- 主机名匹配 -->
-            <div class="field col-12 md:col-6 mb-3">
-              <FloatLabel>
+            <div class="field-horizontal mb-6">
+              <label for="host_pattern" class="field-label-left">
+                <i class="pi pi-server mr-2"></i>
+                主机名匹配
+              </label>
+              <div class="field-content">
                 <InputText
                   id="host_pattern"
                   v-model="scopeData.host_pattern"
                   :invalid="!!validationErrors.host_pattern"
+                  class="w-full"
                 />
-                <label for="host_pattern">
-                  <i class="pi pi-server mr-2"></i>
-                  主机名匹配
-                </label>
-              </FloatLabel>
-              <small class="text-color-secondary mt-1">例如: *.example.com（支持通配符*）</small>
-              <InlineMessage v-if="validationErrors.host_pattern" severity="error" class="mt-1">
-                {{ validationErrors.host_pattern }}
-              </InlineMessage>
+                <small class="field-help text-color-secondary">例如: *.example.com（支持通配符*）</small>
+                <InlineMessage v-if="validationErrors.host_pattern" severity="error" class="mt-1">
+                  {{ validationErrors.host_pattern }}
+                </InlineMessage>
+              </div>
             </div>
 
             <!-- 路径匹配 -->
-            <div class="field col-12 md:col-6 mb-3">
-              <FloatLabel>
+            <div class="field-horizontal mb-6">
+              <label for="path_pattern" class="field-label-left">
+                <i class="pi pi-link mr-2"></i>
+                路径匹配
+              </label>
+              <div class="field-content">
                 <InputText
                   id="path_pattern"
                   v-model="scopeData.path_pattern"
                   :invalid="!!validationErrors.path_pattern"
+                  class="w-full"
                 />
-                <label for="path_pattern">
-                  <i class="pi pi-link mr-2"></i>
-                  路径匹配
-                </label>
-              </FloatLabel>
-              <small class="text-color-secondary mt-1">例如: /api/*（支持通配符*）</small>
-              <InlineMessage v-if="validationErrors.path_pattern" severity="error" class="mt-1">
-                {{ validationErrors.path_pattern }}
-              </InlineMessage>
+                <small class="field-help text-color-secondary">例如: /api/*（支持通配符*）</small>
+                <InlineMessage v-if="validationErrors.path_pattern" severity="error" class="mt-1">
+                  {{ validationErrors.path_pattern }}
+                </InlineMessage>
+              </div>
             </div>
 
             <!-- 端口匹配 -->
-            <div class="field col-12 md:col-6 mb-3" v-if="showAdvanced">
-              <FloatLabel>
+            <div class="field-horizontal mb-6" v-if="showAdvanced">
+              <label for="port_pattern" class="field-label-left">
+                <i class="pi pi-hashtag mr-2"></i>
+                端口匹配
+              </label>
+              <div class="field-content">
                 <InputText
                   id="port_pattern"
                   v-model="scopeData.port_pattern"
                   :invalid="!!validationErrors.port_pattern"
+                  class="w-full"
                 />
-                <label for="port_pattern">
-                  <i class="pi pi-hashtag mr-2"></i>
-                  端口匹配
-                </label>
-              </FloatLabel>
-              <small class="text-color-secondary mt-1">例如: 80,443,8080（多个用逗号分隔）</small>
-              <InlineMessage v-if="validationErrors.port_pattern" severity="error" class="mt-1">
-                {{ validationErrors.port_pattern }}
-              </InlineMessage>
+                <small class="field-help text-color-secondary">例如: 80,443,8080（多个用逗号分隔）</small>
+                <InlineMessage v-if="validationErrors.port_pattern" severity="error" class="mt-1">
+                  {{ validationErrors.port_pattern }}
+                </InlineMessage>
+              </div>
             </div>
 
             <!-- IP地址匹配 -->
-            <div class="field col-12 md:col-6 mb-3" v-if="showAdvanced">
-              <FloatLabel>
+            <div class="field-horizontal mb-6" v-if="showAdvanced">
+              <label for="ip_pattern" class="field-label-left">
+                <i class="pi pi-map-marker mr-2"></i>
+                IP地址匹配
+              </label>
+              <div class="field-content">
                 <InputText
                   id="ip_pattern"
                   v-model="scopeData.ip_pattern"
                   :invalid="!!validationErrors.ip_pattern"
+                  class="w-full"
                 />
-                <label for="ip_pattern">
-                  <i class="pi pi-map-marker mr-2"></i>
-                  IP地址匹配
-                </label>
-              </FloatLabel>
-              <small class="text-color-secondary mt-1">例如: 192.168.1.*（支持通配符*）</small>
-              <InlineMessage v-if="validationErrors.ip_pattern" severity="error" class="mt-1">
-                {{ validationErrors.ip_pattern }}
-              </InlineMessage>
+                <small class="field-help text-color-secondary">例如: 192.168.1.*（支持通配符*）</small>
+                <InlineMessage v-if="validationErrors.ip_pattern" severity="error" class="mt-1">
+                  {{ validationErrors.ip_pattern }}
+                </InlineMessage>
+              </div>
             </div>
 
             <!-- 高级选项 -->
@@ -841,6 +846,59 @@ defineExpose({
     &.my-4 {
       margin: 1.5rem 0;
     }
+  }
+
+  // 左标签布局样式
+  .field-horizontal {
+    @apply flex flex-col lg:flex-row lg:items-start lg:gap-4 mb-6;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+
+    .field-label-left {
+      @apply lg:w-48 lg:pt-2 lg:text-right font-medium text-sm mb-2 lg:mb-0;
+      min-width: 120px;
+      max-width: 100%;
+      flex-shrink: 0;
+    }
+
+    .field-content {
+      @apply flex-1 min-w-0 max-w-full;
+
+      // 确保所有输入组件不溢出
+      .p-inputtext,
+      .p-inputnumber,
+      .p-dropdown,
+      .p-multiselect,
+      .p-checkbox,
+      .p-radiobutton,
+      .p-textarea,
+      .p-select {
+        max-width: 100%;
+        width: 100% !important;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+
+      .field-help {
+        @apply text-xs mt-2 block;
+        word-wrap: break-word;
+        max-width: 100%;
+      }
+    }
+  }
+
+  // 防止长文本溢出
+  .text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .text-break {
+    word-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
   }
 }
 </style>

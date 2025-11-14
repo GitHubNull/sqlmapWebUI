@@ -3,7 +3,11 @@
     <Dialog
       v-model:visible="visible"
       header="批量导入Header规则"
-      :style="{ width: '1000px', maxHeight: '90vh' }"
+      :style="{
+        width: '90vw',
+        maxWidth: '1000px',
+        maxHeight: '85vh'
+      }"
       modal
       class="import-dialog"
     >
@@ -199,22 +203,28 @@ Header名称: Header值"
           </template>
           <template #content>
             <div class="formgrid grid p-fluid">
-              <div class="field col-12 md:col-4 mb-3">
-                <FloatLabel>
+              <div class="field-horizontal mb-6">
+                <label for="default_strategy" class="field-label-left">
+                  默认策略
+                </label>
+                <div class="field-content">
                   <Select
                     id="default_strategy"
                     v-model="defaultStrategy"
                     :options="strategyOptions"
                     optionLabel="label"
                     optionValue="value"
+                    class="w-full"
                   />
-                  <label for="default_strategy">默认策略</label>
-                </FloatLabel>
-                <small class="text-color-secondary mt-1">批量导入时的默认替换策略</small>
+                  <small class="field-help text-color-secondary">批量导入时的默认替换策略</small>
+                </div>
               </div>
 
-              <div class="field col-12 md:col-4 mb-3">
-                <FloatLabel>
+              <div class="field-horizontal mb-6">
+                <label for="default_priority" class="field-label-left">
+                  默认优先级
+                </label>
+                <div class="field-content">
                   <InputNumber
                     id="default_priority"
                     v-model="defaultPriority"
@@ -223,10 +233,10 @@ Header名称: Header值"
                     showButtons
                     buttonLayout="horizontal"
                     :step="1"
+                    class="w-full"
                   />
-                  <label for="default_priority">默认优先级</label>
-                </FloatLabel>
-                <small class="text-color-secondary mt-1">批量导入时的默认优先级</small>
+                  <small class="field-help text-color-secondary">批量导入时的默认优先级</small>
+                </div>
               </div>
 
               <div class="field col-12 md:col-4 mb-0">
@@ -269,46 +279,49 @@ Header名称: Header值"
 
             <Fieldset v-if="hasScope" legend="作用域规则配置" class="scope-fieldset">
               <div class="formgrid grid p-fluid">
-                <div class="field col-12 md:col-4 mb-3">
-                  <FloatLabel>
+                <div class="field-horizontal mb-6">
+                  <label for="protocol_pattern" class="field-label-left">
+                    <i class="pi pi-globe mr-2"></i>
+                    协议匹配
+                  </label>
+                  <div class="field-content">
                     <InputText
                       id="protocol_pattern"
                       v-model="scopeData.protocol_pattern"
+                      class="w-full"
                     />
-                    <label for="protocol_pattern">
-                      <i class="pi pi-globe mr-2"></i>
-                      协议匹配
-                    </label>
-                  </FloatLabel>
-                  <small class="text-color-secondary mt-1">例如: https 或 http,https</small>
+                    <small class="field-help text-color-secondary">例如: https 或 http,https</small>
+                  </div>
                 </div>
 
-                <div class="field col-12 md:col-4 mb-3">
-                  <FloatLabel>
+                <div class="field-horizontal mb-6">
+                  <label for="host_pattern" class="field-label-left">
+                    <i class="pi pi-server mr-2"></i>
+                    主机名匹配
+                  </label>
+                  <div class="field-content">
                     <InputText
                       id="host_pattern"
                       v-model="scopeData.host_pattern"
+                      class="w-full"
                     />
-                    <label for="host_pattern">
-                      <i class="pi pi-server mr-2"></i>
-                      主机名匹配
-                    </label>
-                  </FloatLabel>
-                  <small class="text-color-secondary mt-1">例如: *.example.com（支持通配符*）</small>
+                    <small class="field-help text-color-secondary">例如: *.example.com（支持通配符*）</small>
+                  </div>
                 </div>
 
-                <div class="field col-12 md:col-4 mb-3">
-                  <FloatLabel>
+                <div class="field-horizontal mb-6">
+                  <label for="path_pattern" class="field-label-left">
+                    <i class="pi pi-link mr-2"></i>
+                    路径匹配
+                  </label>
+                  <div class="field-content">
                     <InputText
                       id="path_pattern"
                       v-model="scopeData.path_pattern"
+                      class="w-full"
                     />
-                    <label for="path_pattern">
-                      <i class="pi pi-link mr-2"></i>
-                      路径匹配
-                    </label>
-                  </FloatLabel>
-                  <small class="text-color-secondary mt-1">例如: /api/*（支持通配符*）</small>
+                    <small class="field-help text-color-secondary">例如: /api/*（支持通配符*）</small>
+                  </div>
                 </div>
 
                 <div class="field col-12 mb-0">
@@ -780,7 +793,7 @@ const visible = computed({
   }
 
   .dialog-content {
-    padding: 1.5rem;
+    padding: 1.5rem 1.5rem 2.5rem 1.5rem; // 增加底部padding，避免按钮贴边
     max-height: calc(90vh - 140px);
     overflow-y: auto;
 
@@ -1055,12 +1068,103 @@ const visible = computed({
       }
     }
   }
+
+  // 左标签布局样式
+  .field-horizontal {
+    @apply flex flex-col lg:flex-row lg:items-start lg:gap-4 mb-6;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+
+    .field-label-left {
+      @apply lg:w-48 lg:pt-2 lg:text-right font-medium text-sm mb-2 lg:mb-0;
+      min-width: 120px;
+      max-width: 100%;
+      flex-shrink: 0;
+    }
+
+    .field-content {
+      @apply flex-1 min-w-0 max-w-full;
+
+      // 确保所有输入组件不溢出
+      .p-inputtext,
+      .p-inputnumber,
+      .p-dropdown,
+      .p-multiselect,
+      .p-checkbox,
+      .p-radiobutton,
+      .p-textarea,
+      .p-select {
+        max-width: 100%;
+        width: 100% !important;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+
+      .field-help {
+        @apply text-xs mt-2 block;
+        word-wrap: break-word;
+        max-width: 100%;
+      }
+    }
+  }
+
+  // 防止长文本溢出
+  .text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .text-break {
+    word-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
+  }
 }
 </style>
 
 <!-- 非scoped样式，强制textarea全宽 -->
 <style lang="scss">
 // 全局样式，强制批量导入对话框中textarea全宽
+// 弹窗容器样式
+.import-dialog {
+  max-width: calc(100vw - 4rem);
+  max-height: calc(100vh - 4rem);
+
+  .p-dialog-content {
+    padding: 1.5rem;
+    max-height: calc(85vh - 200px);
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    // 防止内容溢出的通用设置
+    * {
+      box-sizing: border-box;
+    }
+
+    // 自定义滚动条样式
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: var(--surface-100);
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--surface-300);
+      border-radius: 4px;
+
+      &:hover {
+        background: var(--surface-400);
+      }
+    }
+  }
+}
+
+// 强制textarea全宽
 .import-dialog .dialog-content textarea,
 .import-dialog .dialog-content .p-textarea,
 .batch-import-dialog .dialog-content textarea,
@@ -1069,5 +1173,294 @@ const visible = computed({
   max-width: 100% !important;
   display: block !important;
   box-sizing: border-box !important;
+}
+
+// 统一输入框样式
+.uniform-input {
+  width: 100% !important;
+  height: 40px !important;
+  border: 2px solid var(--surface-border) !important;
+  border-radius: 8px !important;
+  padding: 0 0.75rem !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  transition: all 0.2s ease !important;
+  box-sizing: border-box !important;
+  background: var(--surface-0) !important;
+  color: var(--text-color) !important;
+
+  &:hover:not(.p-disabled) {
+    border-color: var(--primary-color) !important;
+  }
+
+  &:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1) !important;
+    outline: none !important;
+  }
+
+  &::placeholder {
+    color: var(--text-color-secondary) !important;
+    opacity: 0.7 !important;
+  }
+}
+
+// 统一文本域样式
+.uniform-textarea {
+  width: 100% !important;
+  min-height: 120px !important;
+  border: 2px solid var(--surface-border) !important;
+  border-radius: 8px !important;
+  padding: 0.75rem !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  transition: all 0.2s ease !important;
+  box-sizing: border-box !important;
+  background: var(--surface-0) !important;
+  color: var(--text-color) !important;
+  resize: vertical !important;
+  font-family: inherit !important;
+
+  &:hover:not(.p-disabled) {
+    border-color: var(--primary-color) !important;
+  }
+
+  &:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1) !important;
+    outline: none !important;
+  }
+
+  &::placeholder {
+    color: var(--text-color-secondary) !important;
+    opacity: 0.7 !important;
+  }
+}
+
+// 统一配色方案 - 按钮样式
+.uniform-button {
+  background: var(--primary-color) !important;
+  border: 1px solid var(--primary-color) !important;
+  color: white !important;
+  padding: 0.5rem 1.5rem !important;
+  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+
+  &:hover {
+    background: var(--primary-100) !important;
+    border-color: var(--primary-100) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  &.p-button-secondary {
+    background: var(--surface-100) !important;
+    border-color: var(--surface-300) !important;
+    color: var(--text-color) !important;
+
+    &:hover {
+      background: var(--surface-200) !important;
+      border-color: var(--surface-400) !important;
+    }
+  }
+
+  &.p-button-danger {
+    background: var(--red-500) !important;
+    border-color: var(--red-500) !important;
+
+    &:hover {
+      background: var(--red-600) !important;
+      border-color: var(--red-600) !important;
+    }
+  }
+
+  &.p-button-success {
+    background: var(--green-500) !important;
+    border-color: var(--green-500) !important;
+
+    &:hover {
+      background: var(--green-600) !important;
+      border-color: var(--green-600) !important;
+    }
+  }
+
+  &.p-button-warning {
+    background: var(--orange-500) !important;
+    border-color: var(--orange-500) !important;
+
+    &:hover {
+      background: var(--orange-600) !important;
+      border-color: var(--orange-600) !important;
+    }
+  }
+
+  &.p-button-info {
+    background: var(--blue-500) !important;
+    border-color: var(--blue-500) !important;
+
+    &:hover {
+      background: var(--blue-600) !important;
+      border-color: var(--blue-600) !important;
+    }
+  }
+}
+
+// 统一配色方案 - 卡片样式
+.uniform-card {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--surface-border) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  transition: all 0.3s ease !important;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+    border-color: var(--primary-200) !important;
+  }
+
+  .p-card-header {
+    background: linear-gradient(135deg, var(--surface-0), var(--surface-50)) !important;
+    border-bottom: 1px solid var(--surface-border) !important;
+    border-radius: 12px 12px 0 0 !important;
+    padding: 1rem 1.5rem !important;
+  }
+
+  .p-card-content {
+    padding: 1.5rem !important;
+  }
+
+  .p-card-title {
+    color: var(--text-color) !important;
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+  }
+
+  .p-card-subtitle {
+    color: var(--text-color-secondary) !important;
+    font-size: 0.9rem !important;
+    margin-top: 0.25rem !important;
+  }
+}
+
+// 统一配色方案 - 图标样式
+.uniform-icon {
+  color: var(--primary-color) !important;
+
+  &.text-success {
+    color: var(--green-500) !important;
+  }
+
+  &.text-info {
+    color: var(--blue-500) !important;
+  }
+
+  &.text-warning {
+    color: var(--orange-500) !important;
+  }
+
+  &.text-danger {
+    color: var(--red-500) !important;
+  }
+}
+
+// 统一配色方案 - 标签样式
+.uniform-tag {
+  background: var(--primary-50) !important;
+  color: var(--primary-600) !important;
+  border: 1px solid var(--primary-200) !important;
+  border-radius: 16px !important;
+  padding: 0.25rem 0.75rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+
+  &.success {
+    background: var(--green-50) !important;
+    color: var(--green-600) !important;
+    border-color: var(--green-200) !important;
+  }
+
+  &.info {
+    background: var(--blue-50) !important;
+    color: var(--blue-600) !important;
+    border-color: var(--blue-200) !important;
+  }
+
+  &.warning {
+    background: var(--orange-50) !important;
+    color: var(--orange-600) !important;
+    border-color: var(--orange-200) !important;
+  }
+
+  &.danger {
+    background: var(--red-50) !important;
+    color: var(--red-600) !important;
+    border-color: var(--red-200) !important;
+  }
+
+  &.secondary {
+    background: var(--surface-100) !important;
+    color: var(--text-color-secondary) !important;
+    border-color: var(--surface-300) !important;
+  }
+}
+
+// 在field-horizontal中应用统一样式
+.field-horizontal {
+  @apply flex flex-col lg:flex-row lg:items-start lg:gap-4 mb-6;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+
+  .field-label-left {
+    @apply lg:w-48 lg:pt-2 lg:text-right font-medium text-sm mb-2 lg:mb-0;
+    min-width: 120px;
+    max-width: 100%;
+    flex-shrink: 0;
+  }
+
+  .field-content {
+    @apply flex-1 min-w-0 max-w-full;
+
+    // 应用统一的输入组件样式
+    .p-inputtext,
+    .p-inputnumber input,
+    .p-dropdown,
+    .p-multiselect {
+      @extend .uniform-input;
+    }
+
+    .p-textarea {
+      @extend .uniform-textarea;
+    }
+
+    .p-checkbox,
+    .p-radiobutton {
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .field-help {
+      @apply text-xs mt-2 block;
+      word-wrap: break-word;
+      max-width: 100%;
+    }
+  }
+}
+
+// 统一弹窗footer间距 - 修复按钮贴边问题
+.import-dialog,
+.preview-dialog {
+  .p-dialog-footer {
+    padding: 1.5rem 2rem 2rem 2rem !important; // 增加底部padding，避免按钮贴边
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    align-items: center;
+    border-top: 1px solid var(--surface-border);
+    background: var(--surface-50);
+  }
 }
 </style>
