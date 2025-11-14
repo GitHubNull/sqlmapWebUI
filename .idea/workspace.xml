@@ -4,10 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="feat(header): 实现请求头管理的Mock数据支持和批量操作功能&#10;&#10;- 为持久化规则和会话性请求头添加完整的Mock数据生成功能&#10;- 实现基于Mock数据的全套API接口模拟，包括增删改查和预览功能&#10;- 在HeaderRulesConfig组件中优化添加按钮布局，支持单条添加和批量导入&#10;- 在SessionHeadersConfig组件中新增批量添加和文件导入对话框- 支持从文本和JSON文件导入Session Headers，并提供格式校验&#10;- 添加域控配置功能，支持为批量导入的Header统一设置作用域-优化UI交互细节，包括搜索框样式调整和复选框视觉改进&#10;- 移除原有的下拉菜单添加方式，改为直观的独立按钮操作&#10;- 增强表单验证和错误处理逻辑，提升用户体验">
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/Config/components/BatchImportDialog.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/Config/components/BatchImportDialog.vue" afterDir="false" />
+    <list default="true" id="dc89a2e5-1e15-4162-aee1-973de46bd1a7" name="更改" comment="style(config):优化批量导入和配置界面样式&#10;&#10;- 统一设置textarea全宽显示，改善输入区域布局- 更新复选框和标签样式，增强点击区域和视觉效果&#10;-重构对话框和卡片组件样式，提升整体视觉一致性-优化表单字段和浮动标签样式，改善用户输入体验&#10;- 调整消息提示和信息展示样式，提高可读性&#10;- 更新输入组件边框、圆角和焦点状态样式&#10;- 改进文件预览和统计信息显示样式&#10;-优化移动端响应式布局和组件间距">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/reset.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/assets/styles/reset.scss" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/Config/components/HeaderRulesConfig.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/Config/components/HeaderRulesConfig.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/frontEnd/src/views/Config/components/SessionHeadersConfig.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontEnd/src/views/Config/components/SessionHeadersConfig.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -318,7 +318,15 @@
       <option name="project" value="LOCAL" />
       <updated>1761490419092</updated>
     </task>
-    <option name="localTasksCounter" value="25" />
+    <task id="LOCAL-00025" summary="style(config):优化批量导入和配置界面样式&#10;&#10;- 统一设置textarea全宽显示，改善输入区域布局- 更新复选框和标签样式，增强点击区域和视觉效果&#10;-重构对话框和卡片组件样式，提升整体视觉一致性-优化表单字段和浮动标签样式，改善用户输入体验&#10;- 调整消息提示和信息展示样式，提高可读性&#10;- 更新输入组件边框、圆角和焦点状态样式&#10;- 改进文件预览和统计信息显示样式&#10;-优化移动端响应式布局和组件间距">
+      <option name="closed" value="true" />
+      <created>1761496259995</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1761496259995</updated>
+    </task>
+    <option name="localTasksCounter" value="26" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -348,7 +356,8 @@
     <MESSAGE value="feat(config): 实现Header规则管理功能&#10;&#10;- 新增HeaderRulesConfig.vue组件，支持持久化规则的CRUD操作- 新增SessionHeadersConfig.vue组件，支持会话Header的批量管理- 在配置页面引入TabView布局，划分系统配置、Header规则、会话Header三个标签页- 定义完整的Header规则类型系统，包括作用域、替换策略等配置- 实现与后端API的完整对接，支持规则的增删改查及会话Header管理&#10;- 提供规则作用域配置功能，支持协议、主机、路径等多维度匹配&#10;- 添加规则优先级、启用状态等管理特性，提升规则应用灵活性&#10;-优化UI交互，提供表格分页、排序、状态标签等可视化功能&#10;- 实现批量添加Session Headers功能，支持TTL和优先级设置- 增加表单验证和用户提示，提升操作安全性与体验" />
     <MESSAGE value="feat(config): 重构Header规则和会话Header配置界面&#10;&#10;- 引入PrimeVue新组件类型定义(FileUpload, FloatLabel, IconField等)&#10;- 移除不再使用的Panel和TabView组件类型&#10;- 更新HeaderRule类型定义，增加scope作用域配置字段&#10;-重构HeaderRulesConfig组件界面布局和功能&#10;- 添加搜索过滤工具栏，支持按名称、Header名和值搜索- 实现状态、策略和作用域多维度过滤功能&#10;- 添加批量导入对话框和处理逻辑&#10;-优化创建/编辑对话框UI，使用Card组件替代Panel&#10;- 添加FloatLabel浮动标签提升表单体验&#10;- 引入ScopeConfigPanel组件统一管理作用域配置&#10;- 重构SessionHeadersConfig组件界面&#10;- 添加会话Header的搜索和过滤功能&#10;- 优化批量添加Header的输入区域和统计信息&#10;- 统一配置选项面板样式，提升用户体验- 添加分页和列宽调整功能&#10;-优化移动端响应式布局" />
     <MESSAGE value="feat(header): 实现请求头管理的Mock数据支持和批量操作功能&#10;&#10;- 为持久化规则和会话性请求头添加完整的Mock数据生成功能&#10;- 实现基于Mock数据的全套API接口模拟，包括增删改查和预览功能&#10;- 在HeaderRulesConfig组件中优化添加按钮布局，支持单条添加和批量导入&#10;- 在SessionHeadersConfig组件中新增批量添加和文件导入对话框- 支持从文本和JSON文件导入Session Headers，并提供格式校验&#10;- 添加域控配置功能，支持为批量导入的Header统一设置作用域-优化UI交互细节，包括搜索框样式调整和复选框视觉改进&#10;- 移除原有的下拉菜单添加方式，改为直观的独立按钮操作&#10;- 增强表单验证和错误处理逻辑，提升用户体验" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(header): 实现请求头管理的Mock数据支持和批量操作功能&#10;&#10;- 为持久化规则和会话性请求头添加完整的Mock数据生成功能&#10;- 实现基于Mock数据的全套API接口模拟，包括增删改查和预览功能&#10;- 在HeaderRulesConfig组件中优化添加按钮布局，支持单条添加和批量导入&#10;- 在SessionHeadersConfig组件中新增批量添加和文件导入对话框- 支持从文本和JSON文件导入Session Headers，并提供格式校验&#10;- 添加域控配置功能，支持为批量导入的Header统一设置作用域-优化UI交互细节，包括搜索框样式调整和复选框视觉改进&#10;- 移除原有的下拉菜单添加方式，改为直观的独立按钮操作&#10;- 增强表单验证和错误处理逻辑，提升用户体验" />
+    <MESSAGE value="style(config):优化批量导入和配置界面样式&#10;&#10;- 统一设置textarea全宽显示，改善输入区域布局- 更新复选框和标签样式，增强点击区域和视觉效果&#10;-重构对话框和卡片组件样式，提升整体视觉一致性-优化表单字段和浮动标签样式，改善用户输入体验&#10;- 调整消息提示和信息展示样式，提高可读性&#10;- 更新输入组件边框、圆角和焦点状态样式&#10;- 改进文件预览和统计信息显示样式&#10;-优化移动端响应式布局和组件间距" />
+    <option name="LAST_COMMIT_MESSAGE" value="style(config):优化批量导入和配置界面样式&#10;&#10;- 统一设置textarea全宽显示，改善输入区域布局- 更新复选框和标签样式，增强点击区域和视觉效果&#10;-重构对话框和卡片组件样式，提升整体视觉一致性-优化表单字段和浮动标签样式，改善用户输入体验&#10;- 调整消息提示和信息展示样式，提高可读性&#10;- 更新输入组件边框、圆角和焦点状态样式&#10;- 改进文件预览和统计信息显示样式&#10;-优化移动端响应式布局和组件间距" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
