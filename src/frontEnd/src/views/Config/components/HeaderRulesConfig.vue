@@ -1293,14 +1293,6 @@ async function handleFileImport() {
 
           .filter-dropdown {
             min-width: 120px;
-            border-radius: 8px;
-            border: 2px solid var(--surface-border);
-            transition: all 0.2s ease;
-
-            &:focus {
-              border-color: var(--primary-color);
-              box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
-            }
           }
         }
       }
