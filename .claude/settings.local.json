@@ -23,7 +23,8 @@
       "mcp__playwright__browser_take_screenshot",
       "mcp__playwright__browser_resize",
       "Bash(git check-ignore:*)",
-      "Bash(git submodule:*)"
+      "Bash(git submodule:*)",
+      "mcp__filesystem__edit_file"
     ],
     "deny": [],
     "ask": []
