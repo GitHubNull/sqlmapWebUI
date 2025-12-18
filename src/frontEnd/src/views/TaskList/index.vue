@@ -75,7 +75,13 @@
         >
           <!-- 选择列 -->
           <Column selectionMode="multiple" headerStyle="width: 3rem" :exportable="false" frozen />
-          <Column field="engineid" header="任务ID" :style="{ minWidth: '80px', maxWidth: '120px' }" sortable />
+          <Column field="engineid" header="任务ID" :style="{ minWidth: '80px', maxWidth: '120px' }" sortable>
+            <template #body="{ data }">
+              <div class="clickable-id" @click="goToTaskConfig(data)" :title="'点击查看任务扫描配置'">
+                {{ data.engineid }}
+              </div>
+            </template>
+          </Column>
           <Column field="scanUrl" header="扫描URL" :style="{ minWidth: '250px', maxWidth: '600px' }" sortable>
             <template #body="{ data }">
               <div class="url-cell" :title="data.scanUrl">
@@ -262,6 +268,10 @@ function getStatusSeverity(status: TaskStatus): string {
 }
 
 function viewTask(task: any) {
+  router.push(`/tasks/${task.taskid}`)
+}
+
+function goToTaskConfig(task: any) {
   router.push(`/tasks/${task.taskid}`)
 }
 
@@ -565,6 +575,30 @@ function confirmDeleteAll() {
 
   &:hover {
     background: rgba(99, 102, 241, 0.05);
+  }
+}
+
+.clickable-id {
+  cursor: pointer;
+  padding: 8px 12px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6366f1;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  display: inline-block;
+
+  &:hover {
+    background: rgba(99, 102, 241, 0.1);
+    color: #4f46e5;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(99, 102, 241, 0.2);
   }
 }
 

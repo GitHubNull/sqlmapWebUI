@@ -77,6 +77,151 @@ export function findTaskByUrl(urlPath: string): Promise<Task[]> {
  * 获取任务日志
  */
 export function getTaskLogs(taskId: string): Promise<string[]> {
+  if (USE_MOCK_DATA) {
+    // 生成大量mock日志数据以测试滚动效果
+    const mockLogs = [
+      `[2025-12-19T10:15:23.456Z] [INFO] 正在启动SQLMap扫描引擎...`,
+      `[2025-12-19T10:15:23.789Z] [INFO] 检测到目标URL: http://example.com/test?id=1`,
+      `[2025-12-19T10:15:23.890Z] [DEBUG] 加载SQLMap模块: sqlmap/agent.py`,
+      `[2025-12-19T10:15:24.012Z] [DEBUG] 使用检测级别: 1`,
+      `[2025-12-19T10:15:24.123Z] [DEBUG] 使用风险级别: 1`,
+      `[2025-12-19T10:15:24.234Z] [DEBUG] 线程数设置为: 5`,
+      `[2025-12-19T10:15:24.345Z] [DEBUG] 数据库类型推测为: MySQL >= 5.0`,
+      `[2025-12-19T10:15:24.456Z] [DEBUG] 目标网站技术栈: Apache 2.4, PHP 7.4`,
+      `[2025-12-19T10:15:24.567Z] [INFO] 测试GET参数 'id'`,
+      `[2025-12-19T10:15:24.678Z] [INFO] 测试布尔盲注 (AND boolean-based blind - WHERE or HAVING clause)`,
+      `[2025-12-19T10:15:24.789Z] [INFO] 测试时间盲注 (AND time-based blind - WHERE or HAVING clause)`,
+      `[2025-12-19T10:15:24.890Z] [INFO] 测试UNION查询 (UNION query (information_schema) - WHERE or HAVING clause)`,
+      `[2025-12-19T10:15:24.991Z] [DEBUG] 发送测试载荷: 1 AND 1=1`,
+      `[2025-12-19T10:15:25.092Z] [DEBUG] 发送测试载荷: 1 AND 1=2`,
+      `[2025-12-19T10:15:25.193Z] [DEBUG] 比较响应内容长度: 原始(1523) vs 测试1(1523) vs 测试2(1523)`,
+      `[2025-12-19T10:15:25.294Z] [DEBUG] 响应内容完全相同，布尔盲注测试失败`,
+      `[2025-12-19T10:15:25.395Z] [DEBUG] 尝试时间盲注: 1 AND SLEEP(5)`,
+      `[2025-12-19T10:15:30.496Z] [DEBUG] 延迟响应时间: 5.12秒，检测到SLEEP延迟`,
+      `[2025-12-19T10:15:30.597Z] [WARNING] 目标URL 'http://example.com/test?id=1' 看起来可能不存在SQL注入`,
+      `[2025-12-19T10:15:30.698Z] [WARNING] 检测到WAF/IPS/IDS保护: Cloudflare`,
+      `[2025-12-19T10:15:30.799Z] [INFO] 尝试绕过WAF检测...`,
+      `[2025-12-19T10:15:30.900Z] [DEBUG] 使用随机User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)`,
+      `[2025-12-19T10:15:31.001Z] [DEBUG] 随机化头部顺序以避免检测`,
+      `[2025-12-19T10:15:31.102Z] [INFO] 重新测试GET参数 'id'`,
+      `[2025-12-19T10:15:31.203Z] [INFO] 测试错误基础注入 (MySQL >= 5.0 error-based - WHERE or HAVING clause)`,
+      `[2025-12-19T10:15:31.304Z] [DEBUG] 发送错误注入载荷: 1 AND (SELECT * FROM (SELECT COUNT(*),CONCAT(version(),FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)a)`,
+      `[2025-12-19T10:15:31.405Z] [DEBUG] 响应状态码: 200 (正常)`,
+      `[2025-12-19T10:15:31.506Z] [DEBUG] 响应内容中没有检测到数据库错误信息`,
+      `[2025-12-19T10:15:31.607Z] [DEBUG] 错误基础注入测试失败`,
+      `[2025-12-19T10:15:31.708Z] [INFO] 测试堆叠查询 (MySQL > 5.0 stacked queries)`,
+      `[2025-12-19T10:15:31.809Z] [DEBUG] 尝试堆叠查询: 1; SELECT SLEEP(5)--`,
+      `[2025-12-19T10:15:36.910Z] [DEBUG] 响应时间: 0.03秒，未检测到延迟`,
+      `[2025-12-19T10:15:37.011Z] [DEBUG] 堆叠查询测试失败`,
+      `[2025-12-19T10:15:37.112Z] [INFO] 测试UNION查询 (UNION query - WHERE or HAVING clause)`,
+      `[2025-12-19T10:15:37.213Z] [DEBUG] 确定列数: 尝试 ORDER BY 1,2,3...`,
+      `[2025-12-19T10:15:37.314Z] [DEBUG] ORDER BY 1: 正常响应`,
+      `[2025-12-19T10:15:37.415Z] [DEBUG] ORDER BY 2: 正常响应`,
+      `[2025-12-19T10:15:37.516Z] [DEBUG] ORDER BY 3: 正常响应`,
+      `[2025-12-19T10:15:37.617Z] [DEBUG] ORDER BY 4: 正常响应`,
+      `[2025-12-19T10:15:37.718Z] [DEBUG] ORDER BY 5: 正常响应`,
+      `[2025-12-19T10:15:37.819Z] [DEBUG] ORDER BY 6: 正常响应`,
+      `[2025-12-19T10:15:37.920Z] [DEBUG] ORDER BY 7: 正常响应`,
+      `[2025-12-19T10:15:38.021Z] [DEBUG] ORDER BY 8: 正常响应`,
+      `[2025-12-19T10:15:38.122Z] [DEBUG] ORDER BY 9: 正常响应`,
+      `[2025-12-19T10:15:38.223Z] [DEBUG] ORDER BY 10: 正常响应`,
+      `[2025-12-19T10:15:38.324Z] [DEBUG] ORDER BY 11: 正常响应`,
+      `[2025-12-19T10:15:38.425Z] [DEBUG] ORDER BY 12: 正常响应`,
+      `[2025-12-19T10:15:38.526Z] [DEBUG] ORDER BY 13: 正常响应`,
+      `[2025-12-19T10:15:38.627Z] [DEBUG] ORDER BY 14: 正常响应`,
+      `[2025-12-19T10:15:38.728Z] [DEBUG] ORDER BY 15: 正常响应`,
+      `[2025-12-19T10:15:38.829Z] [DEBUG] ORDER BY 16: 正常响应`,
+      `[2025-12-19T10:15:38.930Z] [DEBUG] ORDER BY 17: 正常响应`,
+      `[2025-12-19T10:15:39.031Z] [DEBUG] ORDER BY 18: 正常响应`,
+      `[2025-12-19T10:15:39.132Z] [DEBUG] ORDER BY 19: 正常响应`,
+      `[2025-12-19T10:15:39.233Z] [DEBUG] ORDER BY 20: 正常响应`,
+      `[2025-12-19T10:15:39.334Z] [DEBUG] ORDER BY 21: 正常响应`,
+      `[2025-12-19T10:15:39.435Z] [DEBUG] ORDER BY 22: 正常响应`,
+      `[2025-12-19T10:15:39.536Z] [DEBUG] ORDER BY 23: 正常响应`,
+      `[2025-12-19T10:15:39.637Z] [DEBUG] ORDER BY 24: 正常响应`,
+      `[2025-12-19T10:15:39.738Z] [DEBUG] ORDER BY 25: 正常响应`,
+      `[2025-12-19T10:15:39.839Z] [DEBUG] ORDER BY 26: 正常响应`,
+      `[2025-12-19T10:15:39.940Z] [DEBUG] ORDER BY 27: 正常响应`,
+      `[2025-12-19T10:15:40.041Z] [DEBUG] ORDER BY 28: 正常响应`,
+      `[2025-12-19T10:15:40.142Z] [DEBUG] ORDER BY 29: 正常响应`,
+      `[2025-12-19T10:15:40.243Z] [DEBUG] ORDER BY 30: 正常响应`,
+      `[2025-12-19T10:15:40.344Z] [DEBUG] ORDER BY 31: 正常响应`,
+      `[2025-12-19T10:15:40.445Z] [DEBUG] ORDER BY 32: 正常响应`,
+      `[2025-12-19T10:15:40.546Z] [DEBUG] ORDER BY 33: 正常响应`,
+      `[2025-12-19T10:15:40.647Z] [DEBUG] ORDER BY 34: 正常响应`,
+      `[2025-12-19T10:15:40.748Z] [DEBUG] ORDER BY 35: 正常响应`,
+      `[2025-12-19T10:15:40.849Z] [DEBUG] ORDER BY 36: 正常响应`,
+      `[2025-12-19T10:15:40.950Z] [DEBUG] ORDER BY 37: 正常响应`,
+      `[2025-12-19T10:15:41.051Z] [DEBUG] ORDER BY 38: 正常响应`,
+      `[2025-12-19T10:15:41.152Z] [DEBUG] ORDER BY 39: 正常响应`,
+      `[2025-12-19T10:15:41.253Z] [DEBUG] ORDER BY 40: 正常响应`,
+      `[2025-12-19T10:15:41.354Z] [DEBUG] ORDER BY 41: 正常响应`,
+      `[2025-12-19T10:15:41.455Z] [DEBUG] ORDER BY 42: 正常响应`,
+      `[2025-12-19T10:15:41.556Z] [DEBUG] ORDER BY 43: 正常响应`,
+      `[2025-12-19T10:15:41.657Z] [DEBUG] ORDER BY 44: 正常响应`,
+      `[2025-12-19T10:15:41.758Z] [DEBUG] ORDER BY 45: 正常响应`,
+      `[2025-12-19T10:15:41.859Z] [DEBUG] ORDER BY 46: 正常响应`,
+      `[2025-12-19T10:15:41.960Z] [DEBUG] ORDER BY 47: 正常响应`,
+      `[2025-12-19T10:15:42.061Z] [DEBUG] ORDER BY 48: 正常响应`,
+      `[2025-12-19T10:15:42.162Z] [DEBUG] ORDER BY 49: 正常响应`,
+      `[2025-12-19T10:15:42.263Z] [DEBUG] ORDER BY 50: 正常响应`,
+      `[2025-12-19T10:15:42.364Z] [DEBUG] ORDER BY 51: 正常响应`,
+      `[2025-12-19T10:15:42.465Z] [DEBUG] ORDER BY 52: 正常响应`,
+      `[2025-12-19T10:15:42.566Z] [DEBUG] ORDER BY 53: 正常响应`,
+      `[2025-12-19T10:15:42.667Z] [DEBUG] ORDER BY 54: 正常响应`,
+      `[2025-12-19T10:15:42.768Z] [DEBUG] ORDER BY 55: 正常响应`,
+      `[2025-12-19T10:15:42.869Z] [DEBUG] ORDER BY 56: 正常响应`,
+      `[2025-12-19T10:15:42.970Z] [DEBUG] ORDER BY 57: 正常响应`,
+      `[2025-12-19T10:15:43.071Z] [DEBUG] ORDER BY 58: 正常响应`,
+      `[2025-12-19T10:15:43.172Z] [DEBUG] ORDER BY 59: 正常响应`,
+      `[2025-12-19T10:15:43.273Z] [DEBUG] ORDER BY 60: 正常响应`,
+      `[2025-12-19T10:15:43.374Z] [DEBUG] ORDER BY 61: 正常响应`,
+      `[2025-12-19T10:15:43.475Z] [DEBUG] ORDER BY 62: 正常响应`,
+      `[2025-12-19T10:15:43.576Z] [DEBUG] ORDER BY 63: 正常响应`,
+      `[2025-12-19T10:15:43.677Z] [DEBUG] ORDER BY 64: 正常响应`,
+      `[2025-12-19T10:15:43.778Z] [DEBUG] ORDER BY 65: 正常响应`,
+      `[2025-12-19T10:15:43.879Z] [DEBUG] ORDER BY 66: 正常响应`,
+      `[2025-12-19T10:15:43.980Z] [DEBUG] ORDER BY 67: 正常响应`,
+      `[2025-12-19T10:15:44.081Z] [DEBUG] ORDER BY 68: 正常响应`,
+      `[2025-12-19T10:15:44.182Z] [DEBUG] ORDER BY 69: 正常响应`,
+      `[2025-12-19T10:15:44.283Z] [DEBUG] ORDER BY 70: 正常响应`,
+      `[2025-12-19T10:15:44.384Z] [DEBUG] ORDER BY 71: 正常响应`,
+      `[2025-12-19T10:15:44.485Z] [DEBUG] ORDER BY 72: 正常响应`,
+      `[2025-12-19T10:15:44.586Z] [DEBUG] ORDER BY 73: 正常响应`,
+      `[2025-12-19T10:15:44.687Z] [DEBUG] ORDER BY 74: 正常响应`,
+      `[2025-12-19T10:15:44.788Z] [DEBUG] ORDER BY 75: 正常响应`,
+      `[2025-12-19T10:15:44.889Z] [DEBUG] ORDER BY 76: 正常响应`,
+      `[2025-12-19T10:15:44.990Z] [DEBUG] ORDER BY 77: 正常响应`,
+      `[2025-12-19T10:15:45.091Z] [DEBUG] ORDER BY 78: 正常响应`,
+      `[2025-12-19T10:15:45.192Z] [DEBUG] ORDER BY 79: 正常响应`,
+      `[2025-12-19T10:15:45.293Z] [DEBUG] ORDER BY 80: 正常响应`,
+      `[2025-12-19T10:15:45.394Z] [DEBUG] ORDER BY 81: 正常响应`,
+      `[2025-12-19T10:15:45.495Z] [DEBUG] ORDER BY 82: 正常响应`,
+      `[2025-12-19T10:15:45.596Z] [DEBUG] ORDER BY 83: 正常响应`,
+      `[2025-12-19T10:15:45.697Z] [DEBUG] ORDER BY 84: 正常响应`,
+      `[2025-12-19T10:15:45.798Z] [DEBUG] ORDER BY 85: 正常响应`,
+      `[2025-12-19T10:15:45.899Z] [DEBUG] ORDER BY 86: 正常响应`,
+      `[2025-12-19T10:15:46.000Z] [DEBUG] ORDER BY 87: 正常响应`,
+      `[2025-12-19T10:15:46.101Z] [DEBUG] ORDER BY 88: 正常响应`,
+      `[2025-12-19T10:15:46.202Z] [DEBUG] ORDER BY 89: 正常响应`,
+      `[2025-12-19T10:15:46.303Z] [DEBUG] ORDER BY 90: 正常响应`,
+      `[2025-12-19T10:15:46.404Z] [DEBUG] ORDER BY 91: 正常响应`,
+      `[2025-12-19T10:15:46.505Z] [DEBUG] ORDER BY 92: 正常响应`,
+      `[2025-12-19T10:15:46.606Z] [DEBUG] ORDER BY 93: 正常响应`,
+      `[2025-12-19T10:15:46.707Z] [DEBUG] ORDER BY 94: 正常响应`,
+      `[2025-12-19T10:15:46.808Z] [DEBUG] ORDER BY 95: 正常响应`,
+      `[2025-12-19T10:15:46.909Z] [DEBUG] ORDER BY 96: 正常响应`,
+      `[2025-12-19T10:15:47.010Z] [DEBUG] ORDER BY 97: 正常响应`,
+      `[2025-12-19T10:15:47.111Z] [DEBUG] ORDER BY 98: 正常响应`,
+      `[2025-12-19T10:15:47.212Z] [DEBUG] ORDER BY 99: 正常响应`,
+      `[2025-12-19T10:15:47.313Z] [DEBUG] ORDER BY 100: 正常响应`,
+      `[2025-12-19T10:15:47.414Z] [DEBUG] 确定该页面有100个字段，可能存在UNION查询注入`,
+      `[2025-12-19T10:15:47.515Z] [INFO] 开始枚举数据库信息...`,
+      `[2025-12-19T10:15:47.616Z] [INFO] 完成扫描，未发现SQL注入漏洞`
+    ]
+    return Promise.resolve(mockLogs)
+  }
+
   return request.get('/chrome/admin/task/logs/getLogsByTaskId', {
     params: { taskId },
   })
@@ -122,6 +267,23 @@ export function getScanOptions(taskId: string): Promise<any> {
  * 获取HTTP请求信息
  */
 export function getHttpRequestInfo(taskId: string): Promise<any> {
+  if (USE_MOCK_DATA) {
+    // 生成mock HTTP请求信息
+    return Promise.resolve({
+      method: 'GET',
+      url: 'http://example.com/test?id=1',
+      headers: [
+        'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
+        'Accept-Encoding: gzip, deflate',
+        'Connection: keep-alive',
+        'Upgrade-Insecure-Requests: 1'
+      ],
+      body: null
+    })
+  }
+
   return request.get('/chrome/admin/task/getHttpRequestInfo', {
     params: { taskId },
   })
@@ -131,6 +293,42 @@ export function getHttpRequestInfo(taskId: string): Promise<any> {
  * 获取载荷详情
  */
 export function getPayloadDetail(taskId: string): Promise<any> {
+  if (USE_MOCK_DATA) {
+    // 生成mock载荷详情数据
+    return Promise.resolve([
+      {
+        index: 1,
+        status: '无注入',
+        contentType: 'boolean-based blind',
+        value: "1' AND 1=1--"
+      },
+      {
+        index: 2,
+        status: '无注入',
+        contentType: 'boolean-based blind',
+        value: "1' AND 1=2--"
+      },
+      {
+        index: 3,
+        status: '无注入',
+        contentType: 'time-based blind',
+        value: "1' AND SLEEP(5)--"
+      },
+      {
+        index: 4,
+        status: '无注入',
+        contentType: 'UNION query',
+        value: "1' UNION SELECT 1,2,3--"
+      },
+      {
+        index: 5,
+        status: '无注入',
+        contentType: 'error-based',
+        value: "1' AND (SELECT * FROM (SELECT COUNT(*),CONCAT(version(),FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)a)--"
+      }
+    ])
+  }
+
   return request.get('/chrome/admin/task/getPayloadDetailByTaskId', {
     params: { taskId },
   })
@@ -140,6 +338,12 @@ export function getPayloadDetail(taskId: string): Promise<any> {
  * 获取错误记录
  */
 export function getErrors(taskId: string): Promise<any[]> {
+  if (USE_MOCK_DATA) {
+    // 大部分任务不会有错误，返回空数组
+    // 如果需要测试错误显示，可以返回一些模拟错误
+    return Promise.resolve([])
+  }
+
   return request.get('/chrome/admin/task/getErrorsByTaskId', {
     params: { taskId },
   })
