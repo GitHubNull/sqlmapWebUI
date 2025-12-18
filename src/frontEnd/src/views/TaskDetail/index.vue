@@ -150,24 +150,46 @@
           <div v-if="loadingHttp" class="loading-small">
             <ProgressSpinner style="width: 30px; height: 30px" />
           </div>
-          <div v-else-if="httpInfo">
-            <div class="info-item">
-              <label>请求方法</label>
-              <Tag :value="httpInfo.method || 'GET'" />
-            </div>
-            <div class="info-section">
-              <h4>请求头</h4>
-              <div v-if="task.headers && task.headers.length > 0" class="headers-list">
-                <div v-for="(header, index) in task.headers" :key="index" class="header-item">
-                  {{ header }}
-                </div>
+          <div v-else-if="!httpRequest || !httpRequest.trim()" class="text-muted">
+            无HTTP请求信息
+          </div>
+          <div v-else class="http-request-wrapper">
+            <!-- 工具栏 -->
+            <div class="http-request-toolbar">
+              <div class="search-box">
+                <i class="pi pi-search"></i>
+                <input
+                  v-model="httpRequestSearch"
+                  type="text"
+                  placeholder="搜索HTTP报文..."
+                  class="search-input"
+                />
+                <Button
+                  v-if="httpRequestSearch"
+                  icon="pi pi-times"
+                  text
+                  rounded
+                  class="clear-search-btn"
+                  @click="httpRequestSearch = ''"
+                />
               </div>
-              <span v-else class="text-muted">无</span>
+              <div class="filter-controls">
+                <ToggleButton
+                  v-model="showOnlyMatches"
+                  onLabel="显示匹配"
+                  offLabel="显示全部"
+                  onIcon="pi pi-filter"
+                  offIcon="pi pi-filter-slash"
+                  class="p-button-sm"
+                />
+              </div>
             </div>
-            <div class="info-section">
-              <h4>请求体</h4>
-              <pre v-if="task.body" class="code-block">{{ task.body }}</pre>
-              <span v-else class="text-muted">无</span>
+
+            <!-- HTTP报文显示 -->
+            <div class="http-request-container" ref="httpRequestRef">
+              <pre class="http-request-pre">
+                <code v-html="highlightedHttpRequest"></code>
+              </pre>
             </div>
           </div>
         </TabPanel>
@@ -313,12 +335,48 @@ import { TaskStatus } from '@/types/task'
 import type { Task } from '@/types/task'
 import { formatDateTime } from '@/utils/format'
 import { highlightLogContent, getLogStats, type LogStats } from '@/utils/logHighlighter'
+import { formatHttpRequest, highlightHttpRequest, filterHttpRequest } from '@/utils/requestFormatter'
 import {
   getTaskLogs,
   getHttpRequestInfo,
   getPayloadDetail,
   getErrors
 } from '@/api/task'
+
+// 生成随机body（用于Mock数据）
+function generateMockBody(): string | undefined {
+  const bodyTypes = [
+    // POST表单数据（30%）
+    () => {
+      const params = []
+      const paramCount = Math.floor(Math.random() * 5) + 3
+      for (let i = 0; i < paramCount; i++) {
+        const keys = ['username', 'password', 'email', 'id', 'name', 'value', 'action', 'page', 'limit']
+        const key = keys[Math.floor(Math.random() * keys.length)]
+        const value = Math.random().toString(36).substring(2, 10)
+        params.push(`${key}=${value}`)
+      }
+      return params.join('&')
+    },
+    // JSON数据（30%）
+    () => {
+      return JSON.stringify({
+        user: 'testUser',
+        id: Math.floor(Math.random() * 1000),
+        active: true,
+        data: Math.random().toString(36).substring(2, 15)
+      }, null, 2)
+    },
+    // XML数据（20%）
+    () => {
+      return `<?xml version="1.0" encoding="UTF-8"?>\n<request>\n  <id>${Math.floor(Math.random() * 1000)}</id>\n  <name>test</name>\n</request>`
+    },
+    // 没有body（20%）
+    () => undefined
+  ]
+  const randomType = bodyTypes[Math.floor(Math.random() * bodyTypes.length)]
+  return randomType()
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -344,6 +402,36 @@ const logsHtml = ref<string>('') // 存储高亮后的HTML
 const errors = ref<string[]>([])
 
 const logsContainerRef = ref<HTMLElement | null>(null)
+
+// HTTP请求报文相关状态
+const httpRequestSearch = ref('')
+const showOnlyMatches = ref(false)
+const httpRequestRef = ref<HTMLElement | null>(null)
+
+// 计算属性：格式化HTTP请求报文
+const httpRequest = computed(() => {
+  if (!httpInfo.value && !task.value) {
+    return ''
+  }
+  return formatHttpRequest(httpInfo.value, task.value)
+})
+
+// 计算属性：高亮后的HTTP请求报文HTML
+const highlightedHttpRequest = computed(() => {
+  if (!httpRequest.value || !httpRequest.value.trim()) {
+    return ''
+  }
+
+  const lines = httpRequest.value.split('\n')
+
+  // 应用过滤（如果启用）
+  const filteredLines = showOnlyMatches.value && httpRequestSearch.value.trim()
+    ? filterHttpRequest(lines, httpRequestSearch.value.trim())
+    : lines
+
+  // 高亮显示（带搜索关键词高亮）
+  return highlightHttpRequest(filteredLines, httpRequestSearch.value.trim())
+})
 
 // 计算属性：日志统计信息
 const logStats = computed<LogStats>(() => {
@@ -428,17 +516,23 @@ async function loadTaskDetail() {
       console.log('任务未在列表中找到，使用Mock数据:', taskId)
 
       // 创建一个模拟任务数据
+      const mockBody = generateMockBody()
       task.value = {
         taskid: taskId,
         engineid: 1000 + Math.floor(Math.random() * 100),
-        scanUrl: 'http://example.com/test?id=1',
+        scanUrl: 'http://example.com/api/test',
         host: 'example.com',
         status: TaskStatus.SUCCESS,
         createTime: new Date().toISOString(),
         updateTime: new Date().toISOString(),
         injected: true,
-        headers: ['User-Agent: Mozilla/5.0', 'Accept: application/json'],
-        body: undefined,
+        headers: [
+          'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept: application/json, text/plain, */*',
+          'Accept-Language: zh-CN,zh;q=0.9',
+          mockBody ? `Content-Type: ${mockBody.includes('{') ? 'application/json' : mockBody.includes('<?xml') ? 'application/xml' : mockBody.includes('=') ? 'application/x-www-form-urlencoded' : 'text/plain'}` : ''
+        ].filter(Boolean),
+        body: mockBody,
         options: {
           level: 1,
           risk: 1,
@@ -471,6 +565,13 @@ async function loadTaskDetail() {
       }
     } else {
       task.value = foundTask
+      // 如果找到的task没有body，添加一个随机body（仅用于测试显示效果）
+      if (!task.value.body && Math.random() < 0.7) {
+        const mockBody = generateMockBody()
+        if (mockBody) {
+          task.value.body = mockBody
+        }
+      }
     }
 
     // 并行加载其他数据
@@ -1117,24 +1218,25 @@ function copyLogsToClipboard() {
   overflow-y: auto;
   overflow-x: auto;
   border: 2px solid rgba(99, 102, 241, 0.1);
-  border-radius: 10px;
+  border-radius: 8px;
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+  line-height: 0.8;
 
   &::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
+    width: 8px;
+    height: 8px;
   }
 
   &::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.3);
-    border-radius: 6px;
+    border-radius: 4px;
   }
 
   &::-webkit-scrollbar-thumb {
     background: rgba(99, 102, 241, 0.5);
-    border-radius: 6px;
-    border: 2px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.3);
 
     &:hover {
       background: rgba(99, 102, 241, 0.7);
@@ -1143,31 +1245,44 @@ function copyLogsToClipboard() {
 
   // 垂直滚动条
   &::-webkit-scrollbar:vertical {
-    width: 12px;
+    width: 8px;
   }
 
   // 水平滚动条
   &::-webkit-scrollbar:horizontal {
-    height: 12px;
+    height: 8px;
+  }
+
+  // 消除行间距
+  pre {
+    line-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  * {
+    line-height: 0.8 !important;
   }
 }
 
 .logs-pre {
-  margin: 0;
-  padding: 0;
+  margin: 0 !important;
+  padding: 0 !important;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 12px;
+  line-height: 0.8 !important;
   overflow: visible;
   background: transparent;
 
   code {
     background: transparent;
-    padding: 0;
-    margin: 0;
+    padding: 0 !important;
+    margin: 0 !important;
     color: #e2e8f0;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     display: block;
+    line-height: 0.8 !important;
+    font-size: 12px;
   }
 }
 
@@ -1418,6 +1533,142 @@ function copyLogsToClipboard() {
     }
   }
 }
+
+// HTTP请求报文样式
+.http-request-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  line-height: 0.8;
+}
+
+.http-request-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(59, 130, 246, 0.04) 100%);
+  border-radius: 8px;
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  line-height: 0.9;
+
+  .search-box {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+
+    i {
+      color: #94a3b8;
+      font-size: 14px;
+      position: absolute;
+      left: 8px;
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 4px 32px 4px 28px;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 4px;
+      color: #e2e8f0;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 12px;
+      line-height: 0.9;
+
+      &:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+      }
+
+      &::placeholder {
+        color: #64748b;
+      }
+    }
+
+    .clear-search-btn {
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .filter-controls {
+    flex-shrink: 0;
+
+    .p-button-sm {
+      padding: 4px 8px;
+      font-size: 11px;
+
+      .p-button-label {
+        font-size: 11px;
+      }
+    }
+  }
+}
+
+.http-request-container {
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: auto;
+  border: 2px solid rgba(99, 102, 241, 0.1);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+  line-height: 0.9;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.5);
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+
+    &:hover {
+      background: rgba(99, 102, 241, 0.7);
+    }
+  }
+
+  * {
+    line-height: 0.9 !important;
+  }
+}
+
+.http-request-pre {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 22px;
+  line-height: 0.9 !important;
+  overflow: visible;
+  background: transparent;
+
+  code {
+    background: transparent;
+    padding: 0 !important;
+    margin: 0 !important;
+    color: #e2e8f0;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    display: block;
+    line-height: 0.9 !important;
+    font-size: 22px;
+  }
+}
+
 
 // 暗黑模式Tab样式
 .dark-mode {

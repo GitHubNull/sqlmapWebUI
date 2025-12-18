@@ -92,6 +92,49 @@ function generateNormalUrl(host: string): string {
 }
 
 /**
+ * 生成真实的HTTP body内容
+ */
+function generateRealisticBody(): string | undefined {
+  const bodyTypes = [
+    // POST表单数据（30%）
+    () => {
+      const params = []
+      const paramCount = Mock.Random.integer(3, 8)
+      for (let i = 0; i < paramCount; i++) {
+        const key = Mock.Random.pick(['username', 'password', 'email', 'id', 'name', 'value', 'action', 'page', 'limit', 'offset', 'search', 'category', 'filter'])
+        const value = Mock.Random.string('lower', 5, 20)
+        params.push(`${key}=${value}`)
+      }
+      return params.join('&')
+    },
+    // JSON数据（30%）
+    () => {
+      return JSON.stringify({
+        [Mock.Random.word(5, 10)]: Mock.Random.word(5, 15),
+        [Mock.Random.word(5, 10)]: Mock.Random.integer(1, 1000),
+        [Mock.Random.word(5, 10)]: Mock.Random.boolean(),
+        nested: {
+          [Mock.Random.word(3, 8)]: Mock.Random.word(10, 20)
+        }
+      }, null, 2)
+    },
+    // XML数据（20%）
+    () => {
+      return `<?xml version="1.0" encoding="UTF-8"?>
+<${Mock.Random.word(5, 10)}>
+  <${Mock.Random.word(3, 8)}>${Mock.Random.word(10, 20)}</${Mock.Random.word(3, 8)}>
+  <${Mock.Random.word(3, 8)}>${Mock.Random.integer(1, 1000)}</${Mock.Random.word(3, 8)}>
+</${Mock.Random.word(5, 10)}>`
+    },
+    // 没有body（20%）
+    () => undefined
+  ]
+
+  const randomType = Mock.Random.pick(bodyTypes)
+  return randomType()
+}
+
+/**
  * 生成随机任务数据
  * @param index 任务索引
  * @param mode 数据生成模式
@@ -107,12 +150,12 @@ export function generateMockTask(index: number, mode: MockDataMode = MockDataMod
     TaskStatus.FAILED,     // 10%
     TaskStatus.STOPPED,    // 10%
   ]
-  
+
   const randomStatus = Mock.Random.pick(statuses)
-  
+
   // 根据状态生成注入状态
   let injected: boolean | undefined
-  
+
   if (randomStatus === TaskStatus.SUCCESS) {
     // 已完成的任务：60%存在注入，40%不存在注入
     injected = Mock.Random.float(0, 1) < 0.6
@@ -190,10 +233,7 @@ export function generateMockTask(index: number, mode: MockDataMode = MockDataMod
       'Accept: application/json',
       `Authorization: Bearer ${Mock.mock('@string("lower", 32)')}`,
     ],
-    body: JSON.stringify({
-      test: Mock.Random.word(5, 10),
-      value: Mock.Random.integer(1, 1000),
-    }),
+    body: generateRealisticBody(),
     options: {
       level: Mock.Random.integer(1, 5),
       risk: Mock.Random.integer(1, 3),

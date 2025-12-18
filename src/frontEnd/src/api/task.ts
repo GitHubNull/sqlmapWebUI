@@ -268,19 +268,49 @@ export function getScanOptions(taskId: string): Promise<any> {
  */
 export function getHttpRequestInfo(taskId: string): Promise<any> {
   if (USE_MOCK_DATA) {
-    // 生成mock HTTP请求信息
+    // 生成mock HTTP请求信息，包含随机的body
+    const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+    const method = methods[Math.floor(Math.random() * methods.length)]
+
+    // 生成随机body（70%概率有body）
+    let body = null
+    if (Math.random() < 0.7) {
+      const bodyTypes = [
+        // POST表单
+        'username=admin&password=123456&email=test@example.com',
+        // JSON
+        JSON.stringify({
+          name: 'testUser',
+          age: 25,
+          email: 'test@example.com',
+          active: true
+        }, null, 2),
+        // XML
+        `<?xml version="1.0" encoding="UTF-8"?>
+<user>
+  <name>testUser</name>
+  <email>test@example.com</email>
+</user>`,
+        // 纯文本
+        'raw text data for testing'
+      ]
+      body = bodyTypes[Math.floor(Math.random() * bodyTypes.length)]
+    }
+
     return Promise.resolve({
-      method: 'GET',
-      url: 'http://example.com/test?id=1',
+      method,
+      url: 'http://example.com/api/users',
       headers: [
         'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
+        'Accept: application/json, text/plain, */*',
+        'Accept-Language: zh-CN,zh;q=0.9,en;q=0.8',
         'Accept-Encoding: gzip, deflate',
-        'Connection: keep-alive',
-        'Upgrade-Insecure-Requests: 1'
+        'Content-Type: ' + (body && body.includes('{') ? 'application/json' : body && body.includes('<?xml') ? 'application/xml' : body && body.includes('=') ? 'application/x-www-form-urlencoded' : 'text/plain'),
+        'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
+        'X-Request-ID: ' + Math.random().toString(36).substring(2, 15),
+        'Connection: keep-alive'
       ],
-      body: null
+      body
     })
   }
 
