@@ -1,0 +1,227 @@
+/**
+ * 日志高亮样式
+ * 配合 highlight.js 的自定义日志语言使用
+ */
+
+/* 基础日志容器样式 */
+.highlighted-logs {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* 日志行容器 */
+.log-line {
+  display: flex;
+  align-items: flex-start;
+  margin: 0;
+  white-space: pre;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  transition: all 0.2s ease;
+}
+
+.log-line:hover {
+  background-color: rgba(99, 102, 241, 0.05);
+}
+
+/* 行号样式 */
+.line-number {
+  flex-shrink: 0;
+  width: 50px;
+  text-align: right;
+  padding: 8px 12px;
+  color: #94a3b8;
+  background-color: rgba(15, 23, 42, 0.7);
+  border-right: 1px solid rgba(148, 163, 184, 0.2);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  user-select: none;
+  font-weight: 600;
+}
+
+/* 行内容样式 */
+.line-content {
+  flex: 1;
+  padding: 8px 16px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #e2e8f0;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* 日志级别样式 */
+.log-level {
+  display: inline-block;
+  font-weight: 700 !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+  margin-right: 10px !important;
+  border: 1px solid !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+.log-info {
+  background-color: #0ea5e9 !important;
+  color: #ffffff !important;
+  border-color: #0284c7 !important;
+  box-shadow: 0 2px 4px rgba(14, 165, 233, 0.4) !important;
+}
+
+.log-debug {
+  background-color: #8b5cf6 !important;
+  color: #ffffff !important;
+  border-color: #7c3aed !important;
+  box-shadow: 0 2px 4px rgba(139, 92, 246, 0.4) !important;
+}
+
+.log-warning {
+  background-color: #f59e0b !important;
+  color: #000000 !important;
+  border-color: #d97706 !important;
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.4) !important;
+}
+
+.log-error {
+  background-color: #ef4444 !important;
+  color: #ffffff !important;
+  border-color: #dc2626 !important;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4) !important;
+}
+
+.log-trace {
+  background-color: #64748b !important;
+  color: #ffffff !important;
+  border-color: #475569 !important;
+  box-shadow: 0 2px 4px rgba(100, 116, 139, 0.4) !important;
+}
+
+/* 时间戳样式 */
+.timestamp {
+  color: #06b6d4 !important;
+  background-color: rgba(6, 182, 212, 0.1) !important;
+  padding: 0 3px !important;
+  border-radius: 3px !important;
+  font-weight: 500 !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+}
+
+/* HTTP 方法样式 */
+.http-method {
+  background-color: #8b5cf6 !important;
+  color: #ffffff !important;
+  padding: 1px 6px !important;
+  border-radius: 3px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+}
+
+/* URL 样式 */
+.url {
+  color: #3b82f6 !important;
+  text-decoration: underline !important;
+  font-weight: 600 !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+}
+
+.url:hover {
+  color: #60a5fa !important;
+  text-decoration: underline !important;
+}
+
+/* 文件路径样式 */
+.file-path {
+  color: #10b981 !important;
+  font-weight: 600 !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+  background-color: rgba(16, 185, 129, 0.1) !important;
+  padding: 0 3px !important;
+  border-radius: 3px !important;
+}
+
+/* IP 地址样式 */
+.ip-address {
+  color: #f59e0b !important;
+  font-weight: 600 !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+  background-color: rgba(245, 158, 11, 0.1) !important;
+  padding: 0 3px !important;
+  border-radius: 3px !important;
+}
+
+/* SQL 关键词样式 */
+.sql-keyword {
+  color: #ec4899 !important;
+  font-weight: 600 !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+  background-color: rgba(236, 72, 153, 0.1) !important;
+  padding: 0 2px !important;
+  border-radius: 3px !important;
+}
+
+/* 数字样式 */
+.number {
+  color: #a78bfa !important;
+  font-weight: 500 !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+}
+
+/* 字符串样式 */
+.string {
+  color: #34d399 !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+}
+
+/* JSON 属性样式 */
+.attr {
+  color: #f472b6 !important;
+  font-weight: 600 !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+}
+
+/* 关键词样式 */
+.keyword {
+  color: #f87272 !important;
+  font-weight: 600 !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+}
+
+/* 注释样式 */
+.comment {
+  color: #94a3b8 !important;
+  font-style: italic !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+}
+
+/* 函数样式 */
+.title.function_ {
+  color: #60a5fa !important;
+  font-weight: 600 !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+}
+
+/* 类名样式 */
+.title.class_ {
+  color: #e879f9 !important;
+  font-weight: 600 !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+}
+
+/* 变量样式 */
+.variable {
+  color: #cbd5e0 !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+}
+
+/* 内置样式 */
+.built_in {
+  color: #fbbf24 !important;
+  font-weight: 600 !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+}

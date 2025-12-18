@@ -2,6 +2,9 @@
 @use './variables.scss' as *;
 @use './reset.scss';
 
+// 导入日志高亮样式
+@import './log-highlight.css';
+
 // ==================== 3D立体效果Mixins ====================
 
 // 凸起表面效果

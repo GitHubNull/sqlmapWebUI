@@ -235,24 +235,56 @@
           <div class="card-header">
             <i class="pi pi-file"></i>
             <span>任务日志</span>
-            <Button
-              icon="pi pi-refresh"
-              text
-              rounded
-              @click="() => loadLogs()"
-              :loading="loadingLogs"
-              v-tooltip.top="'刷新日志'"
-            />
+            <div class="log-actions">
+              <Button
+                v-if="logs && logs.length > 0"
+                icon="pi pi-copy"
+                text
+                rounded
+                @click="copyLogsToClipboard"
+                v-tooltip.top="'复制全部日志'"
+                class="log-action-btn"
+              />
+              <Button
+                icon="pi pi-refresh"
+                text
+                rounded
+                @click="() => loadLogs()"
+                :loading="loadingLogs"
+                v-tooltip.top="'刷新日志'"
+                class="log-action-btn"
+              />
+            </div>
           </div>
         </template>
         <template #content>
           <div v-if="loadingLogs" class="loading-small">
             <ProgressSpinner style="width: 30px; height: 30px" />
           </div>
-          <div v-else-if="logs && Array.isArray(logs) && logs.length > 0" class="logs-container" ref="logsContainerRef">
-            <pre class="logs-pre">
-              <code v-html="generateHighlightedLogs()"></code>
-            </pre>
+          <div v-else-if="logs && Array.isArray(logs) && logs.length > 0" class="logs-wrapper">
+            <div class="log-stats">
+              <div class="stat-item">
+                <i class="pi pi-list"></i>
+                <span>总行数：{{ logs.length }}</span>
+              </div>
+              <div class="stat-item">
+                <i class="pi pi-filter"></i>
+                <span>INFO: {{ logs.filter(l => l.includes('[INFO]')).length }}</span>
+              </div>
+              <div class="stat-item">
+                <i class="pi pi-exclamation-triangle"></i>
+                <span>警告: {{ logs.filter(l => l.includes('[WARNING]')).length }}</span>
+              </div>
+              <div class="stat-item">
+                <i class="pi pi-times-circle"></i>
+                <span>错误: {{ logs.filter(l => l.includes('[ERROR]')).length }}</span>
+              </div>
+            </div>
+            <div class="logs-container" ref="logsContainerRef">
+              <pre class="logs-pre">
+                <code v-html="generateHighlightedLogs()"></code>
+              </pre>
+            </div>
           </div>
           <span v-else-if="logs === null" class="text-muted">正在加载日志...</span>
           <span v-else class="text-muted">无日志记录</span>
@@ -293,15 +325,13 @@ import { useTaskStore } from '@/stores/task'
 import { TaskStatus } from '@/types/task'
 import type { Task } from '@/types/task'
 import { formatDateTime } from '@/utils/format'
-// 移除 highlight.js 依赖，使用纯内联样式
+import { highlightLogContent, getLogStats, type LogStats } from '@/utils/logHighlighter'
 import {
   getTaskLogs,
   getHttpRequestInfo,
   getPayloadDetail,
   getErrors
 } from '@/api/task'
-
-// 移除 highlight.js 注册
 
 const route = useRoute()
 const router = useRouter()
@@ -328,8 +358,21 @@ const errors = ref<string[]>([])
 
 const logsContainerRef = ref<HTMLElement | null>(null)
 
-// 计算属性：生成高亮日志HTML
-const generateHighlightedLogs = computed(() => {
+// 计算属性：日志统计信息
+const logStats = computed<LogStats>(() => {
+  return getLogStats(logs.value || [])
+})
+
+// 计算属性：高亮后的日志HTML
+const highlightedLogsHtml = computed(() => {
+  if (!logs.value || logs.value.length === 0) {
+    return ''
+  }
+  return highlightLogContent(logs.value)
+})
+
+// 原有的生成高亮日志函数（保持向后兼容）
+const generateHighlightedLogs = () => {
   if (!logs.value || !Array.isArray(logs.value) || logs.value.length === 0) {
     return ''
   }
@@ -344,22 +387,28 @@ const generateHighlightedLogs = computed(() => {
       // 使用完全内联样式，强制最高优先级，确保高亮100%生效
       let highlightedLine = line
         // 高亮INFO - 使用最强内联样式
-        .replace(/\[INFO\]/g, '<span style="background-color:#0ea5e9 !important; color:#ffffff !important; font-weight:bold !important; padding:2px 8px !important; border-radius:4px !important; font-size:12px !important; display:inline-block !important; margin-right:8px !important; border:1px solid #0284c7 !important; box-shadow:0 2px 4px rgba(14, 165, 233, 0.4) !important; font-family:\'Monaco\',\'Menlo\',\'Ubuntu Mono\',monospace !important; text-shadow:0 1px 2px rgba(0,0,0,0.3) !important;">[INFO]</span>')
+        .replace(/\[INFO\]/g, '<span style="background-color:#0ea5e9 !important; color:#ffffff !important; font-weight:bold !important; padding:2px 6px !important; border-radius:4px !important; font-size:12px !important; display:inline-block !important; margin-right:10px !important; border:1px solid #0284c7 !important; font-family:\'Monaco\',\'Menlo\',\'Ubuntu Mono\',monospace !important; text-shadow:0 1px 2px rgba(0,0,0,0.3) !important;">[INFO]</span>')
         // 高亮DEBUG - 使用最强内联样式
-        .replace(/\[DEBUG\]/g, '<span style="background-color:#8b5cf6 !important; color:#ffffff !important; font-weight:bold !important; padding:2px 8px !important; border-radius:4px !important; font-size:12px !important; display:inline-block !important; margin-right:8px !important; border:1px solid #7c3aed !important; box-shadow:0 2px 4px rgba(139, 92, 246, 0.4) !important; font-family:\'Monaco\',\'Menlo\',\'Ubuntu Mono\',monospace !important; text-shadow:0 1px 2px rgba(0,0,0,0.3) !important;">[DEBUG]</span>')
+        .replace(/\[DEBUG\]/g, '<span style="background-color:#8b5cf6 !important; color:#ffffff !important; font-weight:bold !important; padding:2px 6px !important; border-radius:4px !important; font-size:12px !important; display:inline-block !important; margin-right:10px !important; border:1px solid #7c3aed !important; font-family:\'Monaco\',\'Menlo\',\'Ubuntu Mono\',monospace !important; text-shadow:0 1px 2px rgba(0,0,0,0.3) !important;">[DEBUG]</span>')
         // 高亮WARNING - 使用最强内联样式
-        .replace(/\[WARNING\]/g, '<span style="background-color:#f59e0b !important; color:#ffffff !important; font-weight:bold !important; padding:2px 8px !important; border-radius:4px !important; font-size:12px !important; display:inline-block !important; margin-right:8px !important; border:1px solid #d97706 !important; box-shadow:0 2px 4px rgba(245, 158, 11, 0.4) !important; font-family:\'Monaco\',\'Menlo\',\'Ubuntu Mono\',monospace !important; text-shadow:0 1px 2px rgba(0,0,0,0.3) !important;">[WARNING]</span>')
+        .replace(/\[WARNING\]/g, '<span style="background-color:#f59e0b !important; color:#000000 !important; font-weight:bold !important; padding:2px 6px !important; border-radius:4px !important; font-size:12px !important; display:inline-block !important; margin-right:10px !important; border:1px solid #d97706 !important; font-family:\'Monaco\',\'Menlo\',\'Ubuntu Mono\',monospace !important; text-shadow:0 1px 2px rgba(255,255,255,0.3) !important;">[WARNING]</span>')
         // 高亮ERROR - 使用最强内联样式
-        .replace(/\[ERROR\]/g, '<span style="background-color:#ef4444 !important; color:#ffffff !important; font-weight:bold !important; padding:2px 8px !important; border-radius:4px !important; font-size:12px !important; display:inline-block !important; margin-right:8px !important; border:1px solid #dc2626 !important; box-shadow:0 2px 4px rgba(239, 68, 68, 0.4) !important; font-family:\'Monaco\',\'Menlo\',\'Ubuntu Mono\',monospace !important; text-shadow:0 1px 2px rgba(0,0,0,0.3) !important;">[ERROR]</span>')
+        .replace(/\[ERROR\]/g, '<span style="background-color:#ef4444 !important; color:#ffffff !important; font-weight:bold !important; padding:2px 6px !important; border-radius:4px !important; font-size:12px !important; display:inline-block !important; margin-right:10px !important; border:1px solid #dc2626 !important; font-family:\'Monaco\',\'Menlo\',\'Ubuntu Mono\',monospace !important; text-shadow:0 1px 2px rgba(0,0,0,0.3) !important;">[ERROR]</span>')
+        // 高亮CRITICAL - 添加新级别
+        .replace(/\[CRITICAL\]/g, '<span style="background-color:#dc2626 !important; color:#ffffff !important; font-weight:bold !important; padding:2px 6px !important; border-radius:4px !important; font-size:12px !important; display:inline-block !important; margin-right:10px !important; border:1px solid #b91c1c !important; font-family:\'Monaco\',\'Menlo\',\'Ubuntu Mono\',monospace !important; text-shadow:0 1px 2px rgba(0,0,0,0.3) !important;">[CRITICAL]</span>')
         // 高亮URL - 使用最强内联样式
-        .replace(/https?:\/\/[^\s\)\]]+/g, '<span style="color:#3b82f6 !important; text-decoration:underline !important; font-weight:600 !important; font-family:\'Monaco\',\'Menlo\',\'Ubuntu Mono\',monospace !important; background-color:rgba(59, 130, 246, 0.1) !important; padding:1px 3px !important; border-radius:3px !important;">$&</span>')
+        .replace(/https?:\/\/[^\s\)\]]+/g, '<span style="color:#3b82f6 !important; text-decoration:underline !important; font-weight:500 !important; font-family:\'Monaco\',\'Menlo\',\'Ubuntu Mono\',monospace !important; background-color:rgba(59, 130, 246, 0.1) !important; padding:0 2px !important; border-radius:3px !important; cursor:pointer !important; transition:all 0.2s ease !important;" onmouseover="this.style.backgroundColor=\'rgba(59, 130, 246, 0.2)\'" onmouseout="this.style.backgroundColor=\'rgba(59, 130, 246, 0.1)\'">$&</span>')
         // 高亮文件路径 - 使用最强内联样式
-        .replace(/[\w\-]+\.(py|js|ts|php|asp|aspx|jsp)/g, '<span style="color:#10b981 !important; font-weight:bold !important; font-family:\'Monaco\',\'Menlo\',\'Ubuntu Mono\',monospace !important; background-color:rgba(16, 185, 129, 0.1) !important; padding:1px 3px !important; border-radius:3px !important;">$&</span>')
+        .replace(/[\w\-]+\.(py|js|ts|php|asp|aspx|jsp|java|cs|cpp|c|h|hpp|json|xml|yml|yaml|ini|conf|config)/g, '<span style="color:#10b981 !important; font-weight:500 !important; font-family:\'Monaco\',\'Menlo\',\'Ubuntu Mono\',monospace !important; background-color:rgba(16, 185, 129, 0.1) !important; padding:0 3px !important; border-radius:3px !important;">$&</span>')
+        // 高亮时间戳 - 新增
+        .replace(/\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:?\d{2})?/g, '<span style="color:#06b6d4 !important; font-family:\'Monaco\',\'Menlo\',\'Ubuntu Mono\',monospace !important; background-color:rgba(6, 182, 212, 0.1) !important; padding:0 3px !important; border-radius:3px !important; font-weight:500 !important;">$&</span>')
+        // 高亮SQL语句 - 新增
+        .replace(/\b(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|AND|OR|ORDER BY|GROUP BY|HAVING|LIMIT|JOIN|INNER JOIN|LEFT JOIN|RIGHT JOIN|ON|AS|LIKE|IN|NOT IN|IS NULL|IS NOT NULL|COUNT|SUM|AVG|MAX|MIN|CREATE|TABLE|ALTER|DROP|INDEX)\b/gi, '<span style="color:#ec4899 !important; font-weight:500 !important; font-family:\'Monaco\',\'Menlo\',\'Ubuntu Mono\',monospace !important;">$&</span>')
 
-      // 构建完整的行HTML，确保行号和内容有足够间距
-      html += `<div style="display:flex !important; align-items:flex-start !important; padding:0 !important; margin:0 !important; white-space:pre !important; border-bottom:1px solid rgba(99,102,241,0.05) !important;">
-        <span style="flex-shrink:0 !important; width:60px !important; text-align:right !important; padding-right:20px !important; padding-left:12px !important; color:#64748b !important; background-color:rgba(0,0,0,0.15) !important; border-right:2px solid rgba(99,102,241,0.3) !important; font-family:\'Monaco\',\'Menlo\',\'Ubuntu Mono\',monospace !important; font-size:12px !important; line-height:1.8 !important; user-select:none !important; font-weight:600 !important;">${lineNumber.toString().padStart(3, ' ')}</span>
-        <span style="flex:1 !important; padding-left:20px !important; padding-right:20px !important; padding-top:8px !important; padding-bottom:8px !important; white-space:pre-wrap !important; word-break:break-word !important; color:#e2e8f0 !important; font-family:\'Monaco\',\'Menlo\',\'Ubuntu Mono\',monospace !important; font-size:13px !important; line-height:1.8 !important;">${highlightedLine}</span>
+      // 构建完整的行HTML，优化行号和内容样式
+      html += `<div style="display:flex; align-items:flex-start; margin:0; white-space:pre; border-bottom:1px solid rgba(148, 163, 184, 0.1); background:${index % 2 === 0 ? 'rgba(15, 23, 42, 0.5)' : 'rgba(15, 23, 42, 0.3)'};">
+        <span style="flex-shrink:0; width:50px; text-align:right; padding:8px 12px; color:#94a3b8; background-color:rgba(15, 23, 42, 0.7); border-right:1px solid rgba(148, 163, 184, 0.2); font-family:'Monaco','Menlo','Ubuntu Mono',monospace; font-size:11px; line-height:1.5; user-select:none; font-weight:600;">${lineNumber.toString().padStart(3, ' ')}</span>
+        <span style="flex:1; padding:8px 16px; white-space:pre-wrap; word-break:break-word; color:#e2e8f0; font-family:'Monaco','Menlo','Ubuntu Mono',monospace; font-size:13px; line-height:1.5;">${highlightedLine}</span>
       </div>`
     })
 
@@ -368,7 +417,7 @@ const generateHighlightedLogs = computed(() => {
     console.error('生成高亮日志时出错:', error)
     return logs.value.join('\n')
   }
-})
+}
 
 onMounted(() => {
   loadTaskDetail()
@@ -619,7 +668,7 @@ function handleStopTask() {
 
 function handleDeleteTask() {
   if (!task.value) return
-  
+
   confirm.require({
     message: '确定要删除该任务吗？此操作不可恢复。',
     header: '确认删除',
@@ -646,6 +695,36 @@ function handleDeleteTask() {
         })
       }
     },
+  })
+}
+
+function copyLogsToClipboard() {
+  if (!logs.value || !Array.isArray(logs.value) || logs.value.length === 0) {
+    toast.add({
+      severity: 'warn',
+      summary: '提示',
+      detail: '没有日志可复制',
+      life: 2000,
+    })
+    return
+  }
+
+  const logsText = logs.value.join('\n')
+  navigator.clipboard.writeText(logsText).then(() => {
+    toast.add({
+      severity: 'success',
+      summary: '成功',
+      detail: `已复制 ${logs.value.length} 行日志到剪贴板`,
+      life: 2000,
+    })
+  }).catch(err => {
+    console.error('复制日志失败:', err)
+    toast.add({
+      severity: 'error',
+      summary: '错误',
+      detail: '复制失败',
+      life: 2000,
+    })
   })
 }
 </script>
@@ -1109,6 +1188,76 @@ function handleDeleteTask() {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.log-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+
+  .log-action-btn {
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: scale(1.1) rotate(5deg);
+      box-shadow: 0 4px 8px rgba(99, 102, 241, 0.2);
+    }
+  }
+}
+
+.logs-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.log-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(59, 130, 246, 0.04) 100%);
+  border-radius: 8px;
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  backdrop-filter: blur(5px);
+
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #e2e8f0;
+    padding: 6px 12px;
+    background: rgba(15, 23, 42, 0.4);
+    border-radius: 6px;
+    border: 1px solid rgba(148, 163, 184, 0.1);
+
+    i {
+      font-size: 15px;
+      color: #6366f1;
+      font-weight: 600;
+    }
+
+    span {
+      font-weight: 500;
+    }
+  }
+}
+
+:deep(.p-card-title) {
+  width: 100%;
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    & > i:first-child,
+    & > span:first-of-type {
+      flex-shrink: 0;
+    }
+  }
 }
 
 // DataTable样式增强
