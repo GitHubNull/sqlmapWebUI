@@ -38,6 +38,7 @@ declare module 'vue' {
     Slider: typeof import('primevue/slider')['default']
     Tag: typeof import('primevue/tag')['default']
     TaskFilter: typeof import('./components/TaskFilter.vue')['default']
+    TaskSummary: typeof import('./components/TaskSummary.vue')['default']
     Textarea: typeof import('primevue/textarea')['default']
   }
 }

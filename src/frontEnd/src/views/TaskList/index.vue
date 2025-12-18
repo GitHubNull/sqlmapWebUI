@@ -115,6 +115,13 @@
         </DataTable>
       </template>
     </Card>
+
+    <!-- 任务汇总统计 -->
+    <Card style="margin-top: 20px;">
+      <template #content>
+        <TaskSummary :stats="taskStore.taskStats" />
+      </template>
+    </Card>
   </div>
 </template>
 
@@ -129,6 +136,7 @@ import { TaskStatus } from '@/types/task'
 import type { Task, TaskFilters } from '@/types/task'
 import { formatDateTime } from '@/utils/format'
 import TaskFilter from '@/components/TaskFilter.vue'
+import TaskSummary from '@/components/TaskSummary.vue'
 
 const router = useRouter()
 const taskStore = useTaskStore()
