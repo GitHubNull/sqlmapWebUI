@@ -69,15 +69,15 @@
 
     <!-- 详情内容 -->
     <div v-else-if="task" class="detail-content">
-      <!-- 基础信息 -->
-      <Card class="info-card">
-        <template #title>
-          <div class="card-header">
-            <i class="pi pi-info-circle"></i>
-            <span>基础信息</span>
-          </div>
-        </template>
-        <template #content>
+      <TabView class="detail-tabs">
+        <!-- 基础信息 -->
+        <TabPanel>
+          <template #header>
+            <div class="tab-header">
+              <i class="pi pi-info-circle"></i>
+              <span>基础信息</span>
+            </div>
+          </template>
           <div class="info-grid">
             <div class="info-item">
               <label>任务ID</label>
@@ -93,16 +93,16 @@
             </div>
             <div class="info-item">
               <label>注入状态</label>
-              <Tag 
-                v-if="task.injected === true" 
-                value="可注入" 
-                severity="danger" 
+              <Tag
+                v-if="task.injected === true"
+                value="可注入"
+                severity="danger"
                 icon="pi pi-shield"
               />
-              <Tag 
-                v-else-if="task.injected === false" 
-                value="不可注入" 
-                severity="success" 
+              <Tag
+                v-else-if="task.injected === false"
+                value="不可注入"
+                severity="success"
                 icon="pi pi-lock"
               />
               <span v-else class="value text-muted">未知</span>
@@ -111,10 +111,10 @@
               <label>扫描URL</label>
               <div class="url-display">
                 <span class="value url">{{ task.scanUrl }}</span>
-                <Button 
-                  icon="pi pi-copy" 
-                  text 
-                  rounded 
+                <Button
+                  icon="pi pi-copy"
+                  text
+                  rounded
                   @click="copyToClipboard(task.scanUrl)"
                   v-tooltip.top="'复制URL'"
                 />
@@ -137,18 +137,16 @@
               <span class="value">{{ task.remote_addr || '-' }}</span>
             </div>
           </div>
-        </template>
-      </Card>
+        </TabPanel>
 
-      <!-- HTTP请求信息 -->
-      <Card class="info-card">
-        <template #title>
-          <div class="card-header">
-            <i class="pi pi-globe"></i>
-            <span>HTTP请求信息</span>
-          </div>
-        </template>
-        <template #content>
+        <!-- HTTP请求信息 -->
+        <TabPanel>
+          <template #header>
+            <div class="tab-header">
+              <i class="pi pi-globe"></i>
+              <span>HTTP请求信息</span>
+            </div>
+          </template>
           <div v-if="loadingHttp" class="loading-small">
             <ProgressSpinner style="width: 30px; height: 30px" />
           </div>
@@ -172,18 +170,16 @@
               <span v-else class="text-muted">无</span>
             </div>
           </div>
-        </template>
-      </Card>
+        </TabPanel>
 
-      <!-- 扫描配置 -->
-      <Card class="info-card">
-        <template #title>
-          <div class="card-header">
-            <i class="pi pi-cog"></i>
-            <span>扫描配置</span>
-          </div>
-        </template>
-        <template #content>
+        <!-- 扫描配置 -->
+        <TabPanel>
+          <template #header>
+            <div class="tab-header">
+              <i class="pi pi-cog"></i>
+              <span>扫描配置</span>
+            </div>
+          </template>
           <div v-if="loadingOptions" class="loading-small">
             <ProgressSpinner style="width: 30px; height: 30px" />
           </div>
@@ -198,18 +194,16 @@
             </table>
           </div>
           <span v-else class="text-muted">无配置信息</span>
-        </template>
-      </Card>
+        </TabPanel>
 
-      <!-- 扫描结果 -->
-      <Card class="info-card">
-        <template #title>
-          <div class="card-header">
-            <i class="pi pi-chart-bar"></i>
-            <span>扫描结果</span>
-          </div>
-        </template>
-        <template #content>
+        <!-- 扫描结果 -->
+        <TabPanel v-if="payloadData && payloadData.length > 0">
+          <template #header>
+            <div class="tab-header">
+              <i class="pi pi-chart-bar"></i>
+              <span>扫描结果</span>
+            </div>
+          </template>
           <div v-if="loadingPayload" class="loading-small">
             <ProgressSpinner style="width: 30px; height: 30px" />
           </div>
@@ -225,39 +219,16 @@
               </Column>
             </DataTable>
           </div>
-          <span v-else class="text-muted">无扫描结果</span>
-        </template>
-      </Card>
+        </TabPanel>
 
-      <!-- 任务日志 -->
-      <Card class="info-card">
-        <template #title>
-          <div class="card-header">
-            <i class="pi pi-file"></i>
-            <span>任务日志</span>
-            <div class="log-actions">
-              <Button
-                v-if="logs && logs.length > 0"
-                icon="pi pi-copy"
-                text
-                rounded
-                @click="copyLogsToClipboard"
-                v-tooltip.top="'复制全部日志'"
-                class="log-action-btn"
-              />
-              <Button
-                icon="pi pi-refresh"
-                text
-                rounded
-                @click="() => loadLogs()"
-                :loading="loadingLogs"
-                v-tooltip.top="'刷新日志'"
-                class="log-action-btn"
-              />
+        <!-- 任务日志 -->
+        <TabPanel>
+          <template #header>
+            <div class="tab-header">
+              <i class="pi pi-file"></i>
+              <span>任务日志</span>
             </div>
-          </div>
-        </template>
-        <template #content>
+          </template>
           <div v-if="loadingLogs" class="loading-small">
             <ProgressSpinner style="width: 30px; height: 30px" />
           </div>
@@ -280,6 +251,24 @@
                 <span>错误: {{ logs.filter(l => l.includes('[ERROR]')).length }}</span>
               </div>
             </div>
+            <div class="log-actions" style="margin-bottom: 16px;">
+              <Button
+                v-if="logs && logs.length > 0"
+                icon="pi pi-copy"
+                :label="'复制全部日志'"
+                text
+                @click="copyLogsToClipboard"
+                class="p-button-sm"
+              />
+              <Button
+                icon="pi pi-refresh"
+                :label="'刷新'"
+                text
+                @click="() => loadLogs()"
+                :loading="loadingLogs"
+                class="p-button-sm"
+              />
+            </div>
             <div class="logs-container" ref="logsContainerRef">
               <pre class="logs-pre">
                 <code v-html="generateHighlightedLogs()"></code>
@@ -288,18 +277,16 @@
           </div>
           <span v-else-if="logs === null" class="text-muted">正在加载日志...</span>
           <span v-else class="text-muted">无日志记录</span>
-        </template>
-      </Card>
+        </TabPanel>
 
-      <!-- 错误记录 -->
-      <Card v-if="errors && errors.length > 0" class="info-card">
-        <template #title>
-          <div class="card-header">
-            <i class="pi pi-exclamation-triangle"></i>
-            <span>错误记录</span>
-          </div>
-        </template>
-        <template #content>
+        <!-- 错误记录 -->
+        <TabPanel v-if="errors && errors.length > 0">
+          <template #header>
+            <div class="tab-header">
+              <i class="pi pi-exclamation-triangle"></i>
+              <span>错误记录</span>
+            </div>
+          </template>
           <div class="errors-container">
             <Message
               v-for="(error, index) in errors"
@@ -310,14 +297,14 @@
               {{ error }}
             </Message>
           </div>
-        </template>
-      </Card>
+        </TabPanel>
+      </TabView>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
@@ -1296,6 +1283,182 @@ function copyLogsToClipboard() {
 
   .logs-container {
     max-height: 300px;
+  }
+}
+
+// TabView 样式增强
+.detail-tabs {
+  :deep(.p-tabview-nav) {
+    border: none;
+    background: transparent;
+    display: flex;
+    gap: 16px;
+    padding: 0 16px;
+  }
+
+  :deep(.p-tabview-nav li) {
+    margin: 0;
+    background: transparent;
+    flex: 0 0 auto;
+  }
+
+  :deep(.p-tabview-nav-link) {
+    border: none !important;
+    border-top: 3px solid transparent !important;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.6) 100%) !important;
+    border-radius: 10px 10px 0 0 !important;
+    padding: 14px 28px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.8) 100%) !important;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      border-top: 3px solid rgba(99, 102, 241, 0.3) !important;
+    }
+
+    .p-tabview-title {
+      color: #4b5563;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    i {
+      transition: all 0.3s ease;
+    }
+  }
+
+  :deep(.p-tabview-nav li.p-highlight .p-tabview-nav-link) {
+    background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%) !important;
+    border-top: 3px solid #0ea5e9 !important;
+    box-shadow: 0 8px 16px rgba(99, 102, 241, 0.4), 0 0 20px rgba(99, 102, 241, 0.2) !important;
+    transform: translateY(-4px);
+
+    .p-tabview-title {
+      color: white !important;
+      font-weight: 700;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    i {
+      color: white !important;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    }
+  }
+
+  :deep(.p-tabview-panels) {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.85) 100%);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 0 0 16px 16px;
+    box-shadow:
+      0 8px 12px -2px rgba(0, 0, 0, 0.1),
+      0 4px 6px -2px rgba(0, 0, 0, 0.05),
+      inset 0 1px 2px rgba(255, 255, 255, 0.6);
+    padding: 32px;
+    margin-top: -4px;
+  }
+
+  :deep(.p-tabview-panel) {
+    background: transparent;
+    padding: 0;
+  }
+}
+
+.tab-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+
+  i {
+    font-size: 18px;
+    color: #6366f1;
+    transition: all 0.3s ease;
+  }
+
+  span {
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+}
+
+// 响应式Tab样式
+@media (max-width: 768px) {
+  .detail-tabs {
+    :deep(.p-tabview-nav) {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 0 12px;
+      gap: 8px;
+    }
+
+    :deep(.p-tabview-nav-link) {
+      padding: 12px 16px !important;
+      min-width: auto;
+    }
+
+    :deep(.p-tabview-panels) {
+      padding: 20px;
+    }
+
+    .tab-header {
+      gap: 8px;
+      padding: 4px 8px;
+
+      i {
+        font-size: 16px;
+      }
+
+      span {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// 暗黑模式Tab样式
+.dark-mode {
+  .detail-tabs {
+    :deep(.p-tabview-nav-link) {
+      background: linear-gradient(145deg, rgba(51, 65, 85, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%) !important;
+      border-top: 3px solid transparent !important;
+
+      .p-tabview-title {
+        color: #e2e8f0 !important;
+      }
+
+      i {
+        color: #a5b4fc !important;
+      }
+
+      &:hover {
+        background: linear-gradient(145deg, rgba(71, 85, 105, 0.9) 0%, rgba(51, 65, 85, 0.7) 100%) !important;
+        border-top: 3px solid rgba(99, 102, 241, 0.4) !important;
+      }
+    }
+
+    :deep(.p-tabview-nav li.p-highlight .p-tabview-nav-link) {
+      background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important;
+      border-top: 3px solid #0ea5e9 !important;
+      box-shadow: 0 8px 16px rgba(99, 102, 241, 0.5), 0 0 25px rgba(99, 102, 241, 0.3) !important;
+
+      .p-tabview-title {
+        font-weight: 700 !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+      }
+
+      i {
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+      }
+    }
+
+    :deep(.p-tabview-panels) {
+      background: linear-gradient(145deg, #334155 0%, #1e293b 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
   }
 }
 </style>
