@@ -52,10 +52,10 @@
           </div>
         </div>
         
-        <DataTable 
+        <DataTable
           v-model:selection="selectedTasks"
-          :value="taskStore.sortedTaskList" 
-          :loading="taskStore.loading" 
+          :value="taskStore.sortedTaskList"
+          :loading="taskStore.loading"
           stripedRows
           paginator
           :rows="20"
@@ -70,40 +70,42 @@
           @sort="handleSort"
           dataKey="taskid"
           class="fixed-paginator-table"
+          resizableColumns
+          columnResizeMode="fit"
         >
           <!-- 选择列 -->
           <Column selectionMode="multiple" headerStyle="width: 3rem" :exportable="false" frozen />
-          <Column field="engineid" header="任务ID" :style="{ minWidth: '100px' }" sortable />
-          <Column field="scanUrl" header="扫描URL" :style="{ minWidth: '300px', maxWidth: '400px' }" sortable>
+          <Column field="engineid" header="任务ID" :style="{ minWidth: '80px', maxWidth: '120px' }" sortable />
+          <Column field="scanUrl" header="扫描URL" :style="{ minWidth: '250px', maxWidth: '600px' }" sortable>
             <template #body="{ data }">
               <div class="url-cell" :title="data.scanUrl">
                 {{ data.scanUrl }}
               </div>
             </template>
           </Column>
-          <Column field="host" header="主机" :style="{ minWidth: '150px' }" sortable />
-          <Column field="injected" header="是否存在注入" :style="{ minWidth: '120px' }" sortable>
+          <Column field="host" header="主机" :style="{ minWidth: '120px', maxWidth: '300px' }" sortable />
+          <Column field="injected" header="是否存在注入" :style="{ minWidth: '120px', maxWidth: '200px' }" sortable>
             <template #body="{ data }">
-              <Tag 
-                v-if="data.injected !== undefined && data.injected !== null" 
-                :value="data.injected ? '存在注入' : '无注入'" 
-                :severity="data.injected ? 'danger' : 'success'" 
+              <Tag
+                v-if="data.injected !== undefined && data.injected !== null"
+                :value="data.injected ? '存在注入' : '无注入'"
+                :severity="data.injected ? 'danger' : 'success'"
                 :icon="data.injected ? 'pi pi-exclamation-triangle' : 'pi pi-check-circle'"
               />
               <Tag v-else value="未知" severity="secondary" icon="pi pi-question-circle" />
             </template>
           </Column>
-          <Column field="status" header="状态" :style="{ minWidth: '100px' }" sortable>
+          <Column field="status" header="状态" :style="{ minWidth: '100px', maxWidth: '150px' }" sortable>
             <template #body="{ data }">
               <Tag :value="getStatusLabel(data.status)" :severity="getStatusSeverity(data.status)" />
             </template>
           </Column>
-          <Column field="createTime" header="创建时间" :style="{ minWidth: '180px' }" sortable>
+          <Column field="createTime" header="创建时间" :style="{ minWidth: '160px', maxWidth: '250px' }" sortable>
             <template #body="{ data }">
               {{ formatDateTime(data.createTime) }}
             </template>
           </Column>
-          <Column header="操作" :style="{ minWidth: '150px', width: '150px' }" frozen alignFrozen="right">
+          <Column header="操作" :style="{ minWidth: '150px', maxWidth: '200px' }" frozen alignFrozen="right">
             <template #body="{ data }">
               <div class="action-buttons">
                 <Button icon="pi pi-eye" @click="viewTask(data)" text rounded v-tooltip.top="'查看详情'" />
@@ -708,7 +710,7 @@ function confirmDeleteAll() {
 :deep(.fixed-paginator-table) {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 580px);  // 从540px改为580px，完全消除滚动条
+  height: calc(100vh - 580px);
 
   .p-datatable-wrapper {
     flex: 1;
@@ -723,7 +725,7 @@ function confirmDeleteAll() {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    box-shadow: 
+    box-shadow:
       0 -2px 8px rgba(0, 0, 0, 0.08),
       inset 0 1px 2px rgba(255, 255, 255, 0.4);
     border-top: 2px solid rgba(99, 102, 241, 0.1);
