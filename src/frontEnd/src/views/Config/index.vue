@@ -191,7 +191,7 @@ function handleRefreshIntervalChange() {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.6) 100%);
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 0 0 $border-radius-lg $border-radius-lg;
-    padding: 32px;
+    padding: 32px 0; // 只保留上下内边距，左右边界对齐
     box-shadow: $shadow-elevated;
   }
 }
@@ -200,12 +200,14 @@ function handleRefreshIntervalChange() {
   margin-bottom: 40px;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.6) 100%);
-  border-radius: $border-radius-xl;
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 0; // 移除圆角，使边框对齐
+  border: none; // 移除边框
+  border-top: 2px solid rgba(255, 255, 255, 0.4);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.4);
   box-shadow:
     $shadow-elevated,
     inset 0 2px 4px rgba(255, 255, 255, 0.5);
-  padding: 32px;
+  padding: 32px 0; // 只保留上下内边距
   position: relative;
   overflow: hidden;
 
@@ -265,21 +267,19 @@ function handleRefreshIntervalChange() {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 800px;  // 扩大到800px，适应更多配置项
+  max-width: 100%;  // 占满宽度
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(248, 250, 252, 0.4) 100%);
-  padding: 24px;
-  border-radius: $border-radius-lg;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  box-shadow: $shadow-raised;
+  padding: 24px 0; // 只保留上下内边距
+  border-radius: 0; // 移除圆角
+  border: none; // 移除边框
+  box-shadow: none; // 移除阴影
   position: relative;
   z-index: 2;
   transition: $transition-base;
   overflow: visible;  // 允许60标签溢出显示
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: $shadow-elevated;
     background:
       linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.6) 100%);
   }
