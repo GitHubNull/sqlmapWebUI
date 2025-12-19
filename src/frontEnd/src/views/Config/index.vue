@@ -29,11 +29,11 @@
                 <label>自动刷新间隔 ({{ configStore.autoRefreshInterval }} 分钟)</label>
                 <div class="slider-container" :style="{ '--handle-color': handleColor }">
                   <Slider 
-                    v-model="configStore.autoRefreshInterval" 
+                    v-model="sliderDisplayValue" 
                     :min="5" 
                     :max="60" 
-                    :step="5"
-                    @change="handleRefreshIntervalChange"
+                    :step="1"
+                    @slideend="handleSliderEnd"
                     class="refresh-slider"
                   />
                   <!-- 刻度尺标记 -->
@@ -82,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useConfigStore } from '@/stores/config'
 import Tabs from 'primevue/tabs'
 import TabList from 'primevue/tablist'
@@ -93,30 +93,55 @@ import HeaderRulesConfig from './components/HeaderRulesConfig.vue'
 import SessionHeadersConfig from './components/SessionHeadersConfig.vue'
 
 const configStore = useConfigStore()
-const activeTab = ref('0') // 改为字符串类型
+const activeTab = ref('0')
+
+// 用于显示的临时滑块值（平滑拖动）
+const sliderDisplayValue = ref(configStore.autoRefreshInterval)
+
+// 监听store值变化，同步到显示值
+onMounted(() => {
+  sliderDisplayValue.value = configStore.autoRefreshInterval
+})
+
+watch(() => configStore.autoRefreshInterval, (newVal) => {
+  sliderDisplayValue.value = newVal
+})
+
+// 滑块释放时吸附到最近的刻度
+function handleSliderEnd() {
+  const currentValue = sliderDisplayValue.value
+  // 计算最近的刻度值（5的倍数）
+  const snappedValue = Math.round(currentValue / 5) * 5
+  // 确保在范围内
+  const finalValue = Math.max(5, Math.min(60, snappedValue))
+  
+  // 平滑吸附动画
+  sliderDisplayValue.value = finalValue
+  
+  // 更新store
+  if (finalValue !== configStore.autoRefreshInterval) {
+    configStore.updateAutoRefreshInterval(finalValue)
+  }
+}
 
 // 根据滑块位置计算游标颜色（红-黄-绿渐变）
 const handleColor = computed(() => {
-  const value = configStore.autoRefreshInterval
+  const value = sliderDisplayValue.value
   const min = 5
   const max = 60
   const percent = (value - min) / (max - min) // 0-1
   
   // 颜色节点: 红(0%) -> 橙(15%) -> 黄(35%) -> 黄绿(55%) -> 绿(100%)
   if (percent <= 0.15) {
-    // 红色到橙色
     const t = percent / 0.15
     return interpolateColor('#ef4444', '#f97316', t)
   } else if (percent <= 0.35) {
-    // 橙色到黄色
     const t = (percent - 0.15) / 0.20
     return interpolateColor('#f97316', '#fbbf24', t)
   } else if (percent <= 0.55) {
-    // 黄色到黄绿
     const t = (percent - 0.35) / 0.20
     return interpolateColor('#fbbf24', '#84cc16', t)
   } else {
-    // 黄绿到绿色
     const t = (percent - 0.55) / 0.45
     return interpolateColor('#84cc16', '#22c55e', t)
   }
@@ -136,11 +161,6 @@ function interpolateColor(color1: string, color2: string, t: number): string {
   const b = Math.round(b1 + (b2 - b1) * t)
   
   return `rgb(${r}, ${g}, ${b})`
-}
-
-function handleRefreshIntervalChange() {
-  configStore.updateAutoRefreshInterval(configStore.autoRefreshInterval)
-  // 移除弹窗提示，避免拖动时频繁弹窗
 }
 </script>
 
