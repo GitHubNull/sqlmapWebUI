@@ -251,5 +251,5 @@ const router = useRouter()
 </script>
 
 <style scoped lang="scss">
-@import './styles/taskDetail.scss';
+@use './styles/taskDetail.scss' as *;
 </style>
