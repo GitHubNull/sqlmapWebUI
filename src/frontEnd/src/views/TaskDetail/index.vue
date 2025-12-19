@@ -34,14 +34,14 @@
               icon="pi pi-stop"
               label="停止任务"
               severity="warning"
-              @click="handleStopTask"
+              @click="handleStopTask($event)"
             />
             <Button
               v-if="task && task.status !== TaskStatus.RUNNING"
               icon="pi pi-trash"
               label="删除任务"
               severity="danger"
-              @click="handleDeleteTask"
+              @click="handleDeleteTask($event)"
             />
           </div>
         </div>

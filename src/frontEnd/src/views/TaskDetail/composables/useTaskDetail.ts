@@ -467,10 +467,12 @@ export function useTaskDetail() {
     showAdvancedLogSearch.value = !showAdvancedLogSearch.value
   }
 
-  function handleStopTask() {
+  function handleStopTask(event: Event) {
     if (!task.value) return
 
     confirm.require({
+      target: event.currentTarget as HTMLElement,
+      group: 'popup',
       message: '确定要停止该任务吗？',
       header: '确认停止',
       icon: 'pi pi-exclamation-triangle',
@@ -499,10 +501,12 @@ export function useTaskDetail() {
     })
   }
 
-  function handleDeleteTask() {
+  function handleDeleteTask(event: Event) {
     if (!task.value) return
 
     confirm.require({
+      target: event.currentTarget as HTMLElement,
+      group: 'popup',
       message: '确定要删除该任务吗？此操作不可恢复。',
       header: '确认删除',
       icon: 'pi pi-exclamation-triangle',

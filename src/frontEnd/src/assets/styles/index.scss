@@ -1320,3 +1320,346 @@
     }
   }
 }
+
+// ==================== PrimeVue ConfirmDialog 美化样式 ====================
+
+// ConfirmPopup 样式（出现在按钮附近）
+.p-confirmpopup {
+  border-radius: 12px !important;
+  overflow: visible;
+  box-shadow: 
+    0 10px 40px -10px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%) !important;
+  border: none !important;
+  min-width: 280px;
+  max-width: 360px;
+  animation: confirmPopupEnter 0.2s ease-out;
+  
+  // 箭头样式
+  &::before,
+  &::after {
+    border-color: transparent !important;
+  }
+
+  // 内容区
+  .p-confirmpopup-content {
+    padding: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  // 图标
+  .p-confirmpopup-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+    
+    &.pi-exclamation-triangle {
+      color: #f59e0b;
+    }
+  }
+
+  // 消息文本
+  .p-confirmpopup-message {
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.5;
+    padding-top: 8px;
+  }
+
+  // 按钮区
+  .p-confirmpopup-footer {
+    padding: 12px 20px 16px 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 0 0 12px 12px;
+    
+    .p-button {
+      min-width: 72px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 6px;
+      
+      // 取消按钮
+      &.p-button-text {
+        background: transparent !important;
+        color: #64748b !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: none !important;
+        
+        &:hover {
+          background: #f1f5f9 !important;
+          border-color: #cbd5e1 !important;
+          color: #475569 !important;
+        }
+      }
+      
+      // 危险操作按钮
+      &.p-button-danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+        border: none !important;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
+        
+        &:hover {
+          background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+          box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4) !important;
+        }
+      }
+      
+      // 警告操作按钮
+      &.p-button-warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+        border: none !important;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3) !important;
+        
+        &:hover {
+          background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+          box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4) !important;
+        }
+      }
+    }
+  }
+}
+
+// ConfirmPopup 进入动画
+@keyframes confirmPopupEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(-5px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+// 暗黑模式下的 ConfirmPopup
+.dark-mode {
+  .p-confirmpopup {
+    background: linear-gradient(145deg, #334155 0%, #1e293b 100%) !important;
+    box-shadow: 
+      0 10px 40px -10px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+    
+    .p-confirmpopup-message {
+      color: #cbd5e1;
+    }
+    
+    .p-confirmpopup-footer {
+      background: linear-gradient(135deg, #3d4f66 0%, #2d3c50 100%);
+      border-top-color: rgba(255, 255, 255, 0.05);
+      
+      .p-button.p-button-text {
+        background: transparent !important;
+        color: #94a3b8 !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+        
+        &:hover {
+          background: rgba(255, 255, 255, 0.1) !important;
+          border-color: rgba(255, 255, 255, 0.2) !important;
+          color: #e2e8f0 !important;
+        }
+      }
+    }
+  }
+}
+
+.p-confirmdialog {
+  // 弹窗整体样式
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%) !important;
+  border: none !important;
+  min-width: 380px;
+  max-width: 500px;
+  animation: confirmDialogEnter 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  // 弹窗头部
+  .p-confirmdialog-header {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 20px 24px 16px 24px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    
+    .p-confirmdialog-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1e293b;
+      letter-spacing: -0.01em;
+    }
+  }
+
+  // 弹窗图标
+  .p-confirmdialog-icon {
+    font-size: 28px;
+    margin-right: 16px;
+    
+    // 警告图标样式
+    &.pi-exclamation-triangle {
+      color: #f59e0b;
+    }
+    
+    // 信息图标样式
+    &.pi-info-circle {
+      color: #3b82f6;
+    }
+    
+    // 错误图标样式
+    &.pi-times-circle {
+      color: #ef4444;
+    }
+  }
+
+  // 弹窗内容区
+  .p-confirmdialog-content {
+    padding: 20px 24px;
+    
+    .p-confirmdialog-message {
+      font-size: 15px;
+      color: #475569;
+      line-height: 1.6;
+      margin: 0;
+    }
+  }
+
+  // 弹窗底部按钮区
+  .p-confirmdialog-footer {
+    padding: 16px 24px 20px 24px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    gap: 12px;
+    display: flex;
+    justify-content: flex-end;
+    
+    .p-button {
+      min-width: 90px;
+      padding: 10px 20px;
+      font-weight: 500;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      
+      // 取消按钮
+      &.p-button-text {
+        background: transparent !important;
+        color: #64748b !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: none !important;
+        
+        &:hover {
+          background: #f1f5f9 !important;
+          border-color: #cbd5e1 !important;
+          color: #475569 !important;
+          transform: translateY(-1px);
+        }
+      }
+      
+      // 危险操作按钮（删除）
+      &.p-button-danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+        border: none !important;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
+        
+        &:hover {
+          background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+          box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4) !important;
+          transform: translateY(-2px);
+        }
+        
+        &:active {
+          transform: translateY(0);
+          box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
+        }
+      }
+      
+      // 警告操作按钮（停止）
+      &.p-button-warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+        border: none !important;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3) !important;
+        
+        &:hover {
+          background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+          box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4) !important;
+          transform: translateY(-2px);
+        }
+        
+        &:active {
+          transform: translateY(0);
+          box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3) !important;
+        }
+      }
+    }
+  }
+}
+
+// 确认弹窗进入动画
+@keyframes confirmDialogEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+// 遮罩层样式
+.p-dialog-mask {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  background: rgba(15, 23, 42, 0.5) !important;
+}
+
+// 暗黑模式下的确认弹窗
+.dark-mode {
+  .p-confirmdialog {
+    background: linear-gradient(145deg, #334155 0%, #1e293b 100%) !important;
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+    
+    .p-confirmdialog-header {
+      background: linear-gradient(135deg, #3d4f66 0%, #2d3c50 100%);
+      border-bottom-color: rgba(255, 255, 255, 0.05);
+      
+      .p-confirmdialog-title {
+        color: #f1f5f9;
+      }
+    }
+    
+    .p-confirmdialog-content {
+      .p-confirmdialog-message {
+        color: #cbd5e1;
+      }
+    }
+    
+    .p-confirmdialog-footer {
+      background: linear-gradient(135deg, #3d4f66 0%, #2d3c50 100%);
+      border-top-color: rgba(255, 255, 255, 0.05);
+      
+      .p-button.p-button-text {
+        background: transparent !important;
+        color: #94a3b8 !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+        
+        &:hover {
+          background: rgba(255, 255, 255, 0.1) !important;
+          border-color: rgba(255, 255, 255, 0.2) !important;
+          color: #e2e8f0 !important;
+        }
+      }
+    }
+  }
+  
+  .p-dialog-mask {
+    background: rgba(0, 0, 0, 0.7) !important;
+  }
+}

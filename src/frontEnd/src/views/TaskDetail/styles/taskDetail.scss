@@ -60,10 +60,12 @@
   display: flex;
   gap: 12px;
   align-items: center;
+  margin-right: 16px;
 
   @media (max-width: 768px) {
     flex-wrap: wrap;
     justify-content: flex-end;
+    margin-right: 8px;
   }
 }
 

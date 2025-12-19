@@ -4,6 +4,7 @@ import { useAuthStore } from './stores/auth'
 import { initToast } from './api/request'
 import Toast from 'primevue/toast'
 import ConfirmDialog from 'primevue/confirmdialog'
+import ConfirmPopup from 'primevue/confirmpopup'
 import OfflineBanner from './components/OfflineBanner.vue'
 
 const authStore = useAuthStore()
@@ -19,6 +20,7 @@ onMounted(() => {
 <template>
   <Toast position="top-right" />
   <ConfirmDialog />
+    <ConfirmPopup group="popup" />
   <OfflineBanner />
   <router-view />
 </template>
