@@ -199,11 +199,18 @@
       inset 0 1px 2px rgba(255, 255, 255, 0.6);
     padding: 32px;
     margin-top: -4px;
+    // 固定高度，避免切换标签页时闪烁
+    height: calc(100vh - 400px);
+    min-height: 300px;
+    overflow: hidden;
   }
 
   :deep(.p-tabpanel) {
     background: transparent;
     padding: 0;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 }
 

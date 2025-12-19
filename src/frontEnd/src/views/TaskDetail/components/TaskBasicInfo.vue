@@ -114,8 +114,9 @@ function copyToClipboard(text: string) {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 24px;
-  // 动态计算高度，为顶部导航、页面头部、Tabs标签和底部dock栏留出空间
-  max-height: calc(100vh - 450px);
+  // 自适应父容器高度
+  height: 100%;
+  max-height: 100%;
   overflow-y: auto;
   padding-right: 8px;
 

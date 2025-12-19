@@ -30,8 +30,8 @@ defineProps<Props>()
 
 <style scoped lang="scss">
 .results-container {
-  // 动态计算高度，为顶部导航、页面头部、Tabs标签和底部dock栏留出空间
-  max-height: calc(100vh - 480px);
+  // 自适应父容器高度
+  height: 100%;
   min-height: 200px;
   overflow: hidden;
 }

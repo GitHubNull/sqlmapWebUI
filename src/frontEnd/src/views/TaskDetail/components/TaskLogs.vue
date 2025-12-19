@@ -497,8 +497,8 @@ function copyLogsToClipboard() {
 }
 
 .logs-container {
-  // 动态计算高度，为顶部导航、页面头部、Tabs标签、工具栏和底部dock栏留出空间
-  max-height: calc(100vh - 650px);
+  // 自适应父容器高度，减去工具栏和按钮区域高度
+  height: calc(100% - 180px);
   min-height: 200px;
   overflow-y: auto;
   overflow-x: auto;

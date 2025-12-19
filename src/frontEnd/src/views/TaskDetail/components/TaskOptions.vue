@@ -304,8 +304,8 @@ function highlightMatch(text: string): string {
   padding: 0;
   border: 1px solid var(--p-content-border-color);
   overflow-x: auto;
-  // 动态计算高度，为顶部导航、页面头部、Tabs标签、工具栏和底部dock栏留出空间
-  max-height: calc(100vh - 560px);
+  // 自适应父容器高度，减去工具栏高度
+  height: calc(100% - 80px);
   min-height: 200px;
   overflow-y: auto;
 
