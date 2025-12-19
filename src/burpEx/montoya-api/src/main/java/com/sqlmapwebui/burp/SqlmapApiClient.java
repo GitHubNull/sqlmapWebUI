@@ -1,5 +1,7 @@
 package com.sqlmapwebui.burp;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import okhttp3.*;
 
 import java.io.IOException;
@@ -29,11 +31,11 @@ public class SqlmapApiClient {
     }
     
     /**
-     * 获取后端版本信息
+     * 获取后端版本信息 (via health check endpoint)
      */
     public String getVersion() throws IOException {
         Request request = new Request.Builder()
-            .url(baseUrl + "/api/version")
+            .url(baseUrl + "/api/health")
             .get()
             .build();
         
@@ -43,7 +45,15 @@ public class SqlmapApiClient {
             }
             
             ResponseBody body = response.body();
-            return body != null ? body.string() : "unknown";
+            String responseBody = body != null ? body.string() : "";
+            
+            // 解析JSON获取版本号
+            JsonObject json = JsonParser.parseString(responseBody).getAsJsonObject();
+            if (json.has("data") && json.get("data").isJsonObject()) {
+                JsonObject data = json.getAsJsonObject("data");
+                return data.has("version") ? data.get("version").getAsString() : "unknown";
+            }
+            return "unknown";
         }
     }
     
@@ -54,7 +64,7 @@ public class SqlmapApiClient {
         RequestBody body = RequestBody.create(jsonPayload, JSON);
         
         Request request = new Request.Builder()
-            .url(baseUrl + "/burp/admin/scan")
+            .url(baseUrl + "/api/burpsuite/admin/task/add")
             .post(body)
             .build();
         

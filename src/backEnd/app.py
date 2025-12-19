@@ -44,7 +44,12 @@ async def read_root():
 def get_version():
     """获取系统版本信息"""
     return {
-        "version": VERSION
+        "code": 200,
+        "success": True,
+        "message": "success",
+        "data": {
+            "version": VERSION
+        }
     }
 
 @app.get("/api/health")

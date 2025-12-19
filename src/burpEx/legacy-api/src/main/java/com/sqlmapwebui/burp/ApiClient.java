@@ -35,11 +35,11 @@ public class ApiClient {
     }
     
     /**
-     * Get backend version
+     * Get backend version via health check endpoint
      */
     public String getVersion() throws IOException {
         Request request = new Request.Builder()
-            .url(baseUrl + "/api/version")
+            .url(baseUrl + "/api/health")
             .get()
             .build();
         
@@ -66,7 +66,7 @@ public class ApiClient {
         RequestBody body = RequestBody.create(jsonPayload, JSON);
         
         Request request = new Request.Builder()
-            .url(baseUrl + "/burp/admin/task/add")
+            .url(baseUrl + "/api/burpsuite/admin/task/add")
             .post(body)
             .addHeader("Content-Type", "application/json")
             .build();
@@ -87,7 +87,7 @@ public class ApiClient {
      */
     public String getTaskList() throws IOException {
         Request request = new Request.Builder()
-            .url(baseUrl + "/burp/admin/task/list")
+            .url(baseUrl + "/api/burpsuite/admin/task/list")
             .get()
             .build();
         
@@ -104,7 +104,7 @@ public class ApiClient {
      */
     public String stopTask(String taskId) throws IOException {
         Request request = new Request.Builder()
-            .url(baseUrl + "/burp/admin/task/stop?taskId=" + taskId)
+            .url(baseUrl + "/api/burpsuite/admin/task/stop?taskId=" + taskId)
             .put(RequestBody.create("", JSON))
             .build();
         
@@ -121,7 +121,7 @@ public class ApiClient {
      */
     public String deleteTask(String taskId) throws IOException {
         Request request = new Request.Builder()
-            .url(baseUrl + "/burp/admin/task/delete?taskId=" + taskId)
+            .url(baseUrl + "/api/burpsuite/admin/task/delete?taskId=" + taskId)
             .delete()
             .build();
         
@@ -138,7 +138,7 @@ public class ApiClient {
      */
     public String getTaskLogs(String taskId) throws IOException {
         Request request = new Request.Builder()
-            .url(baseUrl + "/burp/admin/task/logs/getLogsByTaskId?taskId=" + taskId)
+            .url(baseUrl + "/api/burpsuite/admin/task/logs/getLogsByTaskId?taskId=" + taskId)
             .get()
             .build();
         
