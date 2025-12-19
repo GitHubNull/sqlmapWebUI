@@ -205,7 +205,7 @@ const levelOptions = [
 // 计算属性：是否显示高级搜索
 const showAdvancedSearch = computed({
   get: () => props.showAdvancedSearch,
-  set: (value) => emit('toggleAdvancedSearch')
+  set: (_value) => emit('toggleAdvancedSearch')
 })
 
 // 计算属性：搜索关键词

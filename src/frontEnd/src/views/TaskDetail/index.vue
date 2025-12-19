@@ -237,7 +237,7 @@ const {
   refreshData,
   getStatusLabel,
   getStatusSeverity,
-  copyLogsToClipboard,
+  // copyLogsToClipboard, // 已移至TaskLogs组件内部实现
   loadLogs,
   executeLogSearch,
   resetLogFilters,

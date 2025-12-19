@@ -14,8 +14,9 @@
           <input
             v-model="httpRequestSearch"
             type="text"
-            placeholder="搜索HTTP报文..."
+            :placeholder="useRegex ? '输入正则表达式...' : '搜索HTTP报文...'"
             class="search-input"
+            @keyup.enter="executeSearch"
           />
           <Button
             v-if="httpRequestSearch"
@@ -23,18 +24,63 @@
             text
             rounded
             class="clear-search-btn"
-            @click="httpRequestSearch = ''"
+            @click="clearSearch"
           />
         </div>
-        <div class="filter-controls">
+        <div class="toolbar-actions">
+          <!-- 高级搜索开关 -->
+          <Button
+            :icon="showAdvancedSearch ? 'pi pi-chevron-up' : 'pi pi-sliders-h'"
+            :label="showAdvancedSearch ? '收起' : '高级'"
+            text
+            size="small"
+            @click="showAdvancedSearch = !showAdvancedSearch"
+            v-tooltip.top="'高级搜索选项'"
+          />
+          <!-- 显示匹配切换 -->
           <ToggleButton
             v-model="showOnlyMatches"
-            onLabel="显示匹配"
-            offLabel="显示全部"
+            onLabel="匹配行"
+            offLabel="全部"
             onIcon="pi pi-filter"
             offIcon="pi pi-filter-slash"
             class="p-button-sm"
           />
+          <!-- 复制按钮 -->
+          <Button
+            icon="pi pi-copy"
+            label="复制"
+            severity="secondary"
+            size="small"
+            @click="copyHttpRequest"
+            v-tooltip.top="'复制原始HTTP报文'"
+          />
+        </div>
+      </div>
+
+      <!-- 高级搜索面板 -->
+      <div v-if="showAdvancedSearch" class="advanced-search-panel">
+        <div class="advanced-options">
+          <div class="option-item">
+            <Checkbox v-model="useRegex" inputId="useRegex" binary />
+            <label for="useRegex">正则匹配</label>
+          </div>
+          <div class="option-item">
+            <Checkbox v-model="caseSensitive" inputId="caseSensitive" binary />
+            <label for="caseSensitive">大小写敏感</label>
+          </div>
+          <div class="option-item">
+            <Checkbox v-model="invertMatch" inputId="invertMatch" binary />
+            <label for="invertMatch">反转过滤</label>
+          </div>
+        </div>
+        <div class="search-stats" v-if="httpRequestSearch">
+          <span v-if="regexError" class="regex-error">
+            <i class="pi pi-exclamation-triangle"></i> {{ regexError }}
+          </span>
+          <span v-else class="match-count">
+            匹配 {{ matchCount }} 行 / 共 {{ totalLines }} 行
+          </span>
         </div>
       </div>
 
@@ -50,8 +96,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useToast } from 'primevue/usetoast'
 import type { Task } from '@/types/task'
-import { formatHttpRequest, highlightHttpRequest, filterHttpRequest } from '@/utils/requestFormatter'
+import { formatHttpRequest, highlightHttpRequest as highlightHttp } from '@/utils/requestFormatter'
 
 interface Props {
   task: Task
@@ -60,11 +107,19 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const toast = useToast()
 
 // HTTP请求报文相关状态
 const httpRequestSearch = ref('')
 const showOnlyMatches = ref(false)
 const httpRequestRef = ref<HTMLElement | null>(null)
+
+// 高级搜索状态
+const showAdvancedSearch = ref(false)
+const useRegex = ref(false)
+const caseSensitive = ref(false)
+const invertMatch = ref(false)
+const regexError = ref('')
 
 // 计算属性：格式化HTTP请求报文
 const httpRequest = computed(() => {
@@ -72,6 +127,52 @@ const httpRequest = computed(() => {
     return ''
   }
   return formatHttpRequest(props.httpInfo, props.task)
+})
+
+// 计算属性：总行数
+const totalLines = computed(() => {
+  if (!httpRequest.value) return 0
+  return httpRequest.value.split('\n').length
+})
+
+// 高级过滤函数
+const filterLines = (lines: string[], keyword: string): string[] => {
+  if (!keyword.trim()) return lines
+  
+  regexError.value = ''
+  
+  let matchFn: (line: string) => boolean
+  
+  if (useRegex.value) {
+    try {
+      const flags = caseSensitive.value ? 'g' : 'gi'
+      const regex = new RegExp(keyword, flags)
+      matchFn = (line: string) => regex.test(line)
+    } catch (e: any) {
+      regexError.value = '无效的正则表达式: ' + e.message
+      return lines
+    }
+  } else {
+    if (caseSensitive.value) {
+      matchFn = (line: string) => line.includes(keyword)
+    } else {
+      const lowerKeyword = keyword.toLowerCase()
+      matchFn = (line: string) => line.toLowerCase().includes(lowerKeyword)
+    }
+  }
+  
+  // 应用反转过滤
+  if (invertMatch.value) {
+    return lines.filter(line => !matchFn(line))
+  }
+  return lines.filter(matchFn)
+}
+
+// 计算属性：匹配行数
+const matchCount = computed(() => {
+  if (!httpRequest.value || !httpRequestSearch.value.trim()) return 0
+  const lines = httpRequest.value.split('\n')
+  return filterLines(lines, httpRequestSearch.value.trim()).length
 })
 
 // 计算属性：高亮后的HTTP请求报文HTML
@@ -82,14 +183,58 @@ const highlightedHttpRequest = computed(() => {
 
   const lines = httpRequest.value.split('\n')
 
-  // 应用过滤（如果启用）
+  // 应用高级过滤（如果启用）
   const filteredLines = showOnlyMatches.value && httpRequestSearch.value.trim()
-    ? filterHttpRequest(lines, httpRequestSearch.value.trim())
+    ? filterLines(lines, httpRequestSearch.value.trim())
     : lines
 
   // 高亮显示（带搜索关键词高亮）
-  return highlightHttpRequest(filteredLines, httpRequestSearch.value.trim())
+  return highlightHttp(filteredLines, httpRequestSearch.value.trim(), {
+    useRegex: useRegex.value,
+    caseSensitive: caseSensitive.value
+  })
 })
+
+// 执行搜索
+const executeSearch = () => {
+  // 触发搜索时可以添加额外逻辑
+}
+
+// 清除搜索
+const clearSearch = () => {
+  httpRequestSearch.value = ''
+  regexError.value = ''
+}
+
+// 复制HTTP报文
+const copyHttpRequest = async () => {
+  if (!httpRequest.value) {
+    toast.add({
+      severity: 'warn',
+      summary: '无内容',
+      detail: '没有可复制的HTTP报文',
+      life: 2000
+    })
+    return
+  }
+  
+  try {
+    await navigator.clipboard.writeText(httpRequest.value)
+    toast.add({
+      severity: 'success',
+      summary: '复制成功',
+      detail: '原始HTTP报文已复制到剪贴板',
+      life: 2000
+    })
+  } catch (err) {
+    toast.add({
+      severity: 'error',
+      summary: '复制失败',
+      detail: '无法复制到剪贴板',
+      life: 3000
+    })
+  }
+}
 </script>
 
 <style scoped lang="scss">
@@ -124,7 +269,8 @@ const highlightedHttpRequest = computed(() => {
   line-height: 0.9;
 
   .search-box {
-    flex: 1;
+    flex: 0 1 50%;
+    min-width: 200px;
     display: flex;
     align-items: center;
     gap: 4px;
@@ -171,23 +317,72 @@ const highlightedHttpRequest = computed(() => {
     }
   }
 
-  .filter-controls {
+  .toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     flex-shrink: 0;
 
     .p-button-sm {
       padding: 4px 8px;
       font-size: 11px;
+    }
+  }
+}
 
-      .p-button-label {
-        font-size: 11px;
+.advanced-search-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 12px;
+  background: var(--p-surface-100);
+  border: 1px solid var(--p-surface-200);
+  border-radius: 6px;
+
+  .advanced-options {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .option-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      label {
+        font-size: 12px;
+        color: var(--p-text-color);
+        cursor: pointer;
+        user-select: none;
+      }
+    }
+  }
+
+  .search-stats {
+    margin-left: auto;
+    font-size: 12px;
+
+    .match-count {
+      color: var(--p-text-muted-color);
+    }
+
+    .regex-error {
+      color: var(--p-red-500);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      i {
+        font-size: 12px;
       }
     }
   }
 }
 
 .http-request-container {
-  // 自适应父容器高度，减去工具栏高度
-  height: calc(100% - 60px);
+  // 自适应父容器高度，减去工具栏和高级搜索面板高度
+  height: calc(100% - 100px);
   min-height: 200px;
   overflow-y: auto;
   overflow-x: auto;

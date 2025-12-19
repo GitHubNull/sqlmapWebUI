@@ -55,14 +55,26 @@ export function formatHttpRequest(httpInfo: any, task: any): string {
 }
 
 /**
+ * 高亮选项接口
+ */
+interface HighlightOptions {
+  useRegex?: boolean
+  caseSensitive?: boolean
+}
+
+/**
  * 高亮HTTP报文
  * @param lines HTTP报文的每一行
  * @param searchKeyword 搜索关键词（用于高亮匹配）
+ * @param options 高亮选项
  * @returns HTML字符串
  */
-export function highlightHttpRequest(lines: string[], searchKeyword?: string): string {
+export function highlightHttpRequest(lines: string[], searchKeyword?: string, options?: HighlightOptions): string {
   let html = ''
   let isBody = false // 标记是否进入请求体
+  
+  const useRegex = options?.useRegex ?? false
+  const caseSensitive = options?.caseSensitive ?? false
 
   lines.forEach((line, index) => {
     const lineNumber = index + 1
@@ -115,12 +127,36 @@ export function highlightHttpRequest(lines: string[], searchKeyword?: string): s
     }
 
     // 4. 搜索关键词高亮
-    if (searchKeyword && line.toLowerCase().includes(searchKeyword.toLowerCase())) {
-      const regex = new RegExp(`(${escapeRegExp(searchKeyword)})`, 'gi')
-      // 在已经高亮的基础上，再添加黄色背景的关键字高亮
-      highlightedLine = highlightedLine.replace(regex, (match) => {
-        return `<span style="background-color:#fbbf24 !important; color:#000000 !important; font-weight:bold !important; padding:0 2px !important; border-radius:3px !important; box-shadow:0 2px 4px rgba(251, 191, 36, 0.4);">${match}</span>`
-      })
+    if (searchKeyword) {
+      let shouldHighlight = false
+      let regex: RegExp | null = null
+      
+      try {
+        if (useRegex) {
+          const flags = caseSensitive ? 'g' : 'gi'
+          regex = new RegExp(`(${searchKeyword})`, flags)
+          shouldHighlight = regex.test(line)
+          // 重置regex的lastIndex
+          regex.lastIndex = 0
+        } else {
+          if (caseSensitive) {
+            shouldHighlight = line.includes(searchKeyword)
+            regex = new RegExp(`(${escapeRegExp(searchKeyword)})`, 'g')
+          } else {
+            shouldHighlight = line.toLowerCase().includes(searchKeyword.toLowerCase())
+            regex = new RegExp(`(${escapeRegExp(searchKeyword)})`, 'gi')
+          }
+        }
+        
+        if (shouldHighlight && regex) {
+          // 在已经高亮的基础上，再添加黄色背景的关键字高亮
+          highlightedLine = highlightedLine.replace(regex, (match) => {
+            return `<span style="background-color:#fbbf24 !important; color:#000000 !important; font-weight:bold !important; padding:0 2px !important; border-radius:3px !important; box-shadow:0 2px 4px rgba(251, 191, 36, 0.4);">${match}</span>`
+          })
+        }
+      } catch (e) {
+        // 正则表达式错误，忽略高亮
+      }
     }
 
     // 构建行HTML - 22px大字体，极小的行间距
