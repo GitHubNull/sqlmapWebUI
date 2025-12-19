@@ -38,34 +38,47 @@ export function registerLogLanguage(): void {
       contains: [
         // 日志级别
         {
-          className: 'log-level log-info',
+          className: 'log-info',
           begin: /\[INFO\]/i,
           relevance: 10
         },
         {
-          className: 'log-level log-debug',
+          className: 'log-debug',
           begin: /\[DEBUG\]/i,
           relevance: 10
         },
         {
-          className: 'log-level log-warning',
-          begin: /\[WARNING|WARN\]/i,
+          className: 'log-warning',
+          begin: /\[(WARNING|WARN)\]/i,
           relevance: 10
         },
         {
-          className: 'log-level log-error',
-          begin: /\[ERROR|CRITICAL|FATAL|EXCEPTION\]/i,
+          className: 'log-error',
+          begin: /\[(ERROR|CRITICAL|FATAL|EXCEPTION)\]/i,
           relevance: 15
         },
         {
-          className: 'log-level log-trace',
+          className: 'log-trace',
           begin: /\[TRACE\]/i,
           relevance: 5
         },
-        // 时间戳 (ISO 8601格式)
+        // 时间戳 - 支持多种格式
         {
           className: 'timestamp',
-          begin: /\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:?\d{2})?/,
+          // 方括号包围的ISO 8601时间戳: [2025-12-19T10:30:45.123Z]
+          begin: /\[\d{4}[-/]\d{2}[-/]\d{2}[T\s]\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:?\d{2})?\]/,
+          relevance: 10
+        },
+        {
+          className: 'timestamp',
+          // 完整日期时间: 2025-12-19 10:30:45 或 2025/12/19 10:30:45
+          begin: /\d{4}[-/]\d{2}[-/]\d{2}[T\s]\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:?\d{2})?/,
+          relevance: 8
+        },
+        {
+          className: 'timestamp',
+          // 纯时间: 10:30:45 或 10:30:45.123
+          begin: /\b\d{2}:\d{2}:\d{2}(\.\d+)?\b/,
           relevance: 5
         },
         // HTTP 方法
