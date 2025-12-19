@@ -118,9 +118,9 @@ const highlightedHttpRequest = computed(() => {
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(59, 130, 246, 0.04) 100%);
+  background: var(--p-content-background);
   border-radius: 8px;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  border: 1px solid var(--p-content-border-color);
   line-height: 0.9;
 
   .search-box {
@@ -131,7 +131,7 @@ const highlightedHttpRequest = computed(() => {
     position: relative;
 
     i {
-      color: #94a3b8;
+      color: var(--p-text-muted-color);
       font-size: 14px;
       position: absolute;
       left: 8px;
@@ -141,22 +141,23 @@ const highlightedHttpRequest = computed(() => {
     .search-input {
       width: 100%;
       padding: 4px 32px 4px 28px;
-      background: rgba(15, 23, 42, 0.5);
-      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: var(--p-inputtext-background);
+      border: 1px solid var(--p-inputtext-border-color);
+      border-style: solid;
       border-radius: 4px;
-      color: #e2e8f0;
+      color: var(--p-inputtext-color);
       font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
       font-size: 12px;
       line-height: 0.9;
 
       &:focus {
         outline: none;
-        border-color: #6366f1;
-        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+        border-color: var(--p-inputtext-focus-border-color);
+        box-shadow: var(--p-inputtext-focus-ring-shadow);
       }
 
       &::placeholder {
-        color: #64748b;
+        color: var(--p-inputtext-placeholder-color);
       }
     }
 
