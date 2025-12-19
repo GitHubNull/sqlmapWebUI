@@ -77,9 +77,283 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
         });
         menuItems.add(sendWithOptions);
         
+        // 菜单项3: 标记注入点并扫描 - 新功能
+        JMenuItem markInjectionPoints = new JMenuItem("标记注入点并扫描 (*)");
+        markInjectionPoints.addActionListener(e -> {
+            if (!messages.isEmpty()) {
+                showMarkInjectionPointsDialog(messages.get(0));
+            }
+        });
+        menuItems.add(markInjectionPoints);
+        
         return menuItems;
     }
     
+    /**
+     * 显示标记注入点对话框
+     * 用户可以在HTTP请求中使用 * 标记注入点，然后发送扫描
+     */
+    private void showMarkInjectionPointsDialog(HttpRequestResponse requestResponse) {
+        JDialog dialog = new JDialog((Frame) null, "标记SQL注入点", true);
+        dialog.setLayout(new BorderLayout(10, 10));
+        dialog.setSize(800, 700);
+        dialog.setLocationRelativeTo(null);
+        
+        JPanel contentPanel = new JPanel(new BorderLayout(10, 10));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        // 说明标签
+        JPanel helpPanel = new JPanel(new BorderLayout());
+        helpPanel.setBorder(BorderFactory.createTitledBorder("使用说明"));
+        JLabel helpLabel = new JLabel(
+            "<html><b>在请求中使用 <font color='red'>*</font> 标记注入点</b><br>" +
+            "示例: id=1<font color='red'>*</font>&name=test → 只测试id参数<br>" +
+            "示例: Cookie: session=abc<font color='red'>*</font> → 测试Cookie值<br>" +
+            "示例: {\"user\":\"admin<font color='red'>*</font>\"} → 测试JSON字段<br>" +
+            "<font color='gray'>提示: 可标记多个注入点，sqlmap会依次测试</font></html>"
+        );
+        helpPanel.add(helpLabel, BorderLayout.CENTER);
+        contentPanel.add(helpPanel, BorderLayout.NORTH);
+        
+        // HTTP请求编辑区
+        JPanel requestPanel = new JPanel(new BorderLayout());
+        requestPanel.setBorder(BorderFactory.createTitledBorder("HTTP请求 (可编辑)"));
+        
+        // 获取完整的HTTP请求文本
+        HttpRequest request = requestResponse.request();
+        String requestText = request.toString();
+        
+        JTextArea requestArea = new JTextArea(requestText);
+        requestArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        requestArea.setLineWrap(false);
+        requestArea.setWrapStyleWord(false);
+        
+        // 添加行号显示
+        JScrollPane scrollPane = new JScrollPane(requestArea);
+        scrollPane.setRowHeaderView(new TextLineNumber(requestArea));
+        requestPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        // 工具按钮栏
+        JPanel toolPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        
+        JButton insertMarkBtn = new JButton("插入标记 (*)");
+        insertMarkBtn.addActionListener(e -> {
+            int pos = requestArea.getCaretPosition();
+            requestArea.insert("*", pos);
+            requestArea.requestFocus();
+        });
+        toolPanel.add(insertMarkBtn);
+        
+        JButton clearMarksBtn = new JButton("清除所有标记");
+        clearMarksBtn.addActionListener(e -> {
+            String text = requestArea.getText();
+            requestArea.setText(text.replace("*", ""));
+        });
+        toolPanel.add(clearMarksBtn);
+        
+        JLabel markCountLabel = new JLabel("标记数: 0");
+        toolPanel.add(Box.createHorizontalStrut(20));
+        toolPanel.add(markCountLabel);
+        
+        // 实时更新标记数量
+        requestArea.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            private void updateCount() {
+                String text = requestArea.getText();
+                long count = text.chars().filter(ch -> ch == '*').count();
+                markCountLabel.setText("标记数: " + count);
+                markCountLabel.setForeground(count > 0 ? new Color(0, 150, 0) : Color.GRAY);
+            }
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { updateCount(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { updateCount(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { updateCount(); }
+        });
+        
+        requestPanel.add(toolPanel, BorderLayout.SOUTH);
+        contentPanel.add(requestPanel, BorderLayout.CENTER);
+        
+        dialog.add(contentPanel, BorderLayout.CENTER);
+        
+        // 底部按钮
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        
+        JButton scanButton = new JButton("发送扫描");
+        scanButton.addActionListener(e -> {
+            String markedRequest = requestArea.getText();
+            
+            // 检查是否有标记
+            if (!markedRequest.contains("*")) {
+                int confirm = JOptionPane.showConfirmDialog(dialog,
+                    "未检测到注入点标记 (*)，确定要继续吗？\nsqlmap将自动检测所有参数。",
+                    "确认", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                if (confirm != JOptionPane.YES_OPTION) {
+                    return;
+                }
+            }
+            
+            // 发送带标记的请求
+            sendMarkedRequestToBackend(request, markedRequest);
+            dialog.dispose();
+        });
+        buttonPanel.add(scanButton);
+        
+        JButton cancelButton = new JButton("取消");
+        cancelButton.addActionListener(e -> dialog.dispose());
+        buttonPanel.add(cancelButton);
+        
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+    
+    /**
+     * 发送带标记的请求到后端
+     */
+    private void sendMarkedRequestToBackend(HttpRequest originalRequest, String markedRequestText) {
+        try {
+            // 解析标记后的请求
+            String[] lines = markedRequestText.split("\n", 2);
+            String firstLine = lines.length > 0 ? lines[0].trim() : "";
+            
+            // 提取URL和host
+            String url = originalRequest.url();
+            String host = "";
+            try {
+                java.net.URL urlObj = new java.net.URL(url);
+                host = urlObj.getHost();
+            } catch (Exception e) {
+                host = "unknown";
+            }
+            
+            // 解析headers和body
+            List<String> headersList = new ArrayList<>();
+            String body = "";
+            
+            String[] allLines = markedRequestText.split("\r?\n");
+            boolean inBody = false;
+            StringBuilder bodyBuilder = new StringBuilder();
+            
+            for (int i = 0; i < allLines.length; i++) {
+                if (!inBody) {
+                    if (allLines[i].isEmpty()) {
+                        inBody = true;
+                    } else {
+                        headersList.add(allLines[i]);
+                    }
+                } else {
+                    if (bodyBuilder.length() > 0) {
+                        bodyBuilder.append("\n");
+                    }
+                    bodyBuilder.append(allLines[i]);
+                }
+            }
+            body = bodyBuilder.toString();
+            
+            // 构建options
+            ScanConfig config = configManager.getDefaultConfig().copy();
+            Map<String, Object> options = config.toOptionsMap();
+            
+            // 构建JSON
+            StringBuilder headersJson = new StringBuilder("[");
+            for (int i = 0; i < headersList.size(); i++) {
+                headersJson.append("\"").append(escapeJson(headersList.get(i))).append("\"");
+                if (i < headersList.size() - 1) headersJson.append(",");
+            }
+            headersJson.append("]");
+            
+            StringBuilder optionsJson = new StringBuilder("{");
+            boolean first = true;
+            for (Map.Entry<String, Object> entry : options.entrySet()) {
+                if (!first) optionsJson.append(",");
+                first = false;
+                optionsJson.append("\"").append(entry.getKey()).append("\":");
+                if (entry.getValue() instanceof String) {
+                    optionsJson.append("\"").append(escapeJson((String)entry.getValue())).append("\"");
+                } else if (entry.getValue() instanceof Boolean) {
+                    optionsJson.append(entry.getValue());
+                } else {
+                    optionsJson.append(entry.getValue());
+                }
+            }
+            optionsJson.append("}");
+            
+            String jsonPayload = String.format(
+                "{\"scanUrl\":\"%s\",\"host\":\"%s\",\"headers\":%s,\"body\":\"%s\",\"options\":%s}",
+                escapeJson(url),
+                escapeJson(host),
+                headersJson.toString(),
+                escapeJson(body),
+                optionsJson.toString()
+            );
+            
+            // 计算标记数量
+            long markCount = markedRequestText.chars().filter(ch -> ch == '*').count();
+            
+            // 异步发送
+            new Thread(() -> {
+                try {
+                    String response = apiClient.sendTask(jsonPayload);
+                    
+                    final long finalMarkCount = markCount;
+                    SwingUtilities.invokeLater(() -> {
+                        uiTab.appendLog("[+] 已发送带标记的请求: " + url);
+                        uiTab.appendLog("    注入点标记数: " + finalMarkCount);
+                        uiTab.appendLog("    响应: " + response);
+                    });
+                    
+                    api.logging().logToOutput("[+] Task created with " + markCount + " injection point(s) for: " + url);
+                    
+                } catch (Exception e) {
+                    SwingUtilities.invokeLater(() -> {
+                        uiTab.appendLog("[-] 发送请求失败: " + e.getMessage());
+                    });
+                    api.logging().logToError("[-] Error: " + e.getMessage());
+                }
+            }).start();
+            
+        } catch (Exception e) {
+            uiTab.appendLog("[-] 处理请求失败: " + e.getMessage());
+            api.logging().logToError("[-] Error: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 简单的行号显示组件
+     */
+    private static class TextLineNumber extends JPanel {
+        private final JTextArea textArea;
+        private final Font font;
+        
+        public TextLineNumber(JTextArea textArea) {
+            this.textArea = textArea;
+            this.font = new Font("Monospaced", Font.PLAIN, 12);
+            setPreferredSize(new Dimension(45, Integer.MAX_VALUE));
+            setBackground(new Color(240, 240, 240));
+            
+            textArea.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+                public void insertUpdate(javax.swing.event.DocumentEvent e) { repaint(); }
+                public void removeUpdate(javax.swing.event.DocumentEvent e) { repaint(); }
+                public void changedUpdate(javax.swing.event.DocumentEvent e) { repaint(); }
+            });
+        }
+        
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            g.setFont(font);
+            g.setColor(Color.GRAY);
+            
+            FontMetrics fm = g.getFontMetrics();
+            int lineHeight = fm.getHeight();
+            int ascent = fm.getAscent();
+            
+            int lines = textArea.getLineCount();
+            for (int i = 0; i < lines; i++) {
+                String lineNum = String.valueOf(i + 1);
+                int y = (i + 1) * lineHeight - (lineHeight - ascent);
+                g.drawString(lineNum, 5, y);
+            }
+        }
+    }
+
     /**
      * 显示配置选择对话框
      */
