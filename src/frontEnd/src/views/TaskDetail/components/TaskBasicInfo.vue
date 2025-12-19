@@ -114,6 +114,28 @@ function copyToClipboard(text: string) {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 24px;
+  // 动态计算高度，为顶部导航、页面头部、Tabs标签和底部dock栏留出空间
+  max-height: calc(100vh - 450px);
+  overflow-y: auto;
+  padding-right: 8px;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.3);
+    border-radius: 3px;
+
+    &:hover {
+      background: rgba(99, 102, 241, 0.5);
+    }
+  }
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;

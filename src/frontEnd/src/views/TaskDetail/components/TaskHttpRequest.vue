@@ -185,7 +185,9 @@ const highlightedHttpRequest = computed(() => {
 }
 
 .http-request-container {
-  max-height: 600px;
+  // 动态计算高度，为顶部导航、页面头部、Tabs标签、工具栏和底部dock栏留出空间
+  max-height: calc(100vh - 520px);
+  min-height: 200px;
   overflow-y: auto;
   overflow-x: auto;
   border: 2px solid rgba(99, 102, 241, 0.1);

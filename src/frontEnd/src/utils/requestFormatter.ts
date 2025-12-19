@@ -28,16 +28,18 @@ export function formatHttpRequest(httpInfo: any, task: any): string {
     lines.push(`${method.toUpperCase()} ${url} ${protocol}`)
   }
 
-  // 3. 其他请求头
-  if (task?.headers && Array.isArray(task.headers)) {
-    task.headers.forEach((header: string) => {
+  // 3. 其他请求头 (优先使用httpInfo.headers，其次是task.headers)
+  const headers = httpInfo?.headers || task?.headers
+  if (headers && Array.isArray(headers)) {
+    headers.forEach((header: string) => {
       lines.push(header)
     })
   }
 
   // 4. 内容长度头（如果有请求体）
-  if (task?.body) {
-    const contentLength = new TextEncoder().encode(task.body).length
+  const body = httpInfo?.body || task?.body
+  if (body) {
+    const contentLength = new TextEncoder().encode(body).length
     lines.push(`Content-Length: ${contentLength}`)
   }
 
@@ -45,8 +47,8 @@ export function formatHttpRequest(httpInfo: any, task: any): string {
   lines.push('')
 
   // 6. 请求体
-  if (task?.body) {
-    lines.push(task.body)
+  if (body) {
+    lines.push(body)
   }
 
   return lines.join('\n')

@@ -268,48 +268,151 @@ export function getScanOptions(taskId: string): Promise<any> {
  */
 export function getHttpRequestInfo(taskId: string): Promise<any> {
   if (USE_MOCK_DATA) {
-    // 生成mock HTTP请求信息，包含随机的body
+    // 生成超过100行的mock HTTP请求信息
     const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
     const method = methods[Math.floor(Math.random() * methods.length)]
 
-    // 生成随机body（70%概率有body）
-    let body = null
-    if (Math.random() < 0.7) {
-      const bodyTypes = [
-        // POST表单
-        'username=admin&password=123456&email=test@example.com',
-        // JSON
-        JSON.stringify({
-          name: 'testUser',
-          age: 25,
-          email: 'test@example.com',
-          active: true
-        }, null, 2),
-        // XML
-        `<?xml version="1.0" encoding="UTF-8"?>
-<user>
-  <name>testUser</name>
-  <email>test@example.com</email>
-</user>`,
-        // 纯文本
-        'raw text data for testing'
-      ]
-      body = bodyTypes[Math.floor(Math.random() * bodyTypes.length)]
-    }
+    // 生成大量请求头（确保超过100行）
+    const headers = [
+      'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept: application/json, text/plain, */*',
+      'Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7,ja;q=0.6',
+      'Accept-Encoding: gzip, deflate, br',
+      'Content-Type: application/json; charset=UTF-8',
+      'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+      'X-Request-ID: ' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+      'X-Correlation-ID: ' + Math.random().toString(36).substring(2, 15),
+      'X-Trace-ID: trace-' + Date.now() + '-' + Math.random().toString(36).substring(2, 10),
+      'X-Span-ID: span-' + Math.random().toString(36).substring(2, 15),
+      'X-B3-TraceId: ' + Math.random().toString(16).substring(2, 34),
+      'X-B3-SpanId: ' + Math.random().toString(16).substring(2, 18),
+      'X-B3-ParentSpanId: ' + Math.random().toString(16).substring(2, 18),
+      'X-B3-Sampled: 1',
+      'Connection: keep-alive',
+      'Cache-Control: no-cache, no-store, must-revalidate',
+      'Pragma: no-cache',
+      'Expires: 0',
+      'Origin: https://example.com',
+      'Referer: https://example.com/dashboard/tasks/list?page=1&limit=20',
+      'Sec-Ch-Ua: "Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+      'Sec-Ch-Ua-Mobile: ?0',
+      'Sec-Ch-Ua-Platform: "Windows"',
+      'Sec-Fetch-Dest: empty',
+      'Sec-Fetch-Mode: cors',
+      'Sec-Fetch-Site: same-origin',
+      'X-Forwarded-For: 192.168.1.100, 10.0.0.1, 172.16.0.1',
+      'X-Forwarded-Host: example.com',
+      'X-Forwarded-Proto: https',
+      'X-Real-IP: 192.168.1.100',
+      'X-Original-URL: /api/v2/users/profile',
+      'X-Rewrite-URL: /internal/api/users/profile',
+      'X-Custom-Header-1: value-' + Math.random().toString(36).substring(2, 20),
+      'X-Custom-Header-2: value-' + Math.random().toString(36).substring(2, 20),
+      'X-Custom-Header-3: value-' + Math.random().toString(36).substring(2, 20),
+      'X-Custom-Header-4: value-' + Math.random().toString(36).substring(2, 20),
+      'X-Custom-Header-5: value-' + Math.random().toString(36).substring(2, 20),
+      'X-API-Key: api_key_' + Math.random().toString(36).substring(2, 30),
+      'X-API-Secret: secret_' + Math.random().toString(36).substring(2, 40),
+      'X-Client-ID: client_' + Math.random().toString(36).substring(2, 15),
+      'X-Client-Version: 2.5.0-beta.3',
+      'X-App-Version: 1.0.0',
+      'X-Device-ID: device_' + Math.random().toString(36).substring(2, 20),
+      'X-Device-Type: desktop',
+      'X-Platform: web',
+      'X-OS: Windows 10',
+      'X-Browser: Chrome 120',
+      'X-Screen-Resolution: 1920x1080',
+      'X-Timezone: Asia/Shanghai',
+      'X-Locale: zh-CN',
+      'X-Currency: CNY',
+      'X-Session-ID: sess_' + Math.random().toString(36).substring(2, 30),
+      'X-User-ID: user_' + Math.floor(Math.random() * 100000),
+      'X-Tenant-ID: tenant_' + Math.floor(Math.random() * 1000),
+      'X-Organization-ID: org_' + Math.floor(Math.random() * 500),
+      'X-Workspace-ID: ws_' + Math.floor(Math.random() * 100),
+      'X-Project-ID: proj_' + Math.floor(Math.random() * 200),
+      'X-Environment: production',
+      'X-Region: cn-east-1',
+      'X-Datacenter: dc-shanghai-01',
+      'X-Cluster: cluster-main',
+      'X-Node: node-' + Math.floor(Math.random() * 10),
+      'X-Pod: pod-' + Math.random().toString(36).substring(2, 10),
+      'X-Container: container-app',
+      'X-Service-Name: user-service',
+      'X-Service-Version: v2.3.1',
+      'X-Feature-Flags: feature1=true,feature2=false,feature3=true',
+      'X-AB-Test-Group: experiment-group-b',
+      'X-Rate-Limit-Remaining: 4999',
+      'X-Rate-Limit-Reset: ' + (Date.now() + 3600000),
+      'X-Request-Start-Time: ' + Date.now(),
+      'X-Response-Time: 0',
+      'DNT: 1',
+      'X-CSRF-Token: csrf_' + Math.random().toString(36).substring(2, 40),
+      'X-XSRF-Token: xsrf_' + Math.random().toString(36).substring(2, 40),
+      'X-Content-Type-Options: nosniff',
+      'X-Frame-Options: DENY',
+      'X-XSS-Protection: 1; mode=block',
+      'Strict-Transport-Security: max-age=31536000; includeSubDomains; preload',
+      'Referrer-Policy: strict-origin-when-cross-origin',
+      'Permissions-Policy: geolocation=(), microphone=(), camera=()',
+      'X-Permitted-Cross-Domain-Policies: none',
+      'X-Download-Options: noopen',
+      'X-DNS-Prefetch-Control: off',
+      'Expect-CT: max-age=86400, enforce',
+      'X-Debug-Mode: false',
+      'X-Log-Level: INFO',
+      'X-Compression: gzip',
+      'X-Signature: sig_' + Math.random().toString(36).substring(2, 64),
+      'X-Timestamp: ' + new Date().toISOString(),
+      'X-Nonce: nonce_' + Math.random().toString(36).substring(2, 20),
+      'X-Version: 1.0.0',
+      'X-Build-Number: 12345',
+      'X-Git-Commit: ' + Math.random().toString(16).substring(2, 42),
+      'X-Build-Time: 2025-12-19T10:00:00Z',
+      'X-Deployment-ID: deploy_' + Math.random().toString(36).substring(2, 15),
+    ]
+
+    // 生成大型JSON body
+    const body = JSON.stringify({
+      user: {
+        id: Math.floor(Math.random() * 100000),
+        username: 'testuser_' + Math.random().toString(36).substring(2, 10),
+        email: 'test_' + Math.random().toString(36).substring(2, 8) + '@example.com',
+        profile: {
+          firstName: 'John',
+          lastName: 'Doe',
+          avatar: 'https://cdn.example.com/avatars/user_' + Math.floor(Math.random() * 1000) + '.jpg',
+          bio: 'This is a test user profile with some description text.',
+          location: {
+            city: 'Shanghai',
+            country: 'China',
+            timezone: 'Asia/Shanghai',
+            coordinates: { lat: 31.2304, lng: 121.4737 }
+          },
+          preferences: {
+            theme: 'dark',
+            language: 'zh-CN',
+            notifications: { email: true, push: true, sms: false }
+          }
+        },
+        permissions: ['read', 'write', 'delete', 'admin'],
+        roles: ['user', 'editor', 'moderator'],
+        metadata: {
+          createdAt: '2024-01-15T08:30:00Z',
+          updatedAt: '2025-12-19T10:15:00Z',
+          lastLoginAt: '2025-12-19T09:00:00Z',
+          loginCount: 1523
+        }
+      },
+      action: 'update',
+      timestamp: new Date().toISOString(),
+      requestId: Math.random().toString(36).substring(2, 20)
+    }, null, 2)
 
     return Promise.resolve({
       method,
-      url: 'http://example.com/api/users',
-      headers: [
-        'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept: application/json, text/plain, */*',
-        'Accept-Language: zh-CN,zh;q=0.9,en;q=0.8',
-        'Accept-Encoding: gzip, deflate',
-        'Content-Type: ' + (body && body.includes('{') ? 'application/json' : body && body.includes('<?xml') ? 'application/xml' : body && body.includes('=') ? 'application/x-www-form-urlencoded' : 'text/plain'),
-        'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
-        'X-Request-ID: ' + Math.random().toString(36).substring(2, 15),
-        'Connection: keep-alive'
-      ],
+      url: 'http://example.com/api/v2/users/profile/update?source=web&version=2.0',
+      headers,
       body
     })
   }

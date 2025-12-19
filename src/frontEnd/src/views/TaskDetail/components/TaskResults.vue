@@ -3,8 +3,8 @@
     <div v-if="loadingPayload" class="loading-small">
       <ProgressSpinner style="width: 30px; height: 30px" />
     </div>
-    <div v-else-if="payloadData">
-      <DataTable :value="payloadData" stripedRows class="result-table">
+    <div v-else-if="payloadData" class="results-container">
+      <DataTable :value="payloadData" stripedRows class="result-table" scrollable scrollHeight="flex">
         <Column field="index" header="序号" style="width: 80px" />
         <Column field="status" header="状态" style="width: 100px" />
         <Column field="contentType" header="内容类型" style="width: 150px" />
@@ -29,6 +29,13 @@ defineProps<Props>()
 </script>
 
 <style scoped lang="scss">
+.results-container {
+  // 动态计算高度，为顶部导航、页面头部、Tabs标签和底部dock栏留出空间
+  max-height: calc(100vh - 480px);
+  min-height: 200px;
+  overflow: hidden;
+}
+
 .loading-small {
   display: flex;
   justify-content: center;
