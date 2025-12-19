@@ -149,10 +149,26 @@
             <TaskLogs
               :logs="logs"
               :loadingLogs="loadingLogs"
-              :highlightedLogsHtml="highlightedLogsHtml"
-              :logStats="logStats"
-              @copyLogs="copyLogsToClipboard"
-              @refreshLogs="loadLogs"
+              :filteredLogs="filteredLogs"
+              :searchQuery="logSearchQuery"
+              :levelFilter="logLevelFilter"
+              :timeRangeFilter="logTimeRangeFilter"
+              :sourceFilter="logSourceFilter"
+              :useRegex="logUseRegex"
+              :caseSensitive="logCaseSensitive"
+              :invertMatch="logInvertMatch"
+              :showAdvancedSearch="showAdvancedLogSearch"
+              @loadLogs="loadLogs"
+              @executeSearch="executeLogSearch"
+              @resetFilters="resetLogFilters"
+              @toggleAdvancedSearch="toggleAdvancedLogSearch"
+              @update:searchQuery="(val: string) => logSearchQuery = val"
+              @update:levelFilter="(val: string | null) => logLevelFilter = val"
+              @update:timeRangeFilter="(val: string) => logTimeRangeFilter = val"
+              @update:sourceFilter="(val: string) => logSourceFilter = val"
+              @update:useRegex="(val: boolean) => logUseRegex = val"
+              @update:caseSensitive="(val: boolean) => logCaseSensitive = val"
+              @update:invertMatch="(val: boolean) => logInvertMatch = val"
             />
           </TabPanel>
 
@@ -203,10 +219,19 @@ const {
   httpRequestSearch,
   showOnlyMatches,
 
+  // 日志搜索过滤相关状态
+  logSearchQuery,
+  logLevelFilter,
+  logTimeRangeFilter,
+  logSourceFilter,
+  logUseRegex,
+  logCaseSensitive,
+  logInvertMatch,
+  showAdvancedLogSearch,
+
   // 计算属性
+  filteredLogs,
   highlightedHttpRequest,
-  highlightedLogsHtml,
-  logStats,
 
   // 方法
   refreshData,
@@ -214,6 +239,9 @@ const {
   getStatusSeverity,
   copyLogsToClipboard,
   loadLogs,
+  executeLogSearch,
+  resetLogFilters,
+  toggleAdvancedLogSearch,
   handleStopTask,
   handleDeleteTask,
 } = useTaskDetail()

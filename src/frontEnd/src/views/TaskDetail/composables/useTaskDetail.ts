@@ -44,7 +44,11 @@ function generateMockBody(): string | undefined {
     },
     // XML数据（20%）
     () => {
-      return `<?xml version="1.0" encoding="UTF-8"?>\n<request>\n  <id>${Math.floor(Math.random() * 1000)}</id>\n  <name>test</name>\n</request>`
+      return `<?xml version="1.0" encoding="UTF-8"?>
+<request>
+  <id>${Math.floor(Math.random() * 1000)}</id>
+  <name>test</name>
+</request>`
     },
     // 没有body（20%）
     () => undefined
@@ -81,6 +85,16 @@ export function useTaskDetail() {
   const httpRequestSearch = ref('')
   const showOnlyMatches = ref(false)
 
+  // 日志搜索过滤相关状态
+  const logSearchQuery = ref('')
+  const logLevelFilter = ref<string | null>(null)
+  const logTimeRangeFilter = ref('')
+  const logSourceFilter = ref('')
+  const logUseRegex = ref(false)
+  const logCaseSensitive = ref(false)
+  const logInvertMatch = ref(false)
+  const showAdvancedLogSearch = ref(false)
+
   // 计算属性：格式化HTTP请求报文
   const httpRequest = computed(() => {
     if (!httpInfo.value && !task.value) {
@@ -106,17 +120,123 @@ export function useTaskDetail() {
     return highlightHttpRequest(filteredLines, httpRequestSearch.value.trim())
   })
 
-  // 计算属性：日志统计信息
-  const logStats = computed<LogStats>(() => {
-    return getLogStats(logs.value || [])
+  // 计算属性：过滤后的日志
+  const filteredLogs = computed(() => {
+    if (!logs.value || logs.value.length === 0) {
+      return []
+    }
+
+    const searchQuery = logSearchQuery.value.trim()
+    const levelFilter = logLevelFilter.value
+    const timeFilter = logTimeRangeFilter.value.trim()
+    const sourceFilter = logSourceFilter.value.trim()
+
+    return logs.value.filter((line) => {
+      let match = true
+
+      // 关键词搜索
+      if (searchQuery) {
+        let lineMatches = false
+        try {
+          if (logUseRegex.value) {
+            // 使用正则表达式
+            const flags = logCaseSensitive.value ? 'g' : 'gi'
+            const regex = new RegExp(searchQuery, flags)
+            lineMatches = regex.test(line)
+          } else {
+            // 普通字符串搜索
+            if (logCaseSensitive.value) {
+              lineMatches = line.includes(searchQuery)
+            } else {
+              lineMatches = line.toLowerCase().includes(searchQuery.toLowerCase())
+            }
+          }
+
+          // 处理反转匹配
+          if (logInvertMatch.value) {
+            lineMatches = !lineMatches
+          }
+        } catch (e) {
+          // 正则表达式错误时，回退到简单搜索
+          if (logCaseSensitive.value) {
+            lineMatches = line.includes(searchQuery)
+          } else {
+            lineMatches = line.toLowerCase().includes(searchQuery.toLowerCase())
+          }
+
+          if (logInvertMatch.value) {
+            lineMatches = !lineMatches
+          }
+        }
+
+        match = match && lineMatches
+      }
+
+      // 日志级别过滤
+      if (levelFilter && match) {
+        const levelPatterns: Record<string, string[]> = {
+          'INFO': ['[INFO]'],
+          'WARNING': ['[WARNING]', '[WARN]'],
+          'ERROR': ['[ERROR]', '[ERR]'],
+          'DEBUG': ['[DEBUG]', '[DBG]'],
+          'CRITICAL': ['[CRITICAL]', '[CRIT]']
+        }
+
+        const patterns = levelPatterns[levelFilter] || []
+        const levelMatches = patterns.some(pattern =>
+          logCaseSensitive.value
+            ? line.includes(pattern)
+            : line.toLowerCase().includes(pattern.toLowerCase())
+        )
+        match = match && levelMatches
+      }
+
+      // 日志来源过滤
+      if (sourceFilter && match) {
+        match = logCaseSensitive.value
+          ? line.includes(sourceFilter)
+          : line.toLowerCase().includes(sourceFilter.toLowerCase())
+      }
+
+      // TODO: 时间范围过滤（需要日志包含时间戳）
+      if (timeFilter && match) {
+        // 简单的时间过滤实现（根据日志中的日期格式灵活匹配）
+        const timePattern = /\d{4}-\d{2}-\d{2}[\sT]\d{2}:\d{2}:\d{2}/
+        const matchResult = line.match(timePattern)
+
+        if (matchResult) {
+          // 解析时间过滤器（支持多种格式）
+          const filterRange = ['-', ' '].find((separator: string) => timeFilter.includes(separator)) || '-'
+          const parts = timeFilter.split(filterRange)
+          if (parts.length === 2) {
+            // TODO: 实现时间范围比较
+            // 当前简化实现：检查日志中是否包含时间字符串
+            const containsTime = timeFilter.split(/[-\s]/).every(part =>
+              part.trim() === '' || line.includes(part.trim())
+            )
+            match = match && containsTime
+          } else {
+            // 简化的包含检查
+            match = match && line.includes(timeFilter)
+          }
+        }
+      }
+
+      return match
+    })
   })
 
-  // 计算属性：高亮后的日志HTML
+  // 计算属性：日志统计信息（基于过滤后的日志）
+  const logStats = computed<LogStats>(() => {
+    return getLogStats(filteredLogs.value || [])
+  })
+
+  // 计算属性：高亮后的日志HTML（基于过滤后的日志）
   const highlightedLogsHtml = computed(() => {
-    if (!logs.value || logs.value.length === 0) {
+    if (!filteredLogs.value || filteredLogs.value.length === 0) {
       return ''
     }
-    return highlightLogContent(logs.value)
+    return highlightLogContent(filteredLogs.value)
   })
 
   // 数据加载函数
@@ -298,6 +418,55 @@ export function useTaskDetail() {
     })
   }
 
+  // 日志搜索过滤相关方法
+  function executeLogSearch() {
+    // 搜索逻辑已经在computed filteredLogs中实现
+    // 这里可以添加额外的搜索逻辑，如过滤结果提示
+    if (!logSearchQuery.value.trim() && !logLevelFilter.value &&
+        !logTimeRangeFilter.value && !logSourceFilter.value) {
+      return
+    }
+
+    const matchCount = filteredLogs.value.length
+    if (matchCount === 0) {
+      toast.add({
+        severity: 'info',
+        summary: '搜索完成',
+        detail: '没有找到匹配的日志',
+        life: 3000,
+      })
+    } else {
+      toast.add({
+        severity: 'success',
+        summary: '搜索完成',
+        detail: `找到 ${matchCount} 条匹配的日志`,
+        life: 2000,
+      })
+    }
+  }
+
+  function resetLogFilters() {
+    logSearchQuery.value = ''
+    logLevelFilter.value = null
+    logTimeRangeFilter.value = ''
+    logSourceFilter.value = ''
+    logUseRegex.value = false
+    logCaseSensitive.value = false
+    logInvertMatch.value = false
+    showAdvancedLogSearch.value = false
+
+    toast.add({
+      severity: 'success',
+      summary: '过滤器已重置',
+      detail: '所有搜索过滤条件已清除',
+      life: 2000,
+    })
+  }
+
+  function toggleAdvancedLogSearch() {
+    showAdvancedLogSearch.value = !showAdvancedLogSearch.value
+  }
+
   function handleStopTask() {
     if (!task.value) return
 
@@ -414,9 +583,20 @@ export function useTaskDetail() {
     httpRequestSearch,
     showOnlyMatches,
 
+    // 日志搜索过滤相关状态
+    logSearchQuery,
+    logLevelFilter,
+    logTimeRangeFilter,
+    logSourceFilter,
+    logUseRegex,
+    logCaseSensitive,
+    logInvertMatch,
+    showAdvancedLogSearch,
+
     // 计算属性
     httpRequest,
     highlightedHttpRequest,
+    filteredLogs,
     logStats,
     highlightedLogsHtml,
 
@@ -430,6 +610,9 @@ export function useTaskDetail() {
     getStatusLabel,
     getStatusSeverity,
     copyToClipboard,
+    executeLogSearch,
+    resetLogFilters,
+    toggleAdvancedLogSearch,
     handleStopTask,
     handleDeleteTask,
     copyLogsToClipboard,

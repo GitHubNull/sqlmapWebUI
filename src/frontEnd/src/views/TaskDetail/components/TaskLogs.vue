@@ -4,24 +4,127 @@
       <ProgressSpinner style="width: 30px; height: 30px" />
     </div>
     <div v-else-if="logs && Array.isArray(logs) && logs.length > 0" class="logs-wrapper">
-      <div class="log-stats">
-        <div class="stat-item">
-          <i class="pi pi-list"></i>
-          <span>总行数：{{ (logs || []).length }}</span>
+      <!-- 日志搜索过滤工具栏 -->
+      <div class="log-search-toolbar">
+        <div class="search-main">
+          <IconField iconPosition="left" class="search-input-wrapper">
+            <InputIcon class="pi pi-search" />
+            <InputText
+              v-model="searchQuery"
+              placeholder="搜索日志内容..."
+              class="search-input"
+              @keydown.enter="executeSearch"
+            />
+          </IconField>
+          <Button
+            icon="pi pi-search"
+            label="搜索"
+            @click="executeSearch"
+            :disabled="!searchQuery.trim()"
+            size="small"
+          />
+          <Button
+            icon="pi pi-filter"
+            label="高级搜索"
+            @click="toggleAdvancedSearch"
+            :severity="showAdvancedSearch ? 'primary' : 'secondary'"
+            outlined
+            size="small"
+          />
+          <Button
+            icon="pi pi-refresh"
+            label="重置"
+            @click="resetFilters"
+            severity="secondary"
+            outlined
+            size="small"
+          />
         </div>
-        <div class="stat-item">
-          <i class="pi pi-filter"></i>
-          <span>INFO: {{ (logs || []).filter(l => l.includes('[INFO]')).length }}</span>
+
+        <!-- 高级搜索面板 -->
+        <div v-if="showAdvancedSearch" class="advanced-search-panel">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label class="filter-label">日志级别</label>
+              <Select
+                v-model="levelFilter"
+                :options="levelOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="所有级别"
+                class="filter-select"
+              />
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">时间范围</label>
+              <InputText
+                v-model="timeRangeFilter"
+                placeholder="例: 2025-12-19 10:00-11:00"
+                class="filter-input"
+              />
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">日志来源</label>
+              <InputText
+                v-model="sourceFilter"
+                placeholder="例: sqlmap.core"
+                class="filter-input"
+              />
+            </div>
+          </div>
+          <div class="filter-row">
+            <div class="filter-group">
+              <Checkbox
+                v-model="useRegex"
+                binary
+                inputId="useRegex"
+              />
+              <label for="useRegex" class="checkbox-label">使用正则表达式</label>
+            </div>
+            <div class="filter-group">
+              <Checkbox
+                v-model="caseSensitive"
+                binary
+                inputId="caseSensitive"
+              />
+              <label for="caseSensitive" class="checkbox-label">区分大小写</label>
+            </div>
+            <div class="filter-group">
+              <Checkbox
+                v-model="invertMatch"
+                binary
+                inputId="invertMatch"
+              />
+              <label for="invertMatch" class="checkbox-label">反转匹配</label>
+            </div>
+          </div>
         </div>
-        <div class="stat-item">
-          <i class="pi pi-exclamation-triangle"></i>
-          <span>警告: {{ (logs || []).filter(l => l.includes('[WARNING]')).length }}</span>
+
+        <!-- 当前过滤条件标签 -->
+        <div v-if="hasActiveFilters" class="filter-tags">
+          <span class="filter-tags-title">已应用过滤:</span>
+          <Tag
+            v-for="filter in activeFilters"
+            :key="filter.type"
+            :value="filter.label"
+            severity="info"
+            icon="pi pi-filter"
+            :pt="{
+              root: { style: 'font-size: 12px; padding: 4px 8px' },
+              icon: { style: 'font-size: 12px; margin-right: 4px' }
+            }"
+          />
         </div>
-        <div class="stat-item">
-          <i class="pi pi-times-circle"></i>
-          <span>错误: {{ (logs || []).filter(l => l.includes('[ERROR]')).length }}</span>
+
+        <!-- 过滤结果统计 -->
+        <div class="filter-stats">
+          <span class="stats-info">
+            <i class="pi pi-list"></i>
+            共 {{ logs.length }} 行，匹配 {{ filteredCount }} 行
+          </span>
         </div>
       </div>
+
       <div class="log-actions" style="margin-bottom: 16px;">
         <Button
           v-if="logs && logs.length > 0"
@@ -54,29 +157,161 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useToast } from 'primevue/usetoast'
+import Select from 'primevue/select'
 import { highlightLogContent } from '@/utils/logHighlighter'
 
 interface Props {
   logs: string[] | null
   loadingLogs: boolean
+  filteredLogs: string[]
+  searchQuery: string
+  levelFilter: string | null
+  timeRangeFilter: string
+  sourceFilter: string
+  useRegex: boolean
+  caseSensitive: boolean
+  invertMatch: boolean
+  showAdvancedSearch: boolean
 }
 
 interface Emits {
   (e: 'loadLogs'): void
+  (e: 'executeSearch'): void
+  (e: 'update:searchQuery', value: string): void
+  (e: 'update:levelFilter', value: string | null): void
+  (e: 'update:timeRangeFilter', value: string): void
+  (e: 'update:sourceFilter', value: string): void
+  (e: 'update:useRegex', value: boolean): void
+  (e: 'update:caseSensitive', value: boolean): void
+  (e: 'update:invertMatch', value: boolean): void
+  (e: 'resetFilters'): void
+  (e: 'toggleAdvancedSearch'): void
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 const toast = useToast()
 
+// 日志级别选项
+const levelOptions = [
+  { label: '所有级别', value: null },
+  { label: 'INFO', value: 'INFO' },
+  { label: 'WARNING', value: 'WARNING' },
+  { label: 'ERROR', value: 'ERROR' },
+  { label: 'DEBUG', value: 'DEBUG' },
+  { label: 'CRITICAL', value: 'CRITICAL' }
+]
 
-// 计算属性：高亮后的日志HTML
+// 计算属性：是否显示高级搜索
+const showAdvancedSearch = computed({
+  get: () => props.showAdvancedSearch,
+  set: (value) => emit('toggleAdvancedSearch')
+})
+
+// 计算属性：搜索关键词
+const searchQuery = computed({
+  get: () => props.searchQuery,
+  set: (value) => emit('update:searchQuery', value)
+})
+
+// 计算属性：日志级别过滤
+const levelFilter = computed({
+  get: () => props.levelFilter,
+  set: (value) => emit('update:levelFilter', value)
+})
+
+// 计算属性：时间范围过滤
+const timeRangeFilter = computed({
+  get: () => props.timeRangeFilter,
+  set: (value) => emit('update:timeRangeFilter', value)
+})
+
+// 计算属性：日志来源过滤
+const sourceFilter = computed({
+  get: () => props.sourceFilter,
+  set: (value) => emit('update:sourceFilter', value)
+})
+
+// 计算属性：是否使用正则
+const useRegex = computed({
+  get: () => props.useRegex,
+  set: (value) => emit('update:useRegex', value)
+})
+
+// 计算属性：是否区分大小写
+const caseSensitive = computed({
+  get: () => props.caseSensitive,
+  set: (value) => emit('update:caseSensitive', value)
+})
+
+// 计算属性：是否反转匹配
+const invertMatch = computed({
+  get: () => props.invertMatch,
+  set: (value) => emit('update:invertMatch', value)
+})
+
+// 计算属性：是否有活跃的过滤器
+const hasActiveFilters = computed(() => {
+  return !!props.searchQuery || !!props.levelFilter || !!props.timeRangeFilter || !!props.sourceFilter
+})
+
+// 计算属性：活跃的过滤器列表（用于显示标签）
+const activeFilters = computed(() => {
+  const filters: { type: string; label: string }[] = []
+
+  if (props.searchQuery) {
+    filters.push({ type: 'search', label: `关键词: ${props.searchQuery}` })
+  }
+  if (props.levelFilter) {
+    filters.push({ type: 'level', label: `级别: ${props.levelFilter}` })
+  }
+  if (props.timeRangeFilter) {
+    filters.push({ type: 'time', label: `时间: ${props.timeRangeFilter}` })
+  }
+  if (props.sourceFilter) {
+    filters.push({ type: 'source', label: `来源: ${props.sourceFilter}` })
+  }
+  if (props.useRegex) {
+    filters.push({ type: 'regex', label: '正则模式' })
+  }
+  if (props.caseSensitive) {
+    filters.push({ type: 'case', label: '区分大小写' })
+  }
+  if (props.invertMatch) {
+    filters.push({ type: 'invert', label: '反转匹配' })
+  }
+
+  return filters
+})
+
+// 计算属性：过滤后的日志数量
+const filteredCount = computed(() => {
+  return props.filteredLogs ? props.filteredLogs.length : 0
+})
+
+// 计算属性：高亮后的日志HTML（基于过滤后的日志）
 const highlightedLogsHtml = computed(() => {
-  if (!props.logs || props.logs.length === 0) {
+  if (!props.filteredLogs || props.filteredLogs.length === 0) {
     return ''
   }
-  return highlightLogContent(props.logs)
+  return highlightLogContent(props.filteredLogs)
 })
+
+// 执行搜索
+function executeSearch() {
+  emit('executeSearch')
+}
+
+// 切换高级搜索
+function toggleAdvancedSearch() {
+  emit('toggleAdvancedSearch')
+}
+
+// 重置过滤器
+function resetFilters() {
+  emit('resetFilters')
+}
+
 
 function loadLogs() {
   emit('loadLogs')
@@ -134,35 +369,126 @@ function copyLogsToClipboard() {
   gap: 16px;
 }
 
-.log-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  padding: 16px;
+.log-search-toolbar {
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(59, 130, 246, 0.04) 100%);
   border-radius: 8px;
   border: 1px solid rgba(99, 102, 241, 0.15);
   backdrop-filter: blur(5px);
+  padding: 16px;
 
-  .stat-item {
+  .search-main {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+
+    .search-input-wrapper {
+      flex: 1;
+      max-width: 400px;
+
+      .search-input {
+        width: 100%;
+        border-radius: 6px;
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        background: rgba(15, 23, 42, 0.6);
+        color: #e2e8f0;
+
+        &::placeholder {
+          color: #94a3b8;
+        }
+
+        &:focus {
+          border-color: #6366f1;
+          box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+      }
+    }
+  }
+
+  .advanced-search-panel {
+    background: rgba(15, 23, 42, 0.4);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid rgba(99, 102, 241, 0.1);
+
+    .filter-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 12px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .filter-group {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .filter-label {
+          font-size: 13px;
+          font-weight: 500;
+          color: #e2e8f0;
+          white-space: nowrap;
+          min-width: 60px;
+        }
+
+        .filter-select,
+        .filter-input {
+          flex: 1;
+          border-radius: 4px;
+          border: 1px solid rgba(99, 102, 241, 0.3);
+          background: rgba(15, 23, 42, 0.6);
+          color: #e2e8f0;
+          font-size: 12px;
+          padding: 6px 8px;
+
+          &::placeholder {
+            color: #64748b;
+          }
+        }
+
+        .checkbox-label {
+          font-size: 12px;
+          color: #e2e8f0;
+          cursor: pointer;
+          margin-left: 4px;
+        }
+      }
+    }
+  }
+
+  .filter-tags {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 13px;
-    color: #e2e8f0;
-    padding: 6px 12px;
-    background: rgba(15, 23, 42, 0.4);
-    border-radius: 6px;
-    border: 1px solid rgba(148, 163, 184, 0.1);
+    margin-bottom: 8px;
+    flex-wrap: wrap;
 
-    i {
-      font-size: 15px;
-      color: #6366f1;
-      font-weight: 600;
-    }
-
-    span {
+    .filter-tags-title {
+      font-size: 12px;
       font-weight: 500;
+      color: #94a3b8;
+    }
+  }
+
+  .filter-stats {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    .stats-info {
+      font-size: 12px;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      i {
+        font-size: 14px;
+      }
     }
   }
 }
