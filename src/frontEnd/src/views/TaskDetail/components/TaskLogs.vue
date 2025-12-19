@@ -39,6 +39,29 @@
             outlined
             size="small"
           />
+          
+          <!-- 分隔线 -->
+          <div class="toolbar-divider"></div>
+          
+          <!-- 复制和刷新按钮 -->
+          <Button
+            v-if="logs && logs.length > 0"
+            icon="pi pi-copy"
+            label="复制全部"
+            @click="copyLogsToClipboard"
+            severity="secondary"
+            text
+            size="small"
+          />
+          <Button
+            icon="pi pi-sync"
+            label="刷新"
+            @click="loadLogs"
+            :loading="loadingLogs"
+            severity="secondary"
+            text
+            size="small"
+          />
         </div>
 
         <!-- 高级搜索面板 -->
@@ -125,24 +148,6 @@
         </div>
       </div>
 
-      <div class="log-actions" style="margin-bottom: 16px;">
-        <Button
-          v-if="logs && logs.length > 0"
-          icon="pi pi-copy"
-          :label="'复制全部日志'"
-          text
-          @click="copyLogsToClipboard"
-          class="p-button-sm"
-        />
-        <Button
-          icon="pi pi-refresh"
-          :label="'刷新'"
-          text
-          @click="loadLogs"
-          :loading="loadingLogs"
-          class="p-button-sm"
-        />
-      </div>
       <div class="logs-container" ref="logsContainerRef">
         <pre class="logs-pre">
           <code v-html="highlightedLogsHtml"></code>
@@ -381,10 +386,11 @@ function copyLogsToClipboard() {
     gap: 12px;
     align-items: center;
     margin-bottom: 16px;
+    flex-wrap: wrap;
 
     .search-input-wrapper {
-      flex: 1;
-      max-width: 400px;
+      flex: 0 1 300px;
+      min-width: 200px;
 
       // 修复搜索图标垂直对齐
       :deep(.p-inputicon) {
@@ -401,6 +407,13 @@ function copyLogsToClipboard() {
         border-radius: 6px;
         padding-left: 2.5rem; // 为左侧图标留出空间
       }
+    }
+    
+    .toolbar-divider {
+      width: 1px;
+      height: 24px;
+      background: var(--p-content-border-color);
+      margin: 0 4px;
     }
   }
 
@@ -485,20 +498,9 @@ function copyLogsToClipboard() {
   }
 }
 
-.log-actions {
-  display: flex;
-  gap: 8px;
-  margin-left: auto;
-
-  .p-button-sm {
-    padding: 4px 8px;
-    font-size: 12px;
-  }
-}
-
 .logs-container {
-  // 自适应父容器高度，减去工具栏和按钮区域高度
-  height: calc(100% - 180px);
+  // 自适应父容器高度，减去工具栏高度
+  height: calc(100% - 160px);
   min-height: 200px;
   overflow-y: auto;
   overflow-x: auto;
