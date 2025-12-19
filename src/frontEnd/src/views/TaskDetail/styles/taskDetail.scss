@@ -144,6 +144,10 @@
     padding: 14px 28px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    // Tab内部图标和文字对齐
+    display: flex;
+    align-items: center;
+    gap: 8px;
 
     &:hover {
       background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.8) 100%);
@@ -156,10 +160,13 @@
       color: #4b5563;
       font-weight: 600;
       transition: all 0.3s ease;
+      line-height: 1;
     }
 
     i {
       transition: all 0.3s ease;
+      font-size: 16px;
+      line-height: 1;
     }
   }
 
