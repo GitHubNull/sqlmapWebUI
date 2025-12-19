@@ -120,14 +120,75 @@
               </div>
             </template>
           </Column>
+          
+          <!-- 汇总统计行 -->
+          <ColumnGroup type="footer">
+            <Row>
+              <Column footer="汇总" footerStyle="font-weight: bold; text-align: center;" />
+              <Column :footer="`共 ${taskStore.taskStats.total} 个任务`" footerStyle="font-weight: bold; text-align: center;" />
+              <Column :colspan="2" footer="" />
+              <Column footerStyle="text-align: center;">
+                <template #footer>
+                  <div class="summary-cell">
+                    <Tag :value="`存在注入: ${taskStore.taskStats.injectable}`" severity="danger" />
+                    <Tag :value="`无注入: ${taskStore.taskStats.nonInjectable}`" severity="success" />
+                    <Button 
+                      type="button" 
+                      icon="pi pi-ellipsis-h" 
+                      @click="toggleInjectionPopover" 
+                      text 
+                      size="small"
+                      class="more-btn"
+                      v-tooltip.top="'查看完整统计'"
+                    />
+                    <Popover ref="injectionPopover" appendTo="body" class="stats-popover">
+                      <div class="popover-stats">
+                        <div class="popover-title">注入统计</div>
+                        <div class="popover-items">
+                          <Tag :value="`存在注入: ${taskStore.taskStats.injectable}`" severity="danger" />
+                          <Tag :value="`无注入: ${taskStore.taskStats.nonInjectable}`" severity="success" />
+                          <Tag :value="`未知: ${taskStore.taskStats.unknown}`" severity="secondary" />
+                        </div>
+                      </div>
+                    </Popover>
+                  </div>
+                </template>
+              </Column>
+              <Column footerStyle="text-align: center;">
+                <template #footer>
+                  <div class="summary-cell">
+                    <Tag :value="`运行中: ${taskStore.taskStats.running}`" severity="info" />
+                    <Tag :value="`已完成: ${taskStore.taskStats.success}`" severity="success" />
+                    <Button 
+                      type="button" 
+                      icon="pi pi-ellipsis-h" 
+                      @click="toggleStatusPopover" 
+                      text 
+                      size="small"
+                      class="more-btn"
+                      v-tooltip.top="'查看完整统计'"
+                    />
+                    <Popover ref="statusPopover" appendTo="body" class="stats-popover">
+                      <div class="popover-stats">
+                        <div class="popover-title">状态统计</div>
+                        <div class="popover-items">
+                          <Tag :value="`等待中: ${taskStore.taskStats.pending}`" severity="info" />
+                          <Tag :value="`运行中: ${taskStore.taskStats.running}`" severity="primary" />
+                          <Tag :value="`已完成: ${taskStore.taskStats.success}`" severity="success" />
+                          <Tag :value="`失败: ${taskStore.taskStats.failed}`" severity="danger" />
+                          <Tag :value="`已停止: ${taskStore.taskStats.stopped}`" severity="warn" />
+                          <Tag :value="`已终止: ${taskStore.taskStats.terminated}`" severity="secondary" />
+                        </div>
+                      </div>
+                    </Popover>
+                  </div>
+                </template>
+              </Column>
+              <Column footer="" />
+              <Column footer="" />
+            </Row>
+          </ColumnGroup>
         </DataTable>
-      </template>
-    </Card>
-
-    <!-- 任务汇总统计 -->
-    <Card style="margin-top: 20px;">
-      <template #content>
-        <TaskSummary :stats="taskStore.taskStats" />
       </template>
     </Card>
   </div>
@@ -144,13 +205,27 @@ import { TaskStatus } from '@/types/task'
 import type { Task, TaskFilters } from '@/types/task'
 import { formatDateTime } from '@/utils/format'
 import TaskFilter from '@/components/TaskFilter.vue'
-import TaskSummary from '@/components/TaskSummary.vue'
+import ColumnGroup from 'primevue/columngroup'
+import Row from 'primevue/row'
+import Popover from 'primevue/popover'
 
 const router = useRouter()
 const taskStore = useTaskStore()
 const configStore = useConfigStore()
 const confirm = useConfirm()
 const toast = useToast()
+
+// Popover 引用
+const injectionPopover = ref()
+const statusPopover = ref()
+
+function toggleInjectionPopover(event: Event) {
+  injectionPopover.value.toggle(event)
+}
+
+function toggleStatusPopover(event: Event) {
+  statusPopover.value.toggle(event)
+}
 
 // 选中的任务
 const selectedTasks = ref<Task[]>([])
@@ -765,6 +840,118 @@ function confirmDeleteAll() {
     border-top: 2px solid rgba(99, 102, 241, 0.1);
     padding: 12px 16px;
     margin: 0;
+  }
+
+  // 汇总统计行样式
+  .p-datatable-tfoot {
+    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #ddd6fe 100%);
+    border-top: 3px solid #22c55e;
+    border-bottom: 3px solid #22c55e;
+    box-shadow: 
+      inset 0 2px 4px rgba(34, 197, 94, 0.15),
+      0 -2px 8px rgba(34, 197, 94, 0.1),
+      0 2px 8px rgba(34, 197, 94, 0.1);
+    
+    td {
+      padding: 14px 8px;
+      font-weight: 700;
+      color: #1e1b4b;
+      border-bottom: none;
+      
+      &:first-child {
+        border-left: 3px solid #22c55e;
+      }
+      
+      &:last-child {
+        border-right: 3px solid #22c55e;
+      }
+    }
+
+    tr {
+      background: transparent;
+
+      &:hover {
+        background: transparent;
+      }
+    }
+  }
+}
+
+// ==================== 汇总单元格样式 ====================
+.summary-cell {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  justify-content: center;
+  align-items: center;
+
+  :deep(.p-tag) {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  .more-btn {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border-radius: 50%;
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(99, 102, 241, 0.2);
+      transform: scale(1.1);
+    }
+  }
+}
+
+// ==================== Popover 统计弹出框样式 ====================
+.popover-stats {
+  padding: 8px;
+  min-width: 180px;
+
+  .popover-title {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 14px;
+  }
+
+  .popover-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    :deep(.p-tag) {
+      font-size: 13px;
+      padding: 6px 12px;
+      justify-content: flex-start;
+    }
+  }
+}
+</style>
+
+<!-- 全局样式 - 统一 Popover 弹出方向 -->
+<style lang="scss">
+.stats-popover.p-popover {
+  // 统一弹出框样式
+  box-shadow: 
+    0 10px 25px rgba(0, 0, 0, 0.15),
+    0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+
+  .p-popover-content {
+    padding: 12px;
+  }
+
+  // 箭头样式
+  &::before, &::after {
+    border-color: transparent;
   }
 }
 </style>
