@@ -1,0 +1,571 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      # 匹配包含 release 和版本号的 tag
+      # 例如: release-v1.0.0, release-1.2.3, v1.0.0-release
+      - 'release-v[0-9]+.[0-9]+.[0-9]+*'
+      - 'v[0-9]+.[0-9]+.[0-9]+-release*'
+      - 'release/v[0-9]+.[0-9]+.[0-9]+*'
+
+env:
+  PYTHON_VERSION: '3.13'
+  NODE_VERSION: '20'
+  JAVA_VERSION_LEGACY: '11'
+  JAVA_VERSION_MONTOYA: '17'
+  PNPM_VERSION: '9'
+
+jobs:
+  # ============================================
+  # 构建前端
+  # ============================================
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          cache-dependency-path: src/frontEnd/pnpm-lock.yaml
+      
+      - name: Install dependencies
+        working-directory: src/frontEnd
+        run: pnpm install --frozen-lockfile
+      
+      - name: Build frontend
+        working-directory: src/frontEnd
+        run: pnpm build
+      
+      - name: Upload frontend artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: src/frontEnd/dist
+          retention-days: 1
+
+  # ============================================
+  # 构建 Burp Suite 插件 (Legacy API - Java 11)
+  # ============================================
+  build-burp-legacy:
+    name: Build Burp Plugin (Legacy API)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Java ${{ env.JAVA_VERSION_LEGACY }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION_LEGACY }}
+          cache: 'maven'
+      
+      - name: Build with Maven
+        working-directory: src/burpEx/legacy-api
+        run: mvn clean package -DskipTests -B
+      
+      - name: Upload Burp Legacy Plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: burp-plugin-legacy
+          path: src/burpEx/legacy-api/target/sqlmap-webui-burp-legacy-*-jar-with-dependencies.jar
+          retention-days: 1
+
+  # ============================================
+  # 构建 Burp Suite 插件 (Montoya API - Java 17)
+  # ============================================
+  build-burp-montoya:
+    name: Build Burp Plugin (Montoya API)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Java ${{ env.JAVA_VERSION_MONTOYA }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION_MONTOYA }}
+          cache: 'maven'
+      
+      - name: Build with Maven
+        working-directory: src/burpEx/montoya-api
+        run: mvn clean package -DskipTests -B
+      
+      - name: Upload Burp Montoya Plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: burp-plugin-montoya
+          path: src/burpEx/montoya-api/target/sqlmap-webui-burp-montoya-*.jar
+          if-no-files-found: error
+          retention-days: 1
+
+  # ============================================
+  # 打包后端应用（包含前端）
+  # ============================================
+  build-backend:
+    name: Build Backend Application
+    runs-on: ubuntu-latest
+    needs: build-frontend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - name: Download frontend artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: src/backEnd/static
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+      
+      - name: Create backend package
+        run: |
+          # 获取版本号
+          VERSION=${GITHUB_REF_NAME}
+          VERSION=${VERSION#release-}
+          VERSION=${VERSION#v}
+          VERSION=${VERSION%-release}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          
+          # 创建打包目录
+          mkdir -p dist/sqlmapwebui-$VERSION
+          
+          # 复制后端代码
+          cp -r src/backEnd/* dist/sqlmapwebui-$VERSION/
+          
+          # 清理不需要的文件
+          rm -rf dist/sqlmapwebui-$VERSION/__pycache__
+          rm -rf dist/sqlmapwebui-$VERSION/**/__pycache__
+          rm -rf dist/sqlmapwebui-$VERSION/.env
+          rm -rf dist/sqlmapwebui-$VERSION/tests
+          rm -rf dist/sqlmapwebui-$VERSION/uv.lock
+          
+          # 创建启动脚本 (Linux/Mac)
+          cat > dist/sqlmapwebui-$VERSION/start.sh << 'EOF'
+          #!/bin/bash
+          cd "$(dirname "$0")"
+          
+          # 检查是否安装了 uv
+          if ! command -v uv &> /dev/null; then
+              echo "Installing uv..."
+              curl -LsSf https://astral.sh/uv/install.sh | sh
+              source $HOME/.local/bin/env
+          fi
+          
+          # 同步依赖
+          echo "Syncing dependencies..."
+          uv sync --extra thirdparty
+          
+          # 启动服务
+          echo "Starting SQLMap WebUI..."
+          uv run python main.py
+          EOF
+          chmod +x dist/sqlmapwebui-$VERSION/start.sh
+          
+          # 创建启动脚本 (Windows)
+          cat > dist/sqlmapwebui-$VERSION/start.bat << 'EOF'
+          @echo off
+          cd /d "%~dp0"
+          
+          echo Checking uv installation...
+          where uv >nul 2>nul
+          if %errorlevel% neq 0 (
+              echo Installing uv...
+              powershell -ExecutionPolicy Bypass -Command "irm https://astral.sh/uv/install.ps1 | iex"
+          )
+          
+          echo Syncing dependencies...
+          uv sync --extra thirdparty
+          
+          echo Starting SQLMap WebUI...
+          uv run python main.py
+          EOF
+          
+          # 创建 zip 包
+          cd dist
+          zip -r sqlmapwebui-$VERSION.zip sqlmapwebui-$VERSION
+      
+      - name: Upload backend package
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-package
+          path: dist/sqlmapwebui-*.zip
+          retention-days: 1
+
+  # ============================================
+  # 打包靶场应用
+  # ============================================
+  build-vulnlab:
+    name: Build Vulnerability Lab
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Create vulnlab package
+        run: |
+          # 获取版本号
+          VERSION=${GITHUB_REF_NAME}
+          VERSION=${VERSION#release-}
+          VERSION=${VERSION#v}
+          VERSION=${VERSION%-release}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          
+          # 创建打包目录
+          mkdir -p dist/vulnTestServer-$VERSION
+          
+          # 复制靶场代码
+          cp -r src/vulnTestServer/* dist/vulnTestServer-$VERSION/
+          
+          # 清理不需要的文件
+          rm -rf dist/vulnTestServer-$VERSION/__pycache__
+          rm -rf dist/vulnTestServer-$VERSION/**/__pycache__
+          rm -rf dist/vulnTestServer-$VERSION/data/*.db
+          
+          # 创建启动脚本 (Linux/Mac)
+          cat > dist/vulnTestServer-$VERSION/start.sh << 'EOF'
+          #!/bin/bash
+          cd "$(dirname "$0")"
+          
+          # 检查 Python 环境
+          if ! command -v python3 &> /dev/null; then
+              echo "Error: Python 3 is required"
+              exit 1
+          fi
+          
+          # 安装依赖
+          echo "Installing dependencies..."
+          pip install flask
+          
+          # 启动靶场服务器
+          echo "Starting Vulnerability Test Server..."
+          python3 server.py
+          EOF
+          chmod +x dist/vulnTestServer-$VERSION/start.sh
+          
+          # 创建启动脚本 (Windows)
+          cat > dist/vulnTestServer-$VERSION/start.bat << 'EOF'
+          @echo off
+          cd /d "%~dp0"
+          
+          echo Installing dependencies...
+          pip install flask
+          
+          echo Starting Vulnerability Test Server...
+          python server.py
+          EOF
+          
+          # 创建 zip 包
+          cd dist
+          zip -r vulnTestServer-$VERSION.zip vulnTestServer-$VERSION
+      
+      - name: Upload vulnlab package
+        uses: actions/upload-artifact@v4
+        with:
+          name: vulnlab-package
+          path: dist/vulnTestServer-*.zip
+          retention-days: 1
+
+  # ============================================
+  # 创建 GitHub Release
+  # ============================================
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs:
+      - build-frontend
+      - build-burp-legacy
+      - build-burp-montoya
+      - build-backend
+      - build-vulnlab
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Get version from tag
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF_NAME}
+          VERSION=${VERSION#release-}
+          VERSION=${VERSION#v}
+          VERSION=${VERSION%-release}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag_name=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      
+      - name: Prepare release assets
+        run: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          mkdir -p release-assets
+          
+          # 后端应用包
+          cp artifacts/backend-package/sqlmapwebui-*.zip release-assets/
+          
+          # 靶场包
+          cp artifacts/vulnlab-package/vulnTestServer-*.zip release-assets/
+          
+          # Burp 插件 - Legacy API
+          cp artifacts/burp-plugin-legacy/*.jar release-assets/sqlmap-webui-burp-legacy-${VERSION}.jar || \
+          cp artifacts/burp-plugin-legacy/*.jar release-assets/
+          
+          # Burp 插件 - Montoya API
+          # 排除 original-* 文件
+          for f in artifacts/burp-plugin-montoya/*.jar; do
+            if [[ ! "$f" == *"original-"* ]]; then
+              cp "$f" release-assets/sqlmap-webui-burp-montoya-${VERSION}.jar || cp "$f" release-assets/
+            fi
+          done
+          
+          # 列出所有发布资源
+          echo "Release assets:"
+          ls -la release-assets/
+      
+      - name: Get previous tag
+        id: prev_tag
+        run: |
+          # 获取上一个 tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+          echo "Previous tag: $PREV_TAG"
+      
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          PREV_TAG=${{ steps.prev_tag.outputs.prev_tag }}
+          
+          # 确定比较范围
+          if [ -z "$PREV_TAG" ]; then
+            COMPARE_RANGE="HEAD"
+            echo "No previous tag found, using all commits"
+          else
+            COMPARE_RANGE="${PREV_TAG}..HEAD"
+            echo "Comparing: $COMPARE_RANGE"
+          fi
+          
+          # 初始化变更分类
+          FEATURES=""
+          FIXES=""
+          IMPROVEMENTS=""
+          BREAKING=""
+          DOCS=""
+          REFACTOR=""
+          TESTS=""
+          CHORE=""
+          OTHER=""
+          
+          # 解析 commit 消息并分类
+          while IFS= read -r line; do
+            if [ -z "$line" ]; then
+              continue
+            fi
+            
+            # 提取 commit 信息 (格式: hash|subject)
+            HASH=$(echo "$line" | cut -d'|' -f1 | cut -c1-7)
+            MSG=$(echo "$line" | cut -d'|' -f2-)
+            
+            # 跳过合并提交
+            if echo "$MSG" | grep -qiE "^Merge"; then
+              continue
+            fi
+            
+            # 根据 Conventional Commits 格式分类
+            ENTRY="- $MSG (\`$HASH\`)"
+            
+            if echo "$MSG" | grep -qiE "^feat(\(.+\))?[!:]|^feature[!:]"; then
+              FEATURES="$FEATURES\n$ENTRY"
+            elif echo "$MSG" | grep -qiE "^fix(\(.+\))?[!:]"; then
+              FIXES="$FIXES\n$ENTRY"
+            elif echo "$MSG" | grep -qiE "^perf(\(.+\))?[!:]|^improve(\(.+\))?[!:]|^optimize"; then
+              IMPROVEMENTS="$IMPROVEMENTS\n$ENTRY"
+            elif echo "$MSG" | grep -qiE "^breaking|^!:"; then
+              BREAKING="$BREAKING\n$ENTRY"
+            elif echo "$MSG" | grep -qiE "^docs?(\(.+\))?[!:]"; then
+              DOCS="$DOCS\n$ENTRY"
+            elif echo "$MSG" | grep -qiE "^refactor(\(.+\))?[!:]"; then
+              REFACTOR="$REFACTOR\n$ENTRY"
+            elif echo "$MSG" | grep -qiE "^test(s)?(\(.+\))?[!:]"; then
+              TESTS="$TESTS\n$ENTRY"
+            elif echo "$MSG" | grep -qiE "^chore(\(.+\))?[!:]|^build(\(.+\))?[!:]|^ci(\(.+\))?[!:]"; then
+              CHORE="$CHORE\n$ENTRY"
+            else
+              OTHER="$OTHER\n$ENTRY"
+            fi
+          done < <(git log $COMPARE_RANGE --pretty=format:"%H|%s" --no-merges 2>/dev/null || echo "")
+          
+          # 生成 Changelog 内容
+          CHANGELOG=""
+          
+          if [ -n "$BREAKING" ]; then
+            CHANGELOG="$CHANGELOG\n### ⚠️ 重大变更 (Breaking Changes)\n$BREAKING\n"
+          fi
+          
+          if [ -n "$FEATURES" ]; then
+            CHANGELOG="$CHANGELOG\n### ✨ 新功能 (Features)\n$FEATURES\n"
+          fi
+          
+          if [ -n "$FIXES" ]; then
+            CHANGELOG="$CHANGELOG\n### 🐛 问题修复 (Bug Fixes)\n$FIXES\n"
+          fi
+          
+          if [ -n "$IMPROVEMENTS" ]; then
+            CHANGELOG="$CHANGELOG\n### ⚡ 性能优化 (Performance)\n$IMPROVEMENTS\n"
+          fi
+          
+          if [ -n "$REFACTOR" ]; then
+            CHANGELOG="$CHANGELOG\n### ♻️ 代码重构 (Refactor)\n$REFACTOR\n"
+          fi
+          
+          if [ -n "$DOCS" ]; then
+            CHANGELOG="$CHANGELOG\n### 📝 文档更新 (Documentation)\n$DOCS\n"
+          fi
+          
+          if [ -n "$TESTS" ]; then
+            CHANGELOG="$CHANGELOG\n### 🧪 测试 (Tests)\n$TESTS\n"
+          fi
+          
+          if [ -n "$CHORE" ]; then
+            CHANGELOG="$CHANGELOG\n### 🔧 其他更新 (Chore)\n$CHORE\n"
+          fi
+          
+          if [ -n "$OTHER" ]; then
+            CHANGELOG="$CHANGELOG\n### 📋 其他变更 (Other Changes)\n$OTHER\n"
+          fi
+          
+          # 如果没有任何变更记录
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG="\n*暂无详细变更记录*\n"
+          fi
+          
+          # 保存到文件供后续使用
+          echo -e "$CHANGELOG" > changelog_content.md
+          
+          # 统计信息
+          TOTAL_COMMITS=$(git rev-list --count $COMPARE_RANGE 2>/dev/null || echo "0")
+          CONTRIBUTORS=$(git log $COMPARE_RANGE --format='%aN' 2>/dev/null | sort -u | wc -l || echo "0")
+          echo "total_commits=$TOTAL_COMMITS" >> $GITHUB_OUTPUT
+          echo "contributors=$CONTRIBUTORS" >> $GITHUB_OUTPUT
+      
+      - name: Generate Release Notes
+        id: release_notes
+        run: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          PREV_TAG=${{ steps.prev_tag.outputs.prev_tag }}
+          TOTAL_COMMITS=${{ steps.changelog.outputs.total_commits }}
+          CONTRIBUTORS=${{ steps.changelog.outputs.contributors }}
+          
+          # 读取 changelog 内容
+          CHANGELOG_CONTENT=$(cat changelog_content.md)
+          
+          # 生成比较链接
+          if [ -n "$PREV_TAG" ]; then
+            COMPARE_URL="https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${GITHUB_REF_NAME}"
+            COMPARE_SECTION="\n[📊 查看完整代码变更](${COMPARE_URL}) | 共 ${TOTAL_COMMITS} 个提交，${CONTRIBUTORS} 位贡献者\n"
+          else
+            COMPARE_SECTION="\n*这是首次发布版本*\n"
+          fi
+          
+          cat > release_notes.md << EOF
+          # SQLMap WebUI v${VERSION}
+          
+          ## 📋 版本概述
+          
+          发布日期: $(date +'%Y-%m-%d')
+          ${COMPARE_SECTION}
+          
+          ## 🔄 更新内容
+          
+          ${CHANGELOG_CONTENT}
+          
+          ---
+          
+          ## 📦 发布包说明
+          
+          ### 后端应用 (sqlmapwebui-${VERSION}.zip)
+          完整的后端服务包，包含：
+          - Python 后端 API 服务
+          - 前端静态资源（已集成）
+          - 启动脚本 (start.sh / start.bat)
+          
+          **使用方法：**
+          \`\`\`bash
+          # Linux/Mac
+          unzip sqlmapwebui-${VERSION}.zip
+          cd sqlmapwebui-${VERSION}
+          ./start.sh
+          
+          # Windows
+          # 解压后运行 start.bat
+          \`\`\`
+          
+          ### Burp Suite 插件
+          
+          #### Montoya API 版本 (推荐)
+          - **文件**: sqlmap-webui-burp-montoya-${VERSION}.jar
+          - **适用**: Burp Suite 2023.1 及以上版本
+          - **Java 要求**: Java 17+
+          
+          #### Legacy API 版本
+          - **文件**: sqlmap-webui-burp-legacy-${VERSION}.jar
+          - **适用**: Burp Suite 老版本
+          - **Java 要求**: Java 11+
+          
+          ### 漏洞测试靶场 (vulnTestServer-${VERSION}.zip)
+          用于测试的漏洞环境，包含多种 SQL 注入场景。
+          
+          **使用方法：**
+          \`\`\`bash
+          unzip vulnTestServer-${VERSION}.zip
+          cd vulnTestServer-${VERSION}
+          ./start.sh  # 或 Windows 运行 start.bat
+          \`\`\`
+          
+          ## ⚠️ 安全提示
+          本工具仅用于授权的安全测试。请确保在使用前获得适当的授权。
+          
+          ---
+          *此版本由 GitHub Actions 自动构建发布*
+          EOF
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_version.outputs.tag_name }}
+          name: SQLMap WebUI v${{ steps.get_version.outputs.version }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          files: |
+            release-assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
