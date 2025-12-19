@@ -67,7 +67,7 @@
       </div>
       
       <!-- 重置按钮 -->
-      <div class="filter-item">
+      <div class="filter-item reset-item">
         <label class="filter-label">&nbsp;</label>
         <Button 
           label="重置" 
@@ -75,7 +75,7 @@
           @click="resetFilters" 
           severity="secondary"
           outlined
-          class="w-full"
+          class="reset-btn"
         />
       </div>
     </div>
@@ -240,6 +240,16 @@ function resetFilters() {
   flex-direction: column;
   gap: 12px;
   position: relative;
+
+  &.reset-item {
+    justify-content: flex-end;
+  }
+}
+
+.reset-btn {
+  width: auto;
+  min-width: 100px;
+  max-width: 120px;
 }
 
 .filter-label {
