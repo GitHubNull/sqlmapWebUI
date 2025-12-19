@@ -241,6 +241,98 @@ async def clear_session_headers(
         return BaseResponseMsg(data=None, msg=str(e), success=False, code=500)
 
 
+@router.delete('/session-headers/{header_name}')
+async def delete_session_header(
+        header_name: str,
+        request: Request
+):
+    """删除单个会话性请求头"""
+    try:
+        client_ip = request.client.host
+        session_manager = DataStore.get_session_header_manager()
+
+        removed = session_manager.remove_session_header(client_ip, header_name)
+
+        if removed:
+            return BaseResponseMsg(
+                data={"client_ip": client_ip, "header_name": header_name},
+                msg="会话性请求头删除成功",
+                success=True,
+                code=status.HTTP_200_OK
+            )
+        else:
+            return BaseResponseMsg(
+                data=None,
+                msg="没有找到指定的会话性请求头",
+                success=False,
+                code=status.HTTP_404_NOT_FOUND
+            )
+
+    except Exception as e:
+        logger.error(f"Failed to delete session header: {e}")
+        return BaseResponseMsg(data=None, msg=str(e), success=False, code=500)
+
+
+class SessionHeaderUpdateRequest(BaseModel):
+    header_value: str = Field(..., description="新的请求头值")
+    priority: Optional[int] = Field(None, description="优先级")
+    ttl: Optional[int] = Field(None, description="生存时间(秒)")
+
+
+@router.put('/session-headers/{header_name}')
+async def update_session_header(
+        header_name: str,
+        update_data: SessionHeaderUpdateRequest,
+        request: Request
+):
+    """更新单个会话性请求头"""
+    try:
+        client_ip = request.client.host
+        session_manager = DataStore.get_session_header_manager()
+        
+        # 检查请求头是否存在
+        existing_headers = session_manager.get_session_headers(client_ip, active_only=False)
+        if header_name not in existing_headers:
+            return BaseResponseMsg(
+                data=None,
+                msg="没有找到指定的会话性请求头",
+                success=False,
+                code=status.HTTP_404_NOT_FOUND
+            )
+        
+        existing = existing_headers[header_name]
+        
+        # 使用set_session_header更新（它会覆盖现有记录）
+        from model.SessionHeader import SessionHeaderCreate
+        updated_header = SessionHeaderCreate(
+            header_name=header_name,
+            header_value=update_data.header_value,
+            priority=update_data.priority if update_data.priority is not None else existing.priority,
+            ttl=update_data.ttl if update_data.ttl is not None else 3600
+        )
+        
+        success = session_manager.set_session_header(client_ip, updated_header)
+        
+        if success:
+            return BaseResponseMsg(
+                data={"client_ip": client_ip, "header_name": header_name},
+                msg="会话性请求头更新成功",
+                success=True,
+                code=status.HTTP_200_OK
+            )
+        else:
+            return BaseResponseMsg(
+                data=None,
+                msg="更新失败",
+                success=False,
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    except Exception as e:
+        logger.error(f"Failed to update session header: {e}")
+        return BaseResponseMsg(data=None, msg=str(e), success=False, code=500)
+
+
 # 请求头处理预览
 class HeaderPreviewRequest(BaseModel):
     headers: List[str] = Field(..., description="原始请求头列表")

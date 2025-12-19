@@ -156,10 +156,13 @@ class TaskService(object):
                     # pdb.set_trace()
                     resul_task_item = {
                         "index": index,
+                        "create_datetime": None if task.create_datetime is None else task.create_datetime.strftime("%Y-%m-%d %H:%M:%S"),
                         "start_datetime": None if task.start_datetime is None else task.start_datetime.strftime("%Y-%m-%d %H:%M:%S"),
                         "task_id": taskid,
                         "scanUrl": task.scanUrl,
-                        "errors": errors_count,  # errors_count
+                        "host": task.host,
+                        "remote_addr": task.remote_addr,
+                        "errors": errors_count,
                         "logs": logs_count,
                         "status": tmp_task_status,
                         "injected": data_count > 0

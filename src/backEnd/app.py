@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.chromeExApi.admin import router as chrome_admin_router
 from api.burpSuiteExApi.admin import router as burp_admin_router
 from api.commonApi.headerController import router as header_router
+from api.commonApi.authController import router as auth_router
 from config import VERSION
 
 logger = logging.getLogger(__name__)
@@ -32,15 +33,16 @@ app.add_middleware(
 app.include_router(chrome_admin_router, prefix="/api", tags=["chrome"])
 app.include_router(burp_admin_router, prefix="/api", tags=["burp"])
 app.include_router(header_router, prefix="/api", tags=["header"])
+app.include_router(auth_router, prefix="/api", tags=["auth"])
 
 # 返回 index.html 文件
 @app.get("/")
 async def read_root():
     return FileResponse("static/index.html")
 
-@app.get("/version")
+@app.get("/api/version")
 def get_version():
-    logger.debug("root")
+    """获取系统版本信息"""
     return {
         "version": VERSION
     }

@@ -225,11 +225,12 @@ export async function getSessionHeaders() {
 
 /**
  * 删除单个会话性请求头
+ * @param headerName 请求头名称
  */
-export async function deleteSessionHeader(headerId: number) {
+export async function deleteSessionHeader(headerName: string) {
   if (USE_MOCK_DATA) {
     await delay(300)
-    const index = mockSessionHeaders.findIndex(h => h.id === headerId)
+    const index = mockSessionHeaders.findIndex(h => h.header_name === headerName)
     if (index !== -1) {
       mockSessionHeaders.splice(index, 1)
       return {
@@ -244,16 +245,18 @@ export async function deleteSessionHeader(headerId: number) {
       message: 'Header不存在',
     }
   }
-  return request.delete(`/commonApi/header/session-headers/${headerId}`)
+  return request.delete(`/commonApi/header/session-headers/${encodeURIComponent(headerName)}`)
 }
 
 /**
  * 更新单个会话性请求头
+ * @param headerName 请求头名称
+ * @param header 更新内容
  */
-export async function updateSessionHeader(headerId: number, header: Partial<any>) {
+export async function updateSessionHeader(headerName: string, header: Partial<any>) {
   if (USE_MOCK_DATA) {
     await delay(400)
-    const index = mockSessionHeaders.findIndex(h => h.id === headerId)
+    const index = mockSessionHeaders.findIndex(h => h.header_name === headerName)
     if (index !== -1) {
       const existingHeader = mockSessionHeaders[index]!
       const updatedHeader = {
@@ -274,7 +277,7 @@ export async function updateSessionHeader(headerId: number, header: Partial<any>
       message: 'Header不存在',
     }
   }
-  return request.put(`/commonApi/header/session-headers/${headerId}`, header)
+  return request.put(`/commonApi/header/session-headers/${encodeURIComponent(headerName)}`, header)
 }
 
 /**

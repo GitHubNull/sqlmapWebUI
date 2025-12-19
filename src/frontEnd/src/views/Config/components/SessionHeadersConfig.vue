@@ -1670,7 +1670,7 @@ async function updateHeader() {
 
   saving.value = true
   try {
-    const res = await updateSessionHeader(editingHeader.value.id, editFormData.value)
+    const res = await updateSessionHeader(editingHeader.value.header_name, editFormData.value)
     if (res.success) {
       toast.add({
         severity: 'success',
@@ -1709,15 +1709,15 @@ function confirmDelete(header: any) {
     icon: 'pi pi-exclamation-triangle',
     acceptLabel: '删除',
     rejectLabel: '取消',
-    accept: () => deleteHeader(header.id),
+    accept: () => deleteHeader(header.header_name),
   })
 }
 
 // 删除Session Header
-async function deleteHeader(headerId: number) {
+async function deleteHeader(headerName: string) {
   try {
     // 调用删除API
-    const res = await deleteSessionHeader(headerId)
+    const res = await deleteSessionHeader(headerName)
     if (res.success) {
       toast.add({
         severity: 'success',
@@ -1801,7 +1801,7 @@ async function batchDeleteHeaders() {
   
   for (const header of selectedSessionHeaders.value) {
     try {
-      await deleteHeader(header.id)
+      await deleteHeader(header.header_name)
       successCount++
     } catch (error) {
       errorCount++
@@ -1839,7 +1839,7 @@ async function batchToggleActiveHeaders(isActive: boolean) {
   for (const header of selectedSessionHeaders.value) {
     try {
       // 调用updateSessionHeader来更新状态
-      await updateSessionHeader(header.id, {
+      await updateSessionHeader(header.header_name, {
         header_name: header.header_name,
         header_value: header.header_value,
         replace_strategy: header.replace_strategy,

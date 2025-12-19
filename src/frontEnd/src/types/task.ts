@@ -25,7 +25,8 @@ export interface Task {
   scanUrl: string // 扫描目标URL
   host: string // 目标主机
   status: TaskStatus // 任务状态
-  createTime: string // 创建时间(ISO格式)
+  createTime: string // 创建时间 (New状态开始时)
+  startTime?: string // 开始执行时间 (Running状态开始时)
   headers?: string[] // 请求头数组
   body?: string // 请求体
   options?: TaskOptions // 任务配置选项
@@ -41,9 +42,11 @@ export interface TaskFilters {
   urlKeyword?: string // URL关键字
   messageKeyword?: string // 报文关键字
   status?: TaskStatus // 状态过滤
-  startDate?: string // 开始时间
-  endDate?: string // 结束时间
-  injectableOnly?: boolean // 仅显示可注入
+  startDate?: string // 创建时间-开始
+  endDate?: string // 创建时间-结束
+  execStartDate?: string // 执行时间-开始
+  execEndDate?: string // 执行时间-结束
+  injectableStatus?: 'injectable' | 'not_injectable' | 'unknown' // 注入状态过滤
 }
 
 // 任务统计数据

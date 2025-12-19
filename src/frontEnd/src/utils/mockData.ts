@@ -221,6 +221,13 @@ export function generateMockTask(index: number, mode: MockDataMode = MockDataMod
   randomDate.setSeconds(Mock.Random.integer(0, 59))
   const createTime = randomDate.toISOString()
   
+  // 开始执行时间：如果任务已运行或已完成，则生成开始时间（比创建时间晚1-60分钟）
+  let startTime: string | undefined = undefined
+  if (randomStatus !== TaskStatus.PENDING) {
+    const startDate = new Date(randomDate.getTime() + Mock.Random.integer(1, 60) * 60 * 1000)
+    startTime = startDate.toISOString()
+  }
+  
   return {
     engineid: 1000 + index,
     taskid: Mock.mock('@guid'),
@@ -240,7 +247,10 @@ export function generateMockTask(index: number, mode: MockDataMode = MockDataMod
       threads: Mock.Random.integer(1, 10),
     },
     updateTime: createTime,
+    startTime,  // 开始执行时间
     injected,  // 添加注入状态
+    errors: Mock.Random.integer(0, 10),  // 错误数
+    logs: Mock.Random.integer(10, 500),  // 日志数
   }
 }
 

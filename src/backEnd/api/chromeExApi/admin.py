@@ -1,17 +1,44 @@
 # 使用标准库的logging模块
 import logging
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 
 from model.BaseResponseMsg import BaseResponseMsg
 from model.requestModel.TaskRequest import TaskDeleteRequest, TaskFindByHeaderKeyWordRequest, \
-    TaskLogQueryRequest, TaskFindByBodyKeyWordRequest, TaskFindByUrlPathRequest, TaskStopRequest
+    TaskLogQueryRequest, TaskFindByBodyKeyWordRequest, TaskFindByUrlPathRequest, TaskStopRequest, TaskAddRequest
 from service.taskService import taskService
 from utils.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/chrome/admin")
+
+
+@router.post('/task/add')
+async def add_task(taskAddRequest: TaskAddRequest, request: Request, current_user: dict = Depends(get_current_user)):
+    """添加新任务"""
+    try:
+        remote_ip = request.client.host if request.client else None
+        if not remote_ip:
+            logger.warning("request.client is None")
+            return BaseResponseMsg(success=False, msg="无法获取客户端IP", code=400, data=None)
+        
+        task_dict = taskAddRequest.model_dump()
+        if 'options' not in task_dict or task_dict['options'] is None:
+            return BaseResponseMsg(success=False, msg="options is required", code=400, data=None)
+        
+        res = await taskService.star_task(
+            remote_addr=remote_ip,
+            scanUrl=taskAddRequest.scanUrl,
+            host=taskAddRequest.host,
+            headers=taskAddRequest.headers,
+            body=taskAddRequest.body,
+            options=taskAddRequest.options
+        )
+        return res
+    except Exception as e:
+        logger.error(f"Add task error: {e}")
+        return BaseResponseMsg(data=None, msg=str(e), success=False, code=500)
 
 
 @router.delete('/task/delete')

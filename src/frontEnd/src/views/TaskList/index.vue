@@ -3,7 +3,7 @@
     <Card>
       <template #title>
         <div class="flex-between">
-          <span>任务列表 (共 {{ taskStore.taskList.length }} 条)</span>
+          <span>任务列表</span>
           <Button label="刷新" icon="pi pi-refresh" @click="fetchTasks" :loading="taskStore.loading" />
         </div>
       </template>
@@ -111,6 +111,34 @@
               {{ formatDateTime(data.createTime) }}
             </template>
           </Column>
+          <Column field="startTime" header="开始执行" :style="{ minWidth: '160px', maxWidth: '250px' }" sortable>
+            <template #body="{ data }">
+              <span v-if="data.startTime">{{ formatDateTime(data.startTime) }}</span>
+              <span v-else class="text-muted">未开始</span>
+            </template>
+          </Column>
+          <Column field="errors" header="错误数" :style="{ minWidth: '80px', maxWidth: '120px' }" sortable>
+            <template #body="{ data }">
+              <Tag 
+                v-if="data.errors > 0" 
+                :value="String(data.errors)" 
+                severity="danger" 
+                icon="pi pi-exclamation-circle"
+              />
+              <span v-else class="text-muted">0</span>
+            </template>
+          </Column>
+          <Column field="logs" header="日志数" :style="{ minWidth: '80px', maxWidth: '120px' }" sortable>
+            <template #body="{ data }">
+              <Tag 
+                v-if="data.logs > 0" 
+                :value="String(data.logs)" 
+                severity="info" 
+                icon="pi pi-file"
+              />
+              <span v-else class="text-muted">0</span>
+            </template>
+          </Column>
           <Column header="操作" :style="{ minWidth: '150px', maxWidth: '200px' }" frozen alignFrozen="right">
             <template #body="{ data }">
               <div class="action-buttons">
@@ -184,6 +212,10 @@
                   </div>
                 </template>
               </Column>
+              <!-- 创建时间、开始执行、错误数、日志数、操作列占位 -->
+              <Column footer="" />
+              <Column footer="" />
+              <Column footer="" />
               <Column footer="" />
               <Column footer="" />
             </Row>

@@ -207,7 +207,7 @@ export const useTaskStore = defineStore('task', () => {
       result = result.filter((task) => task.status === filters.value.status)
     }
 
-    // 时间范围过滤
+    // 时间范围过滤 - 创建时间
     if (filters.value.startDate) {
       result = result.filter((task) => task.createTime >= filters.value.startDate!)
     }
@@ -215,9 +215,27 @@ export const useTaskStore = defineStore('task', () => {
       result = result.filter((task) => task.createTime <= filters.value.endDate!)
     }
 
-    // 仅显示可注入
-    if (filters.value.injectableOnly) {
-      result = result.filter((task) => task.injected === true)
+    // 时间范围过滤 - 执行时间
+    if (filters.value.execStartDate) {
+      result = result.filter((task) => task.startTime && task.startTime >= filters.value.execStartDate!)
+    }
+    if (filters.value.execEndDate) {
+      result = result.filter((task) => task.startTime && task.startTime <= filters.value.execEndDate!)
+    }
+
+    // 注入状态过滤
+    if (filters.value.injectableStatus !== undefined) {
+      switch (filters.value.injectableStatus) {
+        case 'injectable':
+          result = result.filter((task) => task.injected === true)
+          break
+        case 'not_injectable':
+          result = result.filter((task) => task.injected === false)
+          break
+        case 'unknown':
+          result = result.filter((task) => task.injected === undefined || task.injected === null)
+          break
+      }
     }
 
     return result
@@ -241,6 +259,11 @@ export const useTaskStore = defineStore('task', () => {
         case 'createTime':
           valueA = new Date(a.createTime).getTime()
           valueB = new Date(b.createTime).getTime()
+          break
+        case 'startTime':
+          // 未开始执行的任务排在后面
+          valueA = a.startTime ? new Date(a.startTime).getTime() : 0
+          valueB = b.startTime ? new Date(b.startTime).getTime() : 0
           break
         case 'taskid':
           valueA = a.taskid

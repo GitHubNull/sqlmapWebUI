@@ -217,6 +217,10 @@ export const request = {
     return instance.put(url, data, config)
   },
   
+  patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    return instance.patch(url, data, config)
+  },
+  
   delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
     return instance.delete(url, config)
   },

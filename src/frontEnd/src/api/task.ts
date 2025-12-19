@@ -25,6 +25,42 @@ const MOCK_CONFIG = {
  */
 
 /**
+ * 后端任务数据接口（字段名与前端不同）
+ */
+interface BackendTask {
+  index: number
+  task_id: string
+  scanUrl: string
+  host: string
+  create_datetime: string | null  // 任务创建时间 (New状态)
+  start_datetime: string | null   // 任务开始执行时间 (Running状态)
+  remote_addr: string
+  errors: number
+  logs: number
+  status: number
+  injected: boolean
+}
+
+/**
+ * 后端任务数据转换为前端格式
+ */
+function transformBackendTask(backendTask: BackendTask): Task {
+  return {
+    engineid: backendTask.index,
+    taskid: backendTask.task_id,
+    scanUrl: backendTask.scanUrl,
+    host: backendTask.host,
+    status: backendTask.status,
+    createTime: backendTask.create_datetime || '',   // 创建时间
+    startTime: backendTask.start_datetime || undefined,  // 开始执行时间
+    remote_addr: backendTask.remote_addr,
+    errors: backendTask.errors,
+    logs: backendTask.logs,
+    injected: backendTask.injected,
+  }
+}
+
+/**
  * 获取任务列表
  */
 export async function getTaskList(): Promise<Task[]> {
@@ -37,8 +73,9 @@ export async function getTaskList(): Promise<Task[]> {
   }
   
   // 真实API调用
-  const result = await request.get<{ tasks: Task[]; tasks_num: number }>('/chrome/admin/task/list')
-  return result.tasks || []
+  const result = await request.get<{ tasks: BackendTask[]; tasks_num: number }>('/chrome/admin/task/list')
+  // 转换后端字段名为前端字段名
+  return (result.tasks || []).map(transformBackendTask)
 }
 
 /**
@@ -251,14 +288,14 @@ export async function batchStopTasks(taskIds: string[]): Promise<void> {
  * 清空所有任务
  */
 export function flushTasks(): Promise<void> {
-  return request.post('/chrome/admin/task/flush')
+  return request.patch('/chrome/admin/task/flush')
 }
 
 /**
  * 获取扫描配置
  */
 export function getScanOptions(taskId: string): Promise<any> {
-  return request.get('/chrome/admin/task/getScanOptionsByTaskId', {
+  return request.get('/chrome/admin/task/getTaskScanOptionsByTaskId', {
     params: { taskId },
   })
 }
@@ -417,7 +454,7 @@ export function getHttpRequestInfo(taskId: string): Promise<any> {
     })
   }
 
-  return request.get('/chrome/admin/task/getHttpRequestInfo', {
+  return request.get('/chrome/admin/task/getTaskHttpRequestInfoByTaskId', {
     params: { taskId },
   })
 }
@@ -477,7 +514,7 @@ export function getErrors(taskId: string): Promise<any[]> {
     return Promise.resolve([])
   }
 
-  return request.get('/chrome/admin/task/getErrorsByTaskId', {
+  return request.get('/chrome/admin/task/getTaskErrorsByTaskId', {
     params: { taskId },
   })
 }

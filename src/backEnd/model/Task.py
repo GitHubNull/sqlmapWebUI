@@ -1,6 +1,7 @@
 import tempfile
 import os
 import sys
+from datetime import datetime
 
 from third_lib.sqlmap.lib.core.datatype import AttribDict
 from third_lib.sqlmap.lib.core.optiondict import optDict
@@ -19,7 +20,8 @@ from model.Database import Database
 class Task(object):
     def __init__(self, taskid, remote_addr, scanUrl, host, headers, body):
         self.status = TaskStatus.New
-        self.start_datetime = None
+        self.create_datetime = datetime.now()  # 任务创建时间 (New状态)
+        self.start_datetime = None  # 任务开始执行时间 (Running状态)
         self.taskid = taskid
         self.scanUrl = scanUrl
         self.host = host
