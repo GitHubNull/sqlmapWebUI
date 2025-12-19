@@ -32,7 +32,8 @@
       "mcp__chrome-devtools__get_console_message",
       "mcp__chrome-devtools__take_screenshot",
       "mcp__context7__resolve-library-id",
-      "mcp__context7__get-library-docs"
+      "mcp__context7__get-library-docs",
+      "Bash(pnpm run type-check:*)"
     ],
     "deny": [],
     "ask": []
