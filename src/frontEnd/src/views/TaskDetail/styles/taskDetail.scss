@@ -212,8 +212,17 @@
     background: transparent;
     padding: 0;
     height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
+    // 不在TabPanel层滚动，让内部组件独立滚动
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    
+    // 确保TabPanel内部的第一层div也填满高度
+    > div {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
   }
 }
 

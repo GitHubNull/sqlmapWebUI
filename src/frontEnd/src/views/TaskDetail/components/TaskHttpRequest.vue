@@ -254,11 +254,14 @@ const copyHttpRequest = async () => {
 .http-request-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  height: 100%;
+  gap: 8px;
   line-height: 0.8;
+  overflow: hidden;
 }
 
 .http-request-toolbar {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -331,6 +334,7 @@ const copyHttpRequest = async () => {
 }
 
 .advanced-search-panel {
+  flex-shrink: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -381,9 +385,9 @@ const copyHttpRequest = async () => {
 }
 
 .http-request-container {
-  // 自适应父容器高度，减去工具栏和高级搜索面板高度
-  height: calc(100% - 100px);
-  min-height: 200px;
+  // 自适应剩余高度，独立滚动
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: auto;
   border: 2px solid rgba(99, 102, 241, 0.1);
