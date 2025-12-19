@@ -1,6 +1,18 @@
 import hljs from 'highlight.js'
 import type { HLJSApi } from 'highlight.js'
 
+// HTML转义函数
+function escapeHtml(text: string): string {
+  const map: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  }
+  return text.replace(/[&<>"']/g, (m: string) => map[m] as string)
+}
+
 /**
  * 注册自定义日志语法高亮
  */
@@ -11,11 +23,6 @@ export function registerLogLanguage(): void {
   }
 
   hljs.registerLanguage('log', (hljs: HLJSApi) => {
-    const LOG_LEVELS = [
-      'INFO', 'DEBUG', 'WARNING', 'WARN', 'ERROR', 'CRITICAL',
-      'FATAL', 'TRACE', 'SUCCESS', 'FAIL', 'EXCEPTION'
-    ]
-
     const SQL_KEYWORDS = [
       'SELECT', 'INSERT', 'UPDATE', 'DELETE', 'FROM', 'WHERE', 'AND', 'OR',
       'ORDER BY', 'GROUP BY', 'HAVING', 'LIMIT', 'JOIN', 'INNER JOIN',
@@ -145,7 +152,7 @@ export function highlightLogContent(logs: string[]): string {
       highlightedLine = hljs.highlight(line, { language: 'log', ignoreIllegals: true }).value
     } catch (error) {
       // 如果高亮失败，使用原行
-      highlightedLine = hljs.escape(line)
+      highlightedLine = escapeHtml(line)
     }
 
     // 构建带有行号的 HTML

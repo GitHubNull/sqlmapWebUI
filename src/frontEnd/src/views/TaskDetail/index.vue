@@ -111,7 +111,7 @@
         <TabPanels>
           <!-- 基础信息 -->
           <TabPanel value="0">
-            <TaskBasicInfo :task="task" :formatDateTime="formatDateTime" />
+            <TaskBasicInfo :task="task" />
           </TabPanel>
 
           <!-- HTTP请求信息 -->
@@ -123,8 +123,8 @@
               :httpRequestSearch="httpRequestSearch"
               :showOnlyMatches="showOnlyMatches"
               :highlightedHttpRequest="highlightedHttpRequest"
-              @update:httpRequestSearch="val => httpRequestSearch = val"
-              @update:showOnlyMatches="val => showOnlyMatches = val"
+              @update:httpRequestSearch="(val: string) => httpRequestSearch = val"
+              @update:showOnlyMatches="(val: boolean) => showOnlyMatches = val"
             />
           </TabPanel>
 
@@ -171,7 +171,6 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTaskDetail } from './composables/useTaskDetail'
 import { TaskStatus } from '@/types/task'
-import { formatDateTime } from '@/utils/format'
 import Tabs from 'primevue/tabs'
 import TabList from 'primevue/tablist'
 import Tab from 'primevue/tab'
@@ -213,8 +212,6 @@ const {
   refreshData,
   getStatusLabel,
   getStatusSeverity,
-  formatOptionKey,
-  formatOptionValue,
   copyLogsToClipboard,
   loadLogs,
   handleStopTask,

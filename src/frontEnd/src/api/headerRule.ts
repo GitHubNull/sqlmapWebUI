@@ -13,7 +13,6 @@ import { ReplaceStrategy } from '@/types/headerRule'
 import {
   generateMockHeaderRules,
   generateMockSessionHeaders,
-  generateMockHeaderRule,
   delay,
 } from '@/utils/mockData'
 

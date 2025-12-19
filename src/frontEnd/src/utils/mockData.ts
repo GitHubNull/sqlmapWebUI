@@ -5,7 +5,7 @@
 import Mock from 'mockjs'
 import type { Task } from '@/types/task'
 import { TaskStatus } from '@/types/task'
-import type { PersistentHeaderRule, SessionHeader, HeaderScope } from '@/types/headerRule'
+import type { PersistentHeaderRule, HeaderScope } from '@/types/headerRule'
 import { ReplaceStrategy } from '@/types/headerRule'
 
 /**
@@ -463,7 +463,7 @@ export function generateMockHeaderRules(count: number = 20): PersistentHeaderRul
 // Mock数据ID计数器
 let mockSessionHeaderIdCounter = 1000
 
-export function generateMockSessionHeader(index: number): any {
+export function generateMockSessionHeader(_index: number): any {
   const headerNames = [
     'Authorization',
     'X-Session-Token',

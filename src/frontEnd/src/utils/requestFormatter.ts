@@ -77,9 +77,9 @@ export function highlightHttpRequest(lines: string[], searchKeyword?: string): s
     if (index === 0 && /^(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS|CONNECT|TRACE)\s+\S+\s+HTTP\/\d+\.\d+$/i.test(line)) {
       const parts = line.split(' ')
       if (parts.length >= 3) {
-        const method = parts[0]
-        const url = parts.slice(1, -1).join(' ')
-        const version = parts[parts.length - 1]
+        const method = parts[0] || ''
+        const url = parts.slice(1, -1).join(' ') || ''
+        const version = parts[parts.length - 1] || ''
 
         highlightedLine = `<span style="background-color:#8b5cf6 !important; color:#ffffff !important; font-weight:bold !important; padding:2px 6px !important; border-radius:4px !important; font-size:12px !important; display:inline-block !important; margin-right:8px !important; border:1px solid #7c3aed !important;">${escapeHtml(method)}</span>` +
           `<span style="color:#34d399 !important; text-decoration:underline !important; font-weight:600 !important;">${escapeHtml(url)}</span>` +
@@ -89,8 +89,8 @@ export function highlightHttpRequest(lines: string[], searchKeyword?: string): s
       // 2. HTTP头高亮
       const headerMatch = line.match(/^([^:]+):\s*(.*)$/)
       if (headerMatch) {
-        const headerName = headerMatch[1]
-        const headerValue = headerMatch[2]
+        const headerName = headerMatch[1] || ''
+        const headerValue = headerMatch[2] || ''
         highlightedLine = `<span style="color:#06b6d4 !important; font-weight:600 !important;">${escapeHtml(headerName)}</span>` +
           `: <span style="color:#e2e8f0 !important;">${escapeHtml(headerValue)}</span>`
       }
@@ -153,6 +153,9 @@ export function filterHttpRequest(lines: string[], keyword: string): string[] {
  * 转义HTML特殊字符
  */
 function escapeHtml(text: string): string {
+  if (!text) {
+    return ''
+  }
   const map: Record<string, string> = {
     '&': '&amp;',
     '<': '&lt;',
@@ -161,7 +164,7 @@ function escapeHtml(text: string): string {
     "'": '&#039;'
   }
 
-  return text.replace(/[&<>"']/g, (m) => map[m])
+  return text.replace(/[&<>"']/g, (m: string) => map[m] as string)
 }
 
 /**

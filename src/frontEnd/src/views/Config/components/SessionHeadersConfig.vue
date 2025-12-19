@@ -1160,14 +1160,6 @@ function showAddDialog() {
   dialogVisible.value = true
 }
 
-function showBatchAddDialog() {
-  batchRawHeaders.value = ''
-  defaultPriority.value = 50
-  defaultTtl.value = 3600
-  sessionScope.value = null
-  batchDialogVisible.value = true
-}
-
 function showFileImportDialog() {
   fileContent.value = ''
   fileImportDialogVisible.value = true
@@ -1295,7 +1287,7 @@ async function handleTextImport() {
     }
 
     // 调用相同的导入逻辑
-    const res = await setSessionHeaders(headers)
+    const res = await setSessionHeaders({ headers })
     if (res.success) {
       toast.add({
         severity: 'success',
@@ -1366,7 +1358,7 @@ async function handleJsonImport() {
     }
 
     // 调用相同的导入逻辑
-    const res = await setSessionHeaders(headers)
+    const res = await setSessionHeaders({ headers })
     if (res.success) {
       toast.add({
         severity: 'success',
@@ -1846,8 +1838,8 @@ async function batchToggleActiveHeaders(isActive: boolean) {
   
   for (const header of selectedSessionHeaders.value) {
     try {
-      // 调用updateHeader来更新状态
-      await updateHeader(header.id, {
+      // 调用updateSessionHeader来更新状态
+      await updateSessionHeader(header.id, {
         header_name: header.header_name,
         header_value: header.header_value,
         replace_strategy: header.replace_strategy,

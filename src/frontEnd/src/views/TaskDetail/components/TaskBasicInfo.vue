@@ -70,7 +70,7 @@ interface Props {
   task: Task
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 const toast = useToast()
 
 function getStatusLabel(status: TaskStatus): string {

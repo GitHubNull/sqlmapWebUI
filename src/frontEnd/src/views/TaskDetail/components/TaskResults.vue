@@ -25,7 +25,7 @@ interface Props {
   loadingPayload: boolean
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 </script>
 
 <style scoped lang="scss">

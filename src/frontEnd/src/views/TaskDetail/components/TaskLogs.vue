@@ -7,19 +7,19 @@
       <div class="log-stats">
         <div class="stat-item">
           <i class="pi pi-list"></i>
-          <span>总行数：{{ logs.length }}</span>
+          <span>总行数：{{ (logs || []).length }}</span>
         </div>
         <div class="stat-item">
           <i class="pi pi-filter"></i>
-          <span>INFO: {{ logs.filter(l => l.includes('[INFO]')).length }}</span>
+          <span>INFO: {{ (logs || []).filter(l => l.includes('[INFO]')).length }}</span>
         </div>
         <div class="stat-item">
           <i class="pi pi-exclamation-triangle"></i>
-          <span>警告: {{ logs.filter(l => l.includes('[WARNING]')).length }}</span>
+          <span>警告: {{ (logs || []).filter(l => l.includes('[WARNING]')).length }}</span>
         </div>
         <div class="stat-item">
           <i class="pi pi-times-circle"></i>
-          <span>错误: {{ logs.filter(l => l.includes('[ERROR]')).length }}</span>
+          <span>错误: {{ (logs || []).filter(l => l.includes('[ERROR]')).length }}</span>
         </div>
       </div>
       <div class="log-actions" style="margin-bottom: 16px;">
@@ -52,9 +52,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useToast } from 'primevue/usetoast'
-import { highlightLogContent, getLogStats, type LogStats } from '@/utils/logHighlighter'
+import { highlightLogContent } from '@/utils/logHighlighter'
 
 interface Props {
   logs: string[] | null
@@ -69,12 +69,6 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 const toast = useToast()
 
-const logsContainerRef = ref<HTMLElement | null>(null)
-
-// 计算属性：日志统计信息
-const logStats = computed<LogStats>(() => {
-  return getLogStats(props.logs || [])
-})
 
 // 计算属性：高亮后的日志HTML
 const highlightedLogsHtml = computed(() => {
@@ -99,12 +93,13 @@ function copyLogsToClipboard() {
     return
   }
 
-  const logsText = props.logs.join('\n')
+  const logsText = props.logs!.join('\n')
+  const logCount = props.logs!.length
   navigator.clipboard.writeText(logsText).then(() => {
     toast.add({
       severity: 'success',
       summary: '成功',
-      detail: `已复制 ${props.logs.length} 行日志到剪贴板`,
+      detail: `已复制 ${logCount} 行日志到剪贴板`,
       life: 2000,
     })
   }).catch(err => {

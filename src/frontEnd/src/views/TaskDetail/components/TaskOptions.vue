@@ -25,7 +25,7 @@ interface Props {
   loadingOptions?: boolean
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 // 格式化配置键名
 function formatOptionKey(key: string): string {

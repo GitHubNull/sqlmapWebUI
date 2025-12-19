@@ -586,6 +586,7 @@ import type {
   HeaderScope,
   ReplaceStrategy,
 } from '@/types/headerRule'
+import { ReplaceStrategy as ReplaceStrategyEnum } from '@/types/headerRule'
 
 const toast = useToast()
 const confirm = useConfirm()
@@ -894,11 +895,6 @@ function clearFilters() {
   scopeFilter.value = null
 }
 
-// 显示批量导入对话框
-function showBatchImportDialog() {
-  batchImportVisible.value = true
-}
-
 // 显示文件导入对话框
 function showFileImportDialog() {
   fileImportVisible.value = true
@@ -975,11 +971,12 @@ async function handleTextImport() {
 
   importing.value = true
   try {
-    const lines = textImportContent.value.trim().split('\n')
+    const content = textImportContent.value || ''
+    const lines = content.trim().split('\n')
     const rules: PersistentHeaderRuleCreate[] = []
 
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim()
+      const line = lines[i]!.trim()
       if (!line) continue
 
       const parts = line.split('|').map(part => part.trim())
@@ -994,15 +991,32 @@ async function handleTextImport() {
         throw new Error(`第 ${i + 1} 行优先级错误：必须是0-100之间的数字`)
       }
 
-      if (!['replace', 'append', 'skip'].includes(replace_strategy)) {
+      if (!replace_strategy || !['replace', 'append', 'skip'].includes(replace_strategy)) {
         throw new Error(`第 ${i + 1} 行替换策略错误：必须是 replace、append 或 skip`)
       }
 
+      // 映射字符串到枚举值
+      let strategyValue: ReplaceStrategy
+      switch (replace_strategy) {
+        case 'replace':
+          strategyValue = ReplaceStrategyEnum.REPLACE
+          break
+        case 'append':
+          strategyValue = ReplaceStrategyEnum.APPEND
+          break
+        case 'skip':
+          strategyValue = ReplaceStrategyEnum.UPSERT // skip对应UPSERT（跳过/忽略）
+          break
+        default:
+          strategyValue = ReplaceStrategyEnum.REPLACE
+          break
+      }
+
       rules.push({
-        name,
-        header_name,
-        header_value,
-        replace_strategy: replace_strategy as 'replace' | 'append' | 'skip',
+        name: name || '',
+        header_name: header_name || '',
+        header_value: header_value || '',
+        replace_strategy: strategyValue,
         priority,
         is_active: true
       })
@@ -1057,7 +1071,7 @@ async function handleJsonImport() {
 
     // 验证规则格式
     for (let i = 0; i < rules.length; i++) {
-      const rule = rules[i]
+      const rule = rules[i]!
       if (!rule.name || !rule.header_name || !rule.header_value || !rule.replace_strategy) {
         throw new Error(`第 ${i + 1} 条规则缺少必要字段：name、header_name、header_value、replace_strategy`)
       }
@@ -1176,7 +1190,7 @@ async function handleFileImport() {
 
   importing.value = true
   try {
-    const fileName = selectedFile.value.name.toLowerCase()
+    const fileName = selectedFile.value!.name.toLowerCase()
     let rules: PersistentHeaderRuleCreate[] = []
 
     if (fileName.endsWith('.json')) {
@@ -1193,7 +1207,7 @@ async function handleFileImport() {
 
         // 验证规则格式
         for (let i = 0; i < rules.length; i++) {
-          const rule = rules[i]
+          const rule = rules[i]!
           if (!rule.name || !rule.header_name || !rule.header_value || !rule.replace_strategy) {
             throw new Error(`第 ${i + 1} 条规则缺少必要字段：name、header_name、header_value、replace_strategy`)
           }
@@ -1221,10 +1235,11 @@ async function handleFileImport() {
       }
     } else if (fileName.endsWith('.txt')) {
       // 文本文件导入
-      const lines = filePreview.value.trim().split('\n')
+      const content = filePreview.value || ''
+      const lines = content.trim().split('\n')
 
       for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim()
+        const line = lines[i]!.trim()
         if (!line) continue
 
         const parts = line.split('|').map(part => part.trim())
@@ -1239,15 +1254,32 @@ async function handleFileImport() {
           throw new Error(`第 ${i + 1} 行优先级错误：必须是0-100之间的数字`)
         }
 
-        if (!['replace', 'append', 'skip'].includes(replace_strategy)) {
+        if (!replace_strategy || !['replace', 'append', 'skip'].includes(replace_strategy)) {
           throw new Error(`第 ${i + 1} 行替换策略错误：必须是 replace、append 或 skip`)
         }
 
+        // 映射字符串到枚举值
+        let strategyValue: ReplaceStrategy
+        switch (replace_strategy) {
+          case 'replace':
+            strategyValue = ReplaceStrategyEnum.REPLACE
+            break
+          case 'append':
+            strategyValue = ReplaceStrategyEnum.APPEND
+            break
+          case 'skip':
+            strategyValue = ReplaceStrategyEnum.UPSERT // skip对应UPSERT（跳过/忽略）
+            break
+          default:
+            strategyValue = ReplaceStrategyEnum.REPLACE
+            break
+        }
+
         rules.push({
-          name,
-          header_name,
-          header_value,
-          replace_strategy: replace_strategy as 'replace' | 'append' | 'skip',
+          name: name || '',
+          header_name: header_name || '',
+          header_value: header_value || '',
+          replace_strategy: strategyValue,
           priority,
           is_active: true
         })
@@ -1265,7 +1297,7 @@ async function handleFileImport() {
     toast.add({
       severity: 'success',
       summary: '文件导入成功',
-      detail: `成功从 ${selectedFile.value?.name} 导入 ${rules.length} 条规则`,
+      detail: `成功从 ${selectedFile.value!.name} 导入 ${rules.length} 条规则`,
       life: 3000,
     })
   } catch (error: any) {

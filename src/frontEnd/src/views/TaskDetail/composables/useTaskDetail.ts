@@ -11,7 +11,6 @@ import { TaskStatus } from '@/types/task'
 import type { Task } from '@/types/task'
 import { highlightLogContent, getLogStats, type LogStats } from '@/utils/logHighlighter'
 import { formatHttpRequest, highlightHttpRequest, filterHttpRequest } from '@/utils/requestFormatter'
-import { formatDateTime } from '@/utils/format'
 import {
   getTaskLogs,
   getHttpRequestInfo,
@@ -51,7 +50,7 @@ function generateMockBody(): string | undefined {
     () => undefined
   ]
   const randomType = bodyTypes[Math.floor(Math.random() * bodyTypes.length)]
-  return randomType()
+  return randomType ? randomType() : undefined
 }
 
 export function useTaskDetail() {
@@ -288,51 +287,6 @@ export function useTaskDetail() {
     return severities[status] || 'secondary'
   }
 
-  // 格式化配置键名
-  function formatOptionKey(key: string): string {
-    const keyMap: Record<string, string> = {
-      level: '检测级别 (Level)',
-      risk: '风险级别 (Risk)',
-      technique: '注入技术 (Technique)',
-      dbms: '数据库类型 (DBMS)',
-      threads: '线程数 (Threads)',
-      timeout: '超时时间 (Timeout)',
-      retries: '重试次数 (Retries)',
-      delay: '延迟时间 (Delay)',
-      userAgent: 'User-Agent',
-      cookie: 'Cookie',
-      headers: '请求头 (Headers)',
-      proxy: '代理 (Proxy)',
-      randomAgent: '随机User-Agent',
-      checkTor: '使用Tor',
-      safeUrl: '安全URL',
-      safePost: '安全POST',
-      safeReq: '安全请求',
-    }
-    return keyMap[key] || key
-  }
-
-  // 格式化配置值
-  function formatOptionValue(value: any, _key: string): string {
-    if (value === null || value === undefined) {
-      return '-'
-    }
-
-    if (typeof value === 'boolean') {
-      return value ? '是' : '否'
-    }
-
-    if (Array.isArray(value)) {
-      return value.length > 0 ? value.join(', ') : '-'
-    }
-
-    if (typeof value === 'object') {
-      return JSON.stringify(value, null, 2)
-    }
-
-    return String(value)
-  }
-
   function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text).then(() => {
       toast.add({
@@ -420,11 +374,12 @@ export function useTaskDetail() {
     }
 
     const logsText = logs.value.join('\n')
+    const logCount = logs.value.length
     navigator.clipboard.writeText(logsText).then(() => {
       toast.add({
         severity: 'success',
         summary: '成功',
-        detail: `已复制 ${logs.value.length} 行日志到剪贴板`,
+        detail: `已复制 ${logCount} 行日志到剪贴板`,
         life: 2000,
       })
     }).catch(err => {
@@ -450,6 +405,7 @@ export function useTaskDetail() {
     error,
     loadingHttp,
     httpInfo,
+    loadingOptions,
     loadingPayload,
     payloadData,
     loadingLogs,
@@ -473,8 +429,6 @@ export function useTaskDetail() {
     refreshData,
     getStatusLabel,
     getStatusSeverity,
-    formatOptionKey,
-    formatOptionValue,
     copyToClipboard,
     handleStopTask,
     handleDeleteTask,
