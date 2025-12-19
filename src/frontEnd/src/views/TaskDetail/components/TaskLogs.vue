@@ -370,9 +370,9 @@ function copyLogsToClipboard() {
 }
 
 .log-search-toolbar {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(59, 130, 246, 0.04) 100%);
+  background: var(--p-content-background);
   border-radius: 8px;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  border: 1px solid var(--p-content-border-color);
   backdrop-filter: blur(5px);
   padding: 16px;
 
@@ -386,31 +386,30 @@ function copyLogsToClipboard() {
       flex: 1;
       max-width: 400px;
 
+      // 修复搜索图标垂直对齐
+      :deep(.p-inputicon) {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-top: 0;
+      }
+
       .search-input {
         width: 100%;
         border-radius: 6px;
-        border: 1px solid rgba(99, 102, 241, 0.3);
-        background: rgba(15, 23, 42, 0.6);
-        color: #e2e8f0;
-
-        &::placeholder {
-          color: #94a3b8;
-        }
-
-        &:focus {
-          border-color: #6366f1;
-          box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-        }
+        padding-left: 2.5rem; // 为左侧图标留出空间
       }
     }
   }
 
   .advanced-search-panel {
-    background: rgba(15, 23, 42, 0.4);
+    background: var(--p-surface-100);
     border-radius: 6px;
     padding: 16px;
     margin-bottom: 12px;
-    border: 1px solid rgba(99, 102, 241, 0.1);
+    border: 1px solid var(--p-surface-200);
 
     .filter-row {
       display: flex;
@@ -430,7 +429,7 @@ function copyLogsToClipboard() {
         .filter-label {
           font-size: 13px;
           font-weight: 500;
-          color: #e2e8f0;
+          color: var(--p-text-color);
           white-space: nowrap;
           min-width: 60px;
         }
@@ -439,20 +438,13 @@ function copyLogsToClipboard() {
         .filter-input {
           flex: 1;
           border-radius: 4px;
-          border: 1px solid rgba(99, 102, 241, 0.3);
-          background: rgba(15, 23, 42, 0.6);
-          color: #e2e8f0;
           font-size: 12px;
           padding: 6px 8px;
-
-          &::placeholder {
-            color: #64748b;
-          }
         }
 
         .checkbox-label {
           font-size: 12px;
-          color: #e2e8f0;
+          color: var(--p-text-color);
           cursor: pointer;
           margin-left: 4px;
         }
@@ -470,7 +462,7 @@ function copyLogsToClipboard() {
     .filter-tags-title {
       font-size: 12px;
       font-weight: 500;
-      color: #94a3b8;
+      color: var(--p-text-muted-color);
     }
   }
 
@@ -481,7 +473,7 @@ function copyLogsToClipboard() {
 
     .stats-info {
       font-size: 12px;
-      color: #94a3b8;
+      color: var(--p-text-muted-color);
       display: flex;
       align-items: center;
       gap: 4px;
