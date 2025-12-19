@@ -470,6 +470,82 @@ public class ScanConfig {
     }
     
     /**
+     * 生成命令行参数字符串
+     * 用于在历史记录中显示
+     */
+    public String toCommandLineString() {
+        StringBuilder sb = new StringBuilder();
+        
+        // Detection
+        if (level != 1) sb.append("--level=").append(level).append(" ");
+        if (risk != 1) sb.append("--risk=").append(risk).append(" ");
+        if (!string.isEmpty()) sb.append("--string=").append(string).append(" ");
+        if (!notString.isEmpty()) sb.append("--not-string=").append(notString).append(" ");
+        if (!regexp.isEmpty()) sb.append("--regexp=").append(regexp).append(" ");
+        if (code > 0) sb.append("--code=").append(code).append(" ");
+        if (smart) sb.append("--smart ");
+        if (textOnly) sb.append("--text-only ");
+        if (titles) sb.append("--titles ");
+        
+        // Injection
+        if (!testParameter.isEmpty()) sb.append("-p=").append(testParameter).append(" ");
+        if (!skip.isEmpty()) sb.append("--skip=").append(skip).append(" ");
+        if (skipStatic) sb.append("--skip-static ");
+        if (!paramExclude.isEmpty()) sb.append("--param-exclude=").append(paramExclude).append(" ");
+        if (!dbms.isEmpty()) sb.append("--dbms=").append(dbms).append(" ");
+        if (!os.isEmpty()) sb.append("--os=").append(os).append(" ");
+        if (!prefix.isEmpty()) sb.append("--prefix=").append(prefix).append(" ");
+        if (!suffix.isEmpty()) sb.append("--suffix=").append(suffix).append(" ");
+        if (!tamper.isEmpty()) sb.append("--tamper=").append(tamper).append(" ");
+        
+        // Techniques
+        if (!technique.isEmpty()) sb.append("--technique=").append(technique).append(" ");
+        if (timeSec != 5) sb.append("--time-sec=").append(timeSec).append(" ");
+        
+        // Request
+        if (!method.isEmpty()) sb.append("--method=").append(method).append(" ");
+        if (!proxy.isEmpty()) sb.append("--proxy=").append(proxy).append(" ");
+        if (delay > 0) sb.append("--delay=").append(delay).append(" ");
+        if (timeout != 30) sb.append("--timeout=").append(timeout).append(" ");
+        if (retries != 3) sb.append("--retries=").append(retries).append(" ");
+        if (randomAgent) sb.append("--random-agent ");
+        if (tor) sb.append("--tor ");
+        if (forceSSL) sb.append("--force-ssl ");
+        if (skipUrlEncode) sb.append("--skip-urlencode ");
+        
+        // Optimization
+        if (optimize) sb.append("-o ");
+        if (keepAlive) sb.append("--keep-alive ");
+        if (nullConnection) sb.append("--null-connection ");
+        if (threads > 1) sb.append("--threads=").append(threads).append(" ");
+        
+        // Enumeration
+        if (getBanner) sb.append("--banner ");
+        if (getCurrentUser) sb.append("--current-user ");
+        if (getCurrentDb) sb.append("--current-db ");
+        if (isDba) sb.append("--is-dba ");
+        if (getUsers) sb.append("--users ");
+        if (getDbs) sb.append("--dbs ");
+        if (getTables) sb.append("--tables ");
+        if (getColumns) sb.append("--columns ");
+        if (dumpTable) sb.append("--dump ");
+        if (dumpAll) sb.append("--dump-all ");
+        if (!db.isEmpty()) sb.append("-D=").append(db).append(" ");
+        if (!tbl.isEmpty()) sb.append("-T=").append(tbl).append(" ");
+        if (!col.isEmpty()) sb.append("-C=").append(col).append(" ");
+        
+        // General
+        if (batch) sb.append("--batch ");
+        if (forms) sb.append("--forms ");
+        if (crawlDepth > 0) sb.append("--crawl=").append(crawlDepth).append(" ");
+        if (flushSession) sb.append("--flush-session ");
+        if (freshQueries) sb.append("--fresh-queries ");
+        if (verbose != 1) sb.append("-v=").append(verbose).append(" ");
+        
+        return sb.toString().trim();
+    }
+    
+    /**
      * 序列化为JSON
      */
     public String toJson() {

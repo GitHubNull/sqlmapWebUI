@@ -235,6 +235,28 @@ public class ConfigManager {
         saveHistoryConfigs();
     }
     
+    /**
+     * 删除指定索引的历史记录
+     * @param indices 要删除的索引列表，必须是升序排列
+     */
+    public void removeHistoryByIndices(int[] indices) {
+        // 从后往前删除，避免索引变化
+        for (int i = indices.length - 1; i >= 0; i--) {
+            int idx = indices[i];
+            if (idx >= 0 && idx < historyConfigs.size()) {
+                historyConfigs.remove(idx);
+            }
+        }
+        saveHistoryConfigs();
+    }
+    
+    /**
+     * 获取历史记录数量
+     */
+    public int getHistorySize() {
+        return historyConfigs.size();
+    }
+    
     private void trimHistory() {
         while (historyConfigs.size() > maxHistorySize) {
             historyConfigs.remove(historyConfigs.size() - 1);

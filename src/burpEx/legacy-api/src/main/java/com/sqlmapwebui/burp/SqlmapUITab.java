@@ -1,6 +1,6 @@
 package com.sqlmapwebui.burp;
 
-import burp.api.montoya.MontoyaApi;
+import burp.IBurpExtenderCallbacks;
 import com.sqlmapwebui.burp.panels.*;
 
 import javax.swing.*;
@@ -8,7 +8,7 @@ import java.awt.*;
 import java.util.function.Consumer;
 
 /**
- * UI Tab for SQLMap WebUI Extension (Montoya API)
+ * UI Tab for SQLMap WebUI Extension (Legacy API)
  * 
  * 功能：
  * 1. 服务器配置
@@ -21,7 +21,7 @@ import java.util.function.Consumer;
  */
 public class SqlmapUITab extends JPanel {
     
-    private final MontoyaApi api;
+    private final IBurpExtenderCallbacks callbacks;
     private final SqlmapApiClient apiClient;
     private final ConfigManager configManager;
     private final Consumer<String> onBackendUrlChange;
@@ -36,9 +36,9 @@ public class SqlmapUITab extends JPanel {
     // 状态标签
     private JLabel statusLabel;
     
-    public SqlmapUITab(MontoyaApi api, SqlmapApiClient apiClient, 
+    public SqlmapUITab(IBurpExtenderCallbacks callbacks, SqlmapApiClient apiClient, 
                        ConfigManager configManager, Consumer<String> onBackendUrlChange) {
-        this.api = api;
+        this.callbacks = callbacks;
         this.apiClient = apiClient;
         this.configManager = configManager;
         this.onBackendUrlChange = onBackendUrlChange;
@@ -101,7 +101,7 @@ public class SqlmapUITab extends JPanel {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
         
-        JLabel titleLabel = new JLabel("SQLMap WebUI Extension (Montoya API)");
+        JLabel titleLabel = new JLabel("SQLMap WebUI Extension (Legacy API)");
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
         panel.add(titleLabel, BorderLayout.WEST);
         
