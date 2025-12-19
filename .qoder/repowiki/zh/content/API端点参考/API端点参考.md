@@ -13,6 +13,7 @@
 - [TaskStatus.py](file://src/backEnd/model/TaskStatus.py)
 - [auth.py](file://src/backEnd/utils/auth.py)
 - [useSmartPolling.ts](file://src/frontEnd/src/utils/useSmartPolling.ts)
+- [auth.ts](file://src/frontEnd/src/stores/auth.ts)
 </cite>
 
 ## 更新摘要
@@ -334,7 +335,7 @@ Chrome扩展API位于`/api/chrome/admin`前缀下，提供任务管理、日志�
   {
     "data": {
       "url": "http://example.com/vuln",
-      "headers": ["User-Agent: Chrome", "Content-Type: application/json"],
+      "headers": ["User-Agent: Chrome", "Accept: text/html"],
       "body": "{\"key\": \"value\"}"
     },
     "msg": "success",

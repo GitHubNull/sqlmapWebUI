@@ -2,71 +2,106 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 项目概述
+
+SQLMap Web UI 是一个完整的 SQL 注入测试平台，包含：
+- **主应用**: FastAPI + Vue 3 的 Web 界面
+- **VulnShop 靶场**: 内置漏洞测试环境
+- **浏览器扩展**: Chrome 扩展和 Burp Suite 插件
+
 ## 项目架构
 
-这是一个基于 FastAPI + Vue 3 的 SQLMap Web UI 应用，为安全研究人员提供 SQL 注入测试的 Web 界面。
-
 ### 整体结构
-- **后端**: FastAPI 应用，位于 `src/backEnd/`
-- **前端**: Vue 3 + TypeScript + PrimeVue 应用，位于 `src/frontEnd/`
-- **SQLMap**: 作为第三方库集成在 `src/backEnd/third_lib/sqlmap/` 中
-- **静态文件**: 前端构建后的静态文件存放在 `src/backEnd/static/`
+```
+sqlmapWebUI/
+├── src/
+│   ├── backEnd/           # FastAPI 后端服务
+│   ├── frontEnd/          # Vue 3 前端应用
+│   ├── burpEx/            # Burp Suite 扩展插件
+│   └── vulnTestServer/    # VulnShop 漏洞靶场
+└── doc/                   # 项目文档
+```
 
-### 后端架构 (FastAPI)
-- `src/backEnd/main.py` - 主入口文件，配置 SQLMap 导入路径
-- `src/backEnd/app.py` - FastAPI 应用核心，包含 CORS 配置、路由挂载
-- `src/backEnd/api/` - API 路由模块
+### 后端架构 (src/backEnd/)
+- `main.py` - 主入口文件，配置 SQLMap 导入路径
+- `app.py` - FastAPI 应用核心，包含 CORS 配置、路由挂载
+- `api/` - API 路由模块
   - `chromeExApi/` - Chrome 扩展相关 API
   - `burpSuiteExApi/` - Burp Suite 扩展相关 API
-  - `commonApi/` - 通用 API
-- `src/backEnd/model/` - 数据模型定义
-- `src/backEnd/service/` - 业务逻辑层
-- `src/backEnd/utils/` - 工具函数和辅助模块
+  - `commonApi/` - 通用 API（认证、请求头规则等）
+- `model/` - 数据模型定义
+- `service/` - 业务逻辑层
+- `utils/` - 工具函数（请求头处理、作用域匹配等）
+- `third_lib/sqlmap/` - SQLMap 第三方库集成
 
-### 前端架构 (Vue 3)
+### 前端架构 (src/frontEnd/)
 - 使用 TypeScript + Pinia 状态管理
-- PrimeVue UI 组件库
+- PrimeVue UI 组件库，支持亮色/暗色主题
 - Vite 构建工具，自动导入 Vue API 和组件
 - 构建输出到后端的 `static` 目录
+
+### VulnShop 靶场 (src/vulnTestServer/)
+独立的漏洞测试环境，包含：
+- `server.py` - Python HTTP 服务器，处理所有 API 请求
+- `database.py` - SQLite 数据库管理，包含漏洞 SQL 查询
+- `waf.py` - WAF 模块，支持 3 种难度级别
+- `config.py` - 配置文件（端口、难度等）
+- `static/` - 前端静态资源
+  - `index.html` - 单页应用入口
+  - `css/style.css` - 样式表，支持 CSS 变量主题切换
+  - `js/app.js` - 前端 JavaScript 应用
+
+**支持的漏洞类型**:
+- Error-based (POST /api/user/login)
+- Union-based (GET /api/user/profile)
+- Boolean-blind (GET /api/products/search)
+- Time-based (GET /api/products/detail)
+- Stacked Queries (GET /api/orders/query)
+- Second-order (POST /api/user/register)
+
+### Burp Suite 扩展 (src/burpEx/)
+- `legacy-api/` - 传统 Burp API (Java 11)
+- `montoya-api/` - Montoya API (Java 17, Burp 2023.1+)
+
+功能：右键菜单发送请求、配置管理、活动日志
 
 ## 开发命令
 
 ### 后端开发
 ```bash
-# 进入后端目录
 cd src/backEnd
-
-# 使用 uv 安装依赖
 uv sync --extra thirdparty
-
-# 启动开发服务器
 uv run python main.py
 ```
 
 ### 前端开发
 ```bash
-# 进入前端目录
 cd src/frontEnd
-
-# 安装依赖
 pnpm install
+pnpm run dev      # 开发模式
+pnpm run build    # 构建生产版本
+```
 
-# 启动开发服务器
-pnpm run dev
+### VulnShop 靶场
+```bash
+cd src/vulnTestServer
+python server.py
+```
 
-# 构建生产版本
-pnpm run build
-
-# 预览构建结果
-pnpm run preview
+### Burp Suite 插件构建
+```bash
+cd src/burpEx/montoya-api  # 或 legacy-api
+mvn clean package -DskipTests
 ```
 
 ## 重要配置
 
-### 开发环境端口
-- 前端开发服务器: http://localhost:5173
-- 后端 API 服务器: http://localhost:8775
-- 前端代理配置: `/api` 请求会自动代理到后端
+### 服务端口
+| 服务 | 端口 | 说明 |
+|------|------|------|
+| 前端开发服务器 | 5173 | Vite 开发服务器 |
+| 后端 API 服务器 | 8775 | FastAPI 服务 |
+| VulnShop 靶场 | 9527 | 漏洞测试环境 |
 
 ### 跨域配置
 后端允许来自 `localhost:5173-5176` 和 `localhost:8775` 的跨域请求。
@@ -76,25 +111,18 @@ pnpm run preview
 - 启用 gzip 压缩
 - 手动代码分割: vendor、primevue、utils
 
-## 项目特性
+## 主题系统
 
-### 导入路径系统
-- 使用绝对导入，所有项目模块通过绝对路径导入
-- SQLMap 作为第三方库，通过 `third_lib.sqlmap` 前缀访问
-- 模块导入优先级在 `main.py` 中配置
+### 前端 (Vue 3 + PrimeVue)
+- 使用 PrimeVue 主题系统
+- 支持亮色/暗色模式切换
+- 主题配置在 `src/frontEnd/src/primevue.ts`
 
-### 前端开发便利性
-- 自动导入 Vue API、Vue Router、Pinia
-- 自动导入 PrimeVue 组件
-- TypeScript 类型支持
-- 开发时热重载和 API 代理
-
-### 安全考虑
-此项目为授权安全测试工具，仅用于:
-- 渗透测试授权范围
-- CTF 竞赛安全挑战
-- 安全研究和教育目的
-- 防御性安全评估
+### VulnShop 靶场
+- 使用 CSS 变量实现主题
+- 默认亮色主题，支持切换到暗色
+- 主题状态保存在 localStorage
+- CSS 变量定义在 `:root` 和 `[data-theme="dark"]`
 
 ## 常见任务
 
@@ -112,3 +140,31 @@ pnpm run preview
 1. SQLMap 代码位于 `src/backEnd/third_lib/sqlmap/`
 2. 注意保持与 SQLMap 主模块的兼容性
 3. 通过 `utils/` 模块封装 SQLMap 调用逻辑
+
+### 修改 VulnShop 靶场
+1. 后端逻辑在 `server.py` 的路由处理函数中
+2. 数据库操作在 `database.py`
+3. 前端样式修改 `static/css/style.css`
+4. 前端逻辑修改 `static/js/app.js`
+5. 添加新主题样式需同时处理亮色和暗色模式
+
+### 构建 Burp Suite 插件
+1. 选择对应 API 版本目录
+2. 运行 `mvn clean package -DskipTests`
+3. 生成的 JAR 文件在 `target/` 目录
+
+## 安全考虑
+
+此项目为授权安全测试工具，仅用于:
+- 渗透测试授权范围
+- CTF 竞赛安全挑战
+- 安全研究和教育目的
+- 防御性安全评估
+
+VulnShop 靶场仅绑定 127.0.0.1，禁止暴露到公网。
+
+## Git 工作流
+
+- 代码变更需提交至 Git 仓库并打上版本标签
+- 使用 `git push origin --tags` 同步标签到远程
+- 遵循语义化版本号规范
