@@ -1,0 +1,30 @@
+# VulnShop - Git忽略配置
+
+# 数据目录
+data/
+
+# Python缓存
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# 日志文件
+*.log
+
+# 虚拟环境
+venv/
+.venv/
+env/
+
+# IDE配置
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 临时文件
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
