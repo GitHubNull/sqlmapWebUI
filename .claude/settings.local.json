@@ -28,7 +28,11 @@
       "Bash(curl:*)",
       "Bash(grep:*)",
       "Bash(netstat:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "mcp__chrome-devtools__get_console_message",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs"
     ],
     "deny": [],
     "ask": []
