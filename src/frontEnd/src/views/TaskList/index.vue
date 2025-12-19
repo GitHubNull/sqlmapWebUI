@@ -124,6 +124,9 @@
                 :value="String(data.errors)" 
                 severity="danger" 
                 icon="pi pi-exclamation-circle"
+                class="clickable-tag"
+                @click="goToTaskErrors(data)"
+                v-tooltip.top="'点击查看错误记录'"
               />
               <span v-else class="text-muted">0</span>
             </template>
@@ -135,6 +138,9 @@
                 :value="String(data.logs)" 
                 severity="info" 
                 icon="pi pi-file"
+                class="clickable-tag"
+                @click="goToTaskLogs(data)"
+                v-tooltip.top="'点击查看任务日志'"
               />
               <span v-else class="text-muted">0</span>
             </template>
@@ -380,6 +386,16 @@ function viewTask(task: any) {
 
 function goToTaskConfig(task: any) {
   router.push(`/tasks/${task.taskid}`)
+}
+
+function goToTaskErrors(task: any) {
+  // 跳转到任务详情页的错误记录标签页（value="5"）
+  router.push({ path: `/tasks/${task.taskid}`, query: { tab: '5' } })
+}
+
+function goToTaskLogs(task: any) {
+  // 跳转到任务详情页的任务日志标签页（value="4"）
+  router.push({ path: `/tasks/${task.taskid}`, query: { tab: '4' } })
 }
 
 async function stopTask(taskId: string) {
@@ -715,6 +731,22 @@ function confirmDeleteAll() {
   justify-content: center;
   align-items: center;
   padding: 4px;
+}
+
+// 可点击Tag样式
+.clickable-tag {
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    filter: brightness(1.1);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 // ==================== DataTable 3D增强 ====================

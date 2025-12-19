@@ -15,7 +15,8 @@ import {
   getTaskLogs,
   getHttpRequestInfo,
   getPayloadDetail,
-  getErrors
+  getErrors,
+  type ErrorEntry
 } from '@/api/task'
 
 // 生成随机body（用于Mock数据）
@@ -79,7 +80,15 @@ export function useTaskDetail() {
 
   const loadingLogs = ref(false)
   const logs = ref<string[] | null>(null)
-  const errors = ref<string[]>([])
+  const errors = ref<ErrorEntry[]>([])
+  const loadingErrors = ref(false)
+
+  // 错误记录搜索过滤相关状态
+  const errorSearchQuery = ref('')
+  const errorCaseSensitive = ref(false)
+  const errorUseRegex = ref(false)
+  const errorInvertMatch = ref(false)
+  const showAdvancedErrorSearch = ref(false)
 
   // HTTP请求报文相关状态
   const httpRequestSearch = ref('')
@@ -94,6 +103,61 @@ export function useTaskDetail() {
   const logCaseSensitive = ref(false)
   const logInvertMatch = ref(false)
   const showAdvancedLogSearch = ref(false)
+
+  // 计算属性：过滤后的错误记录
+  const filteredErrors = computed(() => {
+    if (!errors.value || errors.value.length === 0) {
+      return []
+    }
+
+    const searchQuery = errorSearchQuery.value.trim()
+    if (!searchQuery) {
+      return errors.value
+    }
+
+    return errors.value.filter((entry) => {
+      const errorText = entry.error
+      let matches = false
+
+      try {
+        if (errorUseRegex.value) {
+          const flags = errorCaseSensitive.value ? 'g' : 'gi'
+          const regex = new RegExp(searchQuery, flags)
+          matches = regex.test(errorText)
+        } else {
+          if (errorCaseSensitive.value) {
+            matches = errorText.includes(searchQuery)
+          } else {
+            matches = errorText.toLowerCase().includes(searchQuery.toLowerCase())
+          }
+        }
+
+        if (errorInvertMatch.value) {
+          matches = !matches
+        }
+      } catch (e) {
+        // 正则表达式错误时，回退到简单搜索
+        if (errorCaseSensitive.value) {
+          matches = errorText.includes(searchQuery)
+        } else {
+          matches = errorText.toLowerCase().includes(searchQuery.toLowerCase())
+        }
+        if (errorInvertMatch.value) {
+          matches = !matches
+        }
+      }
+
+      return matches
+    })
+  })
+
+  // 计算属性：错误记录统计信息
+  const errorStats = computed(() => {
+    return {
+      total: errors.value?.length || 0,
+      filtered: filteredErrors.value.length
+    }
+  })
 
   // 计算属性：格式化HTTP请求报文
   const httpRequest = computed(() => {
@@ -365,11 +429,16 @@ export function useTaskDetail() {
     }
   }
 
-  async function loadErrors(taskId: string) {
+  async function loadErrors(taskId?: string) {
+    const id = taskId || (route.params.id as string)
+    loadingErrors.value = true
     try {
-      errors.value = await getErrors(taskId)
+      errors.value = await getErrors(id)
     } catch (err) {
       console.error('Failed to load errors:', err)
+      errors.value = []
+    } finally {
+      loadingErrors.value = false
     }
   }
 
@@ -413,6 +482,80 @@ export function useTaskDetail() {
         severity: 'success',
         summary: '成功',
         detail: '已复制到剪贴板',
+        life: 2000,
+      })
+    })
+  }
+
+  // 错误记录搜索相关方法
+  function executeErrorSearch() {
+    if (!errorSearchQuery.value.trim()) {
+      return
+    }
+
+    const matchCount = filteredErrors.value.length
+    if (matchCount === 0) {
+      toast.add({
+        severity: 'info',
+        summary: '搜索完成',
+        detail: '没有找到匹配的错误记录',
+        life: 3000,
+      })
+    } else {
+      toast.add({
+        severity: 'success',
+        summary: '搜索完成',
+        detail: `找到 ${matchCount} 条匹配的错误记录`,
+        life: 2000,
+      })
+    }
+  }
+
+  function resetErrorFilters() {
+    errorSearchQuery.value = ''
+    errorCaseSensitive.value = false
+    errorUseRegex.value = false
+    errorInvertMatch.value = false
+    showAdvancedErrorSearch.value = false
+
+    toast.add({
+      severity: 'success',
+      summary: '过滤器已重置',
+      detail: '所有搜索过滤条件已清除',
+      life: 2000,
+    })
+  }
+
+  function toggleAdvancedErrorSearch() {
+    showAdvancedErrorSearch.value = !showAdvancedErrorSearch.value
+  }
+
+  function copyErrorsToClipboard() {
+    if (!errors.value || errors.value.length === 0) {
+      toast.add({
+        severity: 'warn',
+        summary: '提示',
+        detail: '没有错误记录可复制',
+        life: 2000,
+      })
+      return
+    }
+
+    const errorsText = errors.value.map((e, i) => `${i + 1}. ${e.error}`).join('\n')
+    const errorCount = errors.value.length
+    navigator.clipboard.writeText(errorsText).then(() => {
+      toast.add({
+        severity: 'success',
+        summary: '成功',
+        detail: `已复制 ${errorCount} 条错误记录到剪贴板`,
+        life: 2000,
+      })
+    }).catch(err => {
+      console.error('复制错误记录失败:', err)
+      toast.add({
+        severity: 'error',
+        summary: '错误',
+        detail: '复制失败',
         life: 2000,
       })
     })
@@ -584,8 +727,16 @@ export function useTaskDetail() {
     loadingLogs,
     logs,
     errors,
+    loadingErrors,
     httpRequestSearch,
     showOnlyMatches,
+
+    // 错误记录搜索过滤相关状态
+    errorSearchQuery,
+    errorCaseSensitive,
+    errorUseRegex,
+    errorInvertMatch,
+    showAdvancedErrorSearch,
 
     // 日志搜索过滤相关状态
     logSearchQuery,
@@ -603,6 +754,8 @@ export function useTaskDetail() {
     filteredLogs,
     logStats,
     highlightedLogsHtml,
+    filteredErrors,
+    errorStats,
 
     // 方法
     loadTaskDetail,
@@ -617,6 +770,10 @@ export function useTaskDetail() {
     executeLogSearch,
     resetLogFilters,
     toggleAdvancedLogSearch,
+    executeErrorSearch,
+    resetErrorFilters,
+    toggleAdvancedErrorSearch,
+    copyErrorsToClipboard,
     handleStopTask,
     handleDeleteTask,
     copyLogsToClipboard,

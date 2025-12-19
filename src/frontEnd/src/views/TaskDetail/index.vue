@@ -104,7 +104,7 @@
           <!-- 错误记录 -->
           <Tab value="5" v-if="errors && errors.length > 0">
             <i class="pi pi-exclamation-triangle"></i>
-            <span>错误记录</span>
+            <span>错误记录 ({{ errors.length }})</span>
           </Tab>
         </TabList>
 
@@ -174,7 +174,25 @@
 
           <!-- 错误记录 -->
           <TabPanel value="5" v-if="errors && errors.length > 0">
-            <TaskErrors :errors="errors" />
+            <TaskErrors
+              :errors="errors"
+              :loadingErrors="loadingErrors"
+              :filteredErrors="filteredErrors"
+              :searchQuery="errorSearchQuery"
+              :caseSensitive="errorCaseSensitive"
+              :useRegex="errorUseRegex"
+              :invertMatch="errorInvertMatch"
+              :showAdvancedSearch="showAdvancedErrorSearch"
+              @loadErrors="loadErrors"
+              @executeSearch="executeErrorSearch"
+              @copyErrorsToClipboard="copyErrorsToClipboard"
+              @resetFilters="resetErrorFilters"
+              @toggleAdvancedSearch="toggleAdvancedErrorSearch"
+              @update:searchQuery="(val: string) => errorSearchQuery = val"
+              @update:caseSensitive="(val: boolean) => errorCaseSensitive = val"
+              @update:useRegex="(val: boolean) => errorUseRegex = val"
+              @update:invertMatch="(val: boolean) => errorInvertMatch = val"
+            />
           </TabPanel>
         </TabPanels>
       </Tabs>
@@ -183,8 +201,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, watch, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useTaskDetail } from './composables/useTaskDetail'
 import { TaskStatus } from '@/types/task'
 import Tabs from 'primevue/tabs'
@@ -201,6 +219,20 @@ import TaskErrors from './components/TaskErrors.vue'
 
 // Tabs选中状态
 const activeTab = ref('0')
+const route = useRoute()
+
+// 监听路由查询参数，切换到指定标签页
+onMounted(() => {
+  if (route.query.tab) {
+    activeTab.value = route.query.tab as string
+  }
+})
+
+watch(() => route.query.tab, (newTab) => {
+  if (newTab) {
+    activeTab.value = newTab as string
+  }
+})
 
 // 使用组合式函数
 const {
@@ -216,8 +248,16 @@ const {
   loadingLogs,
   logs,
   errors,
+  loadingErrors,
   httpRequestSearch,
   showOnlyMatches,
+
+  // 错误记录搜索过滤相关状态
+  errorSearchQuery,
+  errorCaseSensitive,
+  errorUseRegex,
+  errorInvertMatch,
+  showAdvancedErrorSearch,
 
   // 日志搜索过滤相关状态
   logSearchQuery,
@@ -231,6 +271,7 @@ const {
 
   // 计算属性
   filteredLogs,
+  filteredErrors,
   highlightedHttpRequest,
 
   // 方法
@@ -242,6 +283,11 @@ const {
   executeLogSearch,
   resetLogFilters,
   toggleAdvancedLogSearch,
+  loadErrors,
+  executeErrorSearch,
+  resetErrorFilters,
+  toggleAdvancedErrorSearch,
+  copyErrorsToClipboard,
   handleStopTask,
   handleDeleteTask,
 } = useTaskDetail()

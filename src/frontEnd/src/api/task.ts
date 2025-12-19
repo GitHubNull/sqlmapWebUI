@@ -111,9 +111,65 @@ export function findTaskByUrl(urlPath: string): Promise<Task[]> {
 }
 
 /**
+ * 后端日志条目接口
+ */
+interface BackendLogEntry {
+  datetime: string
+  level: string
+  message: string
+}
+
+/**
+ * 后端错误条目接口
+ */
+interface BackendErrorEntry {
+  index: number
+  id: number
+  error: string
+}
+
+/**
+ * 后端错误响应接口
+ */
+interface BackendErrorsResponse {
+  taskId: string
+  errors: BackendErrorEntry[]
+  errors_cnt: number
+}
+
+/**
+ * 后端载荷条目接口
+ */
+interface BackendPayloadEntry {
+  index: number
+  status: string
+  content_type: string  // 后端使用下划线命名
+  value: string
+}
+
+/**
+ * 前端载荷条目接口
+ */
+export interface PayloadEntry {
+  index: number
+  status: string
+  contentType: string  // 前端使用驼峰命名
+  value: string
+}
+
+/**
+ * 前端错误条目接口
+ */
+export interface ErrorEntry {
+  index: number
+  id: number
+  error: string
+}
+
+/**
  * 获取任务日志
  */
-export function getTaskLogs(taskId: string): Promise<string[]> {
+export async function getTaskLogs(taskId: string): Promise<string[]> {
   if (USE_MOCK_DATA) {
     // 生成大量mock日志数据以测试滚动效果
     const mockLogs = [
@@ -259,9 +315,18 @@ export function getTaskLogs(taskId: string): Promise<string[]> {
     return Promise.resolve(mockLogs)
   }
 
-  return request.get('/chrome/admin/task/logs/getLogsByTaskId', {
+  // 真实API调用，后端返回对象数组，需要转换为字符串数组
+  const response = await request.get<BackendLogEntry[]>('/chrome/admin/task/logs/getLogsByTaskId', {
     params: { taskId },
   })
+  
+  // 转换对象数组为字符串数组
+  if (Array.isArray(response)) {
+    return response.map((entry: BackendLogEntry) => 
+      `[${entry.datetime}] [${entry.level}] ${entry.message}`
+    )
+  }
+  return []
 }
 
 /**
@@ -303,7 +368,7 @@ export function getScanOptions(taskId: string): Promise<any> {
 /**
  * 获取HTTP请求信息
  */
-export function getHttpRequestInfo(taskId: string): Promise<any> {
+export async function getHttpRequestInfo(taskId: string): Promise<any> {
   if (USE_MOCK_DATA) {
     // 生成超过100行的mock HTTP请求信息
     const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
@@ -454,15 +519,37 @@ export function getHttpRequestInfo(taskId: string): Promise<any> {
     })
   }
 
-  return request.get('/chrome/admin/task/getTaskHttpRequestInfoByTaskId', {
+  // 真实API调用，后端缺少method字段，需要从headers中解析
+  const response = await request.get<{
+    url: string
+    headers: string[]
+    body: string
+  }>('/chrome/admin/task/getTaskHttpRequestInfoByTaskId', {
     params: { taskId },
   })
+  
+  // 从headers[0]解析method（请求行格式如: "GET /path HTTP/1.1"）
+  let method = 'GET'
+  if (response.headers && response.headers.length > 0 && response.headers[0]) {
+    const requestLine = response.headers[0]
+    const match = requestLine.match(/^(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS|TRACE|CONNECT)\s/i)
+    if (match && match[1]) {
+      method = match[1].toUpperCase()
+    }
+  }
+  
+  return {
+    method,
+    url: response.url,
+    headers: response.headers || [],
+    body: response.body || ''
+  }
 }
 
 /**
  * 获取载荷详情
  */
-export function getPayloadDetail(taskId: string): Promise<any> {
+export async function getPayloadDetail(taskId: string): Promise<PayloadEntry[]> {
   if (USE_MOCK_DATA) {
     // 生成mock载荷详情数据
     return Promise.resolve([
@@ -499,22 +586,48 @@ export function getPayloadDetail(taskId: string): Promise<any> {
     ])
   }
 
-  return request.get('/chrome/admin/task/getPayloadDetailByTaskId', {
+  // 真实API调用，后端使用content_type，需要转换为contentType
+  const response = await request.get<BackendPayloadEntry[]>('/chrome/admin/task/getPayloadDetailByTaskId', {
     params: { taskId },
   })
+  
+  // 转换字段名
+  if (Array.isArray(response)) {
+    return response.map((entry: BackendPayloadEntry): PayloadEntry => ({
+      index: entry.index,
+      status: entry.status,
+      contentType: entry.content_type,  // 字段名映射
+      value: entry.value
+    }))
+  }
+  return []
 }
 
 /**
  * 获取错误记录
  */
-export function getErrors(taskId: string): Promise<any[]> {
+export async function getErrors(taskId: string): Promise<ErrorEntry[]> {
   if (USE_MOCK_DATA) {
-    // 大部分任务不会有错误，返回空数组
-    // 如果需要测试错误显示，可以返回一些模拟错误
-    return Promise.resolve([])
+    // 生成一些模拟错误用于测试
+    const mockErrors: ErrorEntry[] = [
+      { index: 1, id: 1, error: '[2025-12-19 10:15:30] Connection timeout while testing parameter "id"' },
+      { index: 2, id: 2, error: '[2025-12-19 10:15:35] Failed to parse response: invalid JSON format' },
+      { index: 3, id: 3, error: '[2025-12-19 10:15:40] WAF detected: Cloudflare blocking requests' },
+      { index: 4, id: 4, error: '[2025-12-19 10:15:45] Database error: MySQL syntax error near ORDER BY' },
+      { index: 5, id: 5, error: '[2025-12-19 10:15:50] Network unreachable: target host not responding' },
+    ]
+    // 随机决定是否返回错误（50%概率）
+    return Math.random() > 0.5 ? mockErrors : []
   }
 
-  return request.get('/chrome/admin/task/getTaskErrorsByTaskId', {
+  // 真实API调用，后端返回 {taskId, errors: [...], errors_cnt}
+  const response = await request.get<BackendErrorsResponse>('/chrome/admin/task/getTaskErrorsByTaskId', {
     params: { taskId },
   })
+  
+  // 提取errors数组
+  if (response && Array.isArray(response.errors)) {
+    return response.errors
+  }
+  return []
 }
