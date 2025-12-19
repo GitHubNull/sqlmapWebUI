@@ -46,6 +46,10 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
     private JTextField defaultTechniqueField;
     private JCheckBox defaultBatchCheck;
     
+    // 连接状态UI组件
+    private JLabel connectionStatusLabel;
+    private JSpinner maxHistorySpinner;
+    
     private static final String EXTENSION_NAME = "SQLMap WebUI";
     private static final String EXTENSION_VERSION = "1.0.0";
     
@@ -78,6 +82,7 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
         
         stdout.println("[+] " + EXTENSION_NAME + " v" + EXTENSION_VERSION + " loaded successfully!");
         stdout.println("[+] Backend URL: " + configManager.getBackendUrl());
+        stdout.println("[!] 请先测试后端连接，连接成功后才能使用右键菜单功能");
     }
     
     /**
@@ -108,7 +113,7 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
         JPanel helpPanel = createHelpPanel();
         mainPanel.add(helpPanel, BorderLayout.SOUTH);
         
-        appendLog("扩展已初始化，可以开始发送请求到SQLMap WebUI。");
+        appendLog("扩展已初始化。请先测试后端连接，连接成功后才能提交扫描任务。");
     }
     
     /**
@@ -132,6 +137,31 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
         serverUrlField = new JTextField(configManager.getBackendUrl(), 40);
         formPanel.add(serverUrlField, gbc);
         
+        // 连接状态
+        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("连接状态:"), gbc);
+        
+        gbc.gridx = 1; gbc.gridy = 1;
+        connectionStatusLabel = new JLabel("● 未连接");
+        connectionStatusLabel.setForeground(Color.RED);
+        connectionStatusLabel.setFont(connectionStatusLabel.getFont().deriveFont(Font.BOLD));
+        formPanel.add(connectionStatusLabel, gbc);
+        
+        // 历史记录最大数量
+        gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0;
+        formPanel.add(new JLabel("历史记录最大数量:"), gbc);
+        
+        gbc.gridx = 1; gbc.gridy = 2;
+        JPanel historyPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        maxHistorySpinner = new JSpinner(new SpinnerNumberModel(
+            configManager.getMaxHistorySize(), 
+            ConfigManager.MIN_HISTORY_SIZE, 
+            ConfigManager.MAX_HISTORY_SIZE, 1));
+        maxHistorySpinner.setPreferredSize(new Dimension(60, 25));
+        historyPanel.add(maxHistorySpinner);
+        historyPanel.add(new JLabel("  (范围: 3-32条)"));
+        formPanel.add(historyPanel, gbc);
+        
         // 按钮面板
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         
@@ -143,7 +173,7 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
         saveButton.addActionListener(e -> saveServerConfig());
         buttonPanel.add(saveButton);
         
-        gbc.gridx = 1; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE;
+        gbc.gridx = 1; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE;
         formPanel.add(buttonPanel, gbc);
         
         panel.add(formPanel, BorderLayout.NORTH);
@@ -328,8 +358,10 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panel.setBorder(BorderFactory.createTitledBorder("使用说明"));
         JLabel helpLabel = new JLabel(
-            "<html>在Burp Suite中右键点击任意HTTP请求，选择 '<b>Send to SQLMap WebUI</b>' 或 " +
-            "'<b>Send to SQLMap WebUI (选择配置)...</b>' 将请求发送到后端进行SQL注入检测。</html>"
+            "<html><b>使用步骤:</b><br>" +
+            "1. 配置后端URL并点击「测试连接」验证连接<br>" +
+            "2. 连接成功后，右键点击HTTP请求选择 '<b>Send to SQLMap WebUI</b>'<br>" +
+            "<font color='red'>注意: 必须先测试连接成功，否则右键菜单不会显示!</font></html>"
         );
         panel.add(helpLabel);
         return panel;
@@ -338,6 +370,11 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
     @Override
     public List<JMenuItem> createMenuItems(IContextMenuInvocation invocation) {
         List<JMenuItem> menuItems = new ArrayList<>();
+        
+        // 只有已连接状态才显示菜单
+        if (!configManager.isConnected()) {
+            return menuItems;
+        }
         
         byte invocationContext = invocation.getInvocationContext();
         if (invocationContext == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST ||
@@ -555,12 +592,20 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
             ApiClient apiClient = new ApiClient(url);
             String version = apiClient.getVersion();
             
+            // 更新连接状态
+            configManager.setConnected(true);
+            updateConnectionStatus(true, "已连接 (v" + version + ")");
+            
             appendLog("[+] 连接成功! 后端版本: " + version);
             JOptionPane.showMessageDialog(mainPanel,
-                "连接成功!\n后端版本: " + version,
+                "连接成功!\n后端版本: " + version + "\n\n现在可以使用右键菜单发送扫描任务了。",
                 "成功", JOptionPane.INFORMATION_MESSAGE);
                 
         } catch (Exception e) {
+            // 更新连接状态
+            configManager.setConnected(false);
+            updateConnectionStatus(false, "连接失败");
+            
             appendLog("[-] 连接失败: " + e.getMessage());
             JOptionPane.showMessageDialog(mainPanel,
                 "连接失败: " + e.getMessage(),
@@ -568,11 +613,28 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
         }
     }
     
+    private void updateConnectionStatus(boolean connected, String text) {
+        if (connectionStatusLabel != null) {
+            SwingUtilities.invokeLater(() -> {
+                connectionStatusLabel.setText("● " + text);
+                connectionStatusLabel.setForeground(connected ? new Color(0, 150, 0) : Color.RED);
+            });
+        }
+    }
+    
     private void saveServerConfig() {
         String url = serverUrlField.getText().trim();
         configManager.setBackendUrl(url);
-        appendLog("[+] 服务器配置已保存. URL: " + url);
-        JOptionPane.showMessageDialog(mainPanel, "配置已保存!", "成功", JOptionPane.INFORMATION_MESSAGE);
+        
+        // 保存历史记录最大数量
+        int maxHistory = (Integer) maxHistorySpinner.getValue();
+        configManager.setMaxHistorySize(maxHistory);
+        
+        // URL变更后需要重新测试连接
+        updateConnectionStatus(false, "未连接 (URL已变更，请重新测试)");
+        
+        appendLog("[+] 服务器配置已保存. URL: " + url + ", 历史记录最大数量: " + maxHistory);
+        JOptionPane.showMessageDialog(mainPanel, "配置已保存!\n请点击「测试连接」验证后端可用性。", "成功", JOptionPane.INFORMATION_MESSAGE);
     }
     
     private void saveDefaultConfig() {

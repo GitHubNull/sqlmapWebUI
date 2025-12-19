@@ -38,6 +38,11 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
     public List<Component> provideMenuItems(ContextMenuEvent event) {
         List<Component> menuItems = new ArrayList<>();
         
+        // 只有已连接状态才显示菜单
+        if (!configManager.isConnected()) {
+            return menuItems;
+        }
+        
         // 获取选中的请求
         List<HttpRequestResponse> selectedMessages = event.selectedRequestResponses();
         if (selectedMessages == null || selectedMessages.isEmpty()) {

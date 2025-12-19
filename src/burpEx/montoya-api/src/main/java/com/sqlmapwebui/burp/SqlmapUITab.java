@@ -36,6 +36,7 @@ public class SqlmapUITab extends JPanel {
     private JComboBox<String> defaultDbmsCombo;
     private JTextField defaultTechniqueField;
     private JCheckBox defaultBatchCheck;
+    private JSpinner maxHistorySpinner;
     
     private static final String[] DBMS_OPTIONS = {
         "", "MySQL", "PostgreSQL", "Oracle", "Microsoft SQL Server", 
@@ -96,9 +97,9 @@ public class SqlmapUITab extends JPanel {
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
         panel.add(titleLabel, BorderLayout.WEST);
         
-        statusLabel = new JLabel("● Disconnected");
+        statusLabel = new JLabel("● 未连接");
         statusLabel.setForeground(Color.RED);
-        statusLabel.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        statusLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
         panel.add(statusLabel, BorderLayout.EAST);
         
         return panel;
@@ -125,6 +126,21 @@ public class SqlmapUITab extends JPanel {
         serverUrlField = new JTextField(configManager.getBackendUrl(), 40);
         formPanel.add(serverUrlField, gbc);
         
+        // 历史记录最大数量
+        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("历史记录最大数量:"), gbc);
+        
+        gbc.gridx = 1; gbc.gridy = 1;
+        JPanel historyPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        maxHistorySpinner = new JSpinner(new SpinnerNumberModel(
+            configManager.getMaxHistorySize(), 
+            ConfigManager.MIN_HISTORY_SIZE, 
+            ConfigManager.MAX_HISTORY_SIZE, 1));
+        maxHistorySpinner.setPreferredSize(new Dimension(60, 25));
+        historyPanel.add(maxHistorySpinner);
+        historyPanel.add(new JLabel("  (范围: 3-32条)"));
+        formPanel.add(historyPanel, gbc);
+        
         // 按钮面板
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         
@@ -136,18 +152,21 @@ public class SqlmapUITab extends JPanel {
         saveButton.addActionListener(e -> saveServerConfig());
         buttonPanel.add(saveButton);
         
-        gbc.gridx = 1; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE;
+        gbc.gridx = 1; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE;
         formPanel.add(buttonPanel, gbc);
         
         panel.add(formPanel, BorderLayout.NORTH);
         
         // 连接状态信息
         JPanel statusPanel = new JPanel(new BorderLayout());
-        statusPanel.setBorder(BorderFactory.createTitledBorder("连接信息"));
+        statusPanel.setBorder(BorderFactory.createTitledBorder("使用说明"));
         JTextArea statusArea = new JTextArea(5, 40);
         statusArea.setEditable(false);
-        statusArea.setText("点击「测试连接」按钮验证与后端服务器的连接。\n\n" +
-            "后端服务器应运行在配置的URL上，并提供以下接口：\n" +
+        statusArea.setText("使用步骤:\n" +
+            "1. 配置后端URL并点击「测试连接」验证连接\n" +
+            "2. 连接成功后，右键点击HTTP请求选择 'Send to SQLMap WebUI'\n\n" +
+            "注意: 必须先测试连接成功，否则右键菜单不会显示!\n\n" +
+            "后端接口:\n" +
             "- POST /burp/admin/scan - 提交扫描任务\n" +
             "- GET /api/version - 获取版本信息");
         statusPanel.add(new JScrollPane(statusArea), BorderLayout.CENTER);
@@ -329,12 +348,10 @@ public class SqlmapUITab extends JPanel {
         
         JLabel helpLabel = new JLabel(
             "<html>" +
-            "<b>快速开始:</b><br>" +
-            "1. 配置后端URL并测试连接<br>" +
-            "2. 在Burp Suite中右键点击任意HTTP请求<br>" +
-            "3. 选择 '<b>Send to SQLMap WebUI</b>' 使用默认配置发送<br>" +
-            "4. 或选择 '<b>Send to SQLMap WebUI (选择配置)...</b>' 选择常用/历史配置发送<br>" +
-            "5. 在SQLMap WebUI前端查看扫描结果" +
+            "<b>使用步骤:</b><br>" +
+            "1. 配置后端URL并点击「测试连接」验证连接<br>" +
+            "2. 连接成功后，右键点击HTTP请求选择 '<b>Send to SQLMap WebUI</b>'<br>" +
+            "<font color='red'>注意: 必须先测试连接成功，否则右键菜单不会显示!</font>" +
             "</html>"
         );
         helpLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -358,17 +375,24 @@ public class SqlmapUITab extends JPanel {
             protected void done() {
                 try {
                     String version = get();
+                    
+                    // 更新连接状态
+                    configManager.setConnected(true);
+                    updateStatus(true, "已连接 (v" + version + ")");
+                    
                     appendLog("[+] 连接成功! 后端版本: " + version);
-                    updateStatus(true, "Connected (v" + version + ")");
                     
                     JOptionPane.showMessageDialog(SqlmapUITab.this,
-                        "连接成功!\n后端版本: " + version,
+                        "连接成功!\n后端版本: " + version + "\n\n现在可以使用右键菜单发送扫描任务了。",
                         "成功",
                         JOptionPane.INFORMATION_MESSAGE);
                         
                 } catch (Exception e) {
+                    // 更新连接状态
+                    configManager.setConnected(false);
+                    updateStatus(false, "连接失败");
+                    
                     appendLog("[-] 连接失败: " + e.getMessage());
-                    updateStatus(false, "Disconnected");
                     
                     JOptionPane.showMessageDialog(SqlmapUITab.this,
                         "连接失败: " + e.getMessage(),
@@ -383,10 +407,18 @@ public class SqlmapUITab extends JPanel {
         String url = serverUrlField.getText().trim();
         configManager.setBackendUrl(url);
         onBackendUrlChange.accept(url);
-        appendLog("[+] 服务器配置已保存. URL: " + url);
+        
+        // 保存历史记录最大数量
+        int maxHistory = (Integer) maxHistorySpinner.getValue();
+        configManager.setMaxHistorySize(maxHistory);
+        
+        // URL变更后需要重新测试连接
+        updateStatus(false, "未连接 (URL已变更，请重新测试)");
+        
+        appendLog("[+] 服务器配置已保存. URL: " + url + ", 历史记录最大数量: " + maxHistory);
         
         JOptionPane.showMessageDialog(this,
-            "配置已保存!",
+            "配置已保存!\n请点击「测试连接」验证后端可用性。",
             "成功",
             JOptionPane.INFORMATION_MESSAGE);
     }

@@ -20,7 +20,12 @@ public class ConfigManager {
     private static final String KEY_DEFAULT_CONFIG = "defaultConfig";
     private static final String KEY_PRESET_CONFIGS = "presetConfigs";
     private static final String KEY_HISTORY_CONFIGS = "historyConfigs";
-    private static final int MAX_HISTORY_SIZE = 20;
+    private static final String KEY_MAX_HISTORY_SIZE = "maxHistorySize";
+    
+    // 历史记录数量限制
+    public static final int MIN_HISTORY_SIZE = 3;
+    public static final int MAX_HISTORY_SIZE = 32;
+    public static final int DEFAULT_HISTORY_SIZE = 20;
     
     private final MontoyaApi api;
     private final PersistedObject persistence;
@@ -28,9 +33,13 @@ public class ConfigManager {
     
     // 配置数据
     private String backendUrl = "http://localhost:5000";
+    private int maxHistorySize = DEFAULT_HISTORY_SIZE;
     private ScanConfig defaultConfig;
     private List<ScanConfig> presetConfigs;  // 常用配置
     private List<ScanConfig> historyConfigs; // 历史配置
+    
+    // 连接状态
+    private boolean connected = false;
     
     public ConfigManager(MontoyaApi api) {
         this.api = api;
@@ -50,6 +59,17 @@ public class ConfigManager {
         String savedUrl = persistence.getString(KEY_BACKEND_URL);
         if (savedUrl != null && !savedUrl.isEmpty()) {
             backendUrl = savedUrl;
+        }
+        
+        // 加载历史记录最大数量
+        String savedMaxHistory = persistence.getString(KEY_MAX_HISTORY_SIZE);
+        if (savedMaxHistory != null && !savedMaxHistory.isEmpty()) {
+            try {
+                int size = Integer.parseInt(savedMaxHistory);
+                maxHistorySize = Math.max(MIN_HISTORY_SIZE, Math.min(MAX_HISTORY_SIZE, size));
+            } catch (NumberFormatException e) {
+                maxHistorySize = DEFAULT_HISTORY_SIZE;
+            }
         }
         
         // 加载默认配置
@@ -110,6 +130,31 @@ public class ConfigManager {
     public void setBackendUrl(String url) {
         this.backendUrl = url;
         persistence.setString(KEY_BACKEND_URL, url);
+        // 更改URL后重置连接状态
+        this.connected = false;
+    }
+    
+    // ============ 历史记录数量管理 ============
+    
+    public int getMaxHistorySize() {
+        return maxHistorySize;
+    }
+    
+    public void setMaxHistorySize(int size) {
+        this.maxHistorySize = Math.max(MIN_HISTORY_SIZE, Math.min(MAX_HISTORY_SIZE, size));
+        persistence.setString(KEY_MAX_HISTORY_SIZE, String.valueOf(this.maxHistorySize));
+        // 如果当前历史记录超过新的最大值，则裁剪
+        trimHistory();
+    }
+    
+    // ============ 连接状态管理 ============
+    
+    public boolean isConnected() {
+        return connected;
+    }
+    
+    public void setConnected(boolean connected) {
+        this.connected = connected;
     }
     
     // ============ 默认配置管理 ============
@@ -180,15 +225,20 @@ public class ConfigManager {
         historyConfigs.add(0, historyEntry);
         
         // 限制历史记录数量
-        while (historyConfigs.size() > MAX_HISTORY_SIZE) {
-            historyConfigs.remove(historyConfigs.size() - 1);
-        }
+        trimHistory();
         
         saveHistoryConfigs();
     }
     
     public void clearHistory() {
         historyConfigs.clear();
+        saveHistoryConfigs();
+    }
+    
+    private void trimHistory() {
+        while (historyConfigs.size() > maxHistorySize) {
+            historyConfigs.remove(historyConfigs.size() - 1);
+        }
         saveHistoryConfigs();
     }
     
