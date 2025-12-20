@@ -52,9 +52,15 @@ export async function getPersistentRules(activeOnly: boolean = true) {
       message: 'Mock数据加载成功',
     }
   }
-  return request.get('/commonApi/header/persistent-header-rules', {
+  // axios拦截器成功时只返回data.data，需要包装成统一格式
+  const data = await request.get('/commonApi/header/persistent-header-rules', {
     params: { active_only: activeOnly },
   })
+  return {
+    success: true,
+    data: data,
+    message: '加载成功',
+  }
 }
 
 /**
@@ -77,7 +83,12 @@ export async function getPersistentRuleById(ruleId: number) {
       message: '规则不存在',
     }
   }
-  return request.get(`/commonApi/header/persistent-header-rules/${ruleId}`)
+  const data = await request.get(`/commonApi/header/persistent-header-rules/${ruleId}`)
+  return {
+    success: true,
+    data: data,
+    message: '获取成功',
+  }
 }
 
 /**
@@ -105,7 +116,12 @@ export async function createPersistentRule(rule: PersistentHeaderRuleCreate) {
       message: '创建成功',
     }
   }
-  return request.post('/commonApi/header/persistent-header-rules', rule)
+  const data = await request.post('/commonApi/header/persistent-header-rules', rule)
+  return {
+    success: true,
+    data: data,
+    message: '创建成功',
+  }
 }
 
 /**
@@ -142,7 +158,12 @@ export async function updatePersistentRule(ruleId: number, rule: PersistentHeade
       message: '规则不存在',
     }
   }
-  return request.put(`/commonApi/header/persistent-header-rules/${ruleId}`, rule)
+  const data = await request.put(`/commonApi/header/persistent-header-rules/${ruleId}`, rule)
+  return {
+    success: true,
+    data: data,
+    message: '更新成功',
+  }
 }
 
 /**
@@ -166,7 +187,12 @@ export async function deletePersistentRule(ruleId: number) {
       message: '规则不存在',
     }
   }
-  return request.delete(`/commonApi/header/persistent-header-rules/${ruleId}`)
+  await request.delete(`/commonApi/header/persistent-header-rules/${ruleId}`)
+  return {
+    success: true,
+    data: null,
+    message: '删除成功',
+  }
 }
 
 // ==================== 会话性请求头API ====================
@@ -199,7 +225,12 @@ export async function setSessionHeaders(headers: SessionHeaderBatchCreate) {
       message: `成功添加 ${newHeaders.length} 个Session Header`,
     }
   }
-  return request.post('/commonApi/header/session-headers', headers)
+  const data = await request.post('/commonApi/header/session-headers', headers)
+  return {
+    success: true,
+    data: data,
+    message: '设置成功',
+  }
 }
 
 /**
@@ -220,7 +251,12 @@ export async function getSessionHeaders() {
       message: 'Mock数据加载成功',
     }
   }
-  return request.get('/commonApi/header/session-headers')
+  const data = await request.get('/commonApi/header/session-headers')
+  return {
+    success: true,
+    data: data,
+    message: '加载成功',
+  }
 }
 
 /**
@@ -245,7 +281,12 @@ export async function deleteSessionHeader(headerName: string) {
       message: 'Header不存在',
     }
   }
-  return request.delete(`/commonApi/header/session-headers/${encodeURIComponent(headerName)}`)
+  await request.delete(`/commonApi/header/session-headers/${encodeURIComponent(headerName)}`)
+  return {
+    success: true,
+    data: null,
+    message: '删除成功',
+  }
 }
 
 /**
@@ -277,7 +318,12 @@ export async function updateSessionHeader(headerName: string, header: Partial<an
       message: 'Header不存在',
     }
   }
-  return request.put(`/commonApi/header/session-headers/${encodeURIComponent(headerName)}`, header)
+  const data = await request.put(`/commonApi/header/session-headers/${encodeURIComponent(headerName)}`, header)
+  return {
+    success: true,
+    data: data,
+    message: '更新成功',
+  }
 }
 
 /**
@@ -294,7 +340,12 @@ export async function clearSessionHeaders() {
       message: `成功清除 ${count} 个Session Header`,
     }
   }
-  return request.delete('/commonApi/header/session-headers')
+  const data = await request.delete('/commonApi/header/session-headers')
+  return {
+    success: true,
+    data: data,
+    message: '清除成功',
+  }
 }
 
 // ==================== 预览功能API ====================
@@ -302,11 +353,11 @@ export async function clearSessionHeaders() {
 /**
  * 预览请求头处理结果
  */
-export async function previewHeaderProcessing(data: HeaderPreviewRequest) {
+export async function previewHeaderProcessing(previewData: HeaderPreviewRequest) {
   if (USE_MOCK_DATA) {
     await delay(500)
     // 简单模拟：合并原始请求头和mock规则
-    const processedHeaders = [...data.headers]
+    const processedHeaders = [...previewData.headers]
     const activeRules = mockHeaderRules.filter(r => r.is_active)
     activeRules.forEach(rule => {
       processedHeaders.push(`${rule.header_name}: ${rule.header_value}`)
@@ -314,14 +365,19 @@ export async function previewHeaderProcessing(data: HeaderPreviewRequest) {
     return {
       success: true,
       data: {
-        original_headers: data.headers,
+        original_headers: previewData.headers,
         processed_headers: processedHeaders,
         applied_rules: activeRules.map(r => r.id),
       },
       message: '预览成功',
     }
   }
-  return request.post('/commonApi/header/header-processing/preview', data)
+  const data = await request.post('/commonApi/header/header-processing/preview', previewData)
+  return {
+    success: true,
+    data: data,
+    message: '预览成功',
+  }
 }
 
 // ==================== 统计信息API ====================
@@ -355,5 +411,10 @@ export async function getHeaderManagementStats() {
       message: '统计信息获取成功',
     }
   }
-  return request.get('/commonApi/header/header-management/stats')
+  const data = await request.get('/commonApi/header/header-management/stats')
+  return {
+    success: true,
+    data: data,
+    message: '统计信息获取成功',
+  }
 }

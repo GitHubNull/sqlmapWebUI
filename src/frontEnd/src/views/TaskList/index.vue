@@ -74,7 +74,7 @@
           columnResizeMode="fit"
         >
           <!-- 选择列 -->
-          <Column selectionMode="multiple" headerStyle="width: 3rem" :exportable="false" frozen />
+          <Column selectionMode="multiple" headerStyle="width: 3rem; text-align: center;" bodyStyle="text-align: center;" :exportable="false" frozen />
           <Column field="engineid" header="任务ID" :style="{ minWidth: '80px', maxWidth: '120px' }" sortable>
             <template #body="{ data }">
               <div class="clickable-id" @click="goToTaskConfig(data)" :title="'点击查看任务扫描配置'">
@@ -873,15 +873,19 @@ function confirmDeleteAll() {
 
   // 复选框简洁样式（无3D效果）
   .p-checkbox {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
+    margin: 0 auto;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
 
     .p-checkbox-box {
       background: #ffffff;
       border: 2px solid #cbd5e1;
       border-radius: 4px;
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       display: inline-flex !important;
       align-items: center;
       justify-content: center;
@@ -905,7 +909,7 @@ function confirmDeleteAll() {
 
       .p-checkbox-icon {
         color: white !important;
-        font-size: 14px;
+        font-size: 12px;
         display: block;
       }
 
@@ -918,6 +922,17 @@ function confirmDeleteAll() {
     input {
       opacity: 0;
       position: absolute;
+    }
+  }
+
+  // 选择列单元格居中
+  .p-datatable-thead > tr > th:first-child,
+  .p-datatable-tbody > tr > td:first-child {
+    text-align: center;
+    vertical-align: middle;
+    
+    .p-checkbox {
+      margin: 0 auto;
     }
   }
 }
