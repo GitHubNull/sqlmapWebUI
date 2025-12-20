@@ -56,10 +56,13 @@ class HeaderDatabase(Database):
                 client_ip TEXT NOT NULL,
                 header_name TEXT NOT NULL,
                 header_value TEXT NOT NULL,
+                replace_strategy TEXT NOT NULL DEFAULT 'REPLACE',
                 priority INTEGER DEFAULT 0,
+                is_active INTEGER DEFAULT 1,
                 scope_config TEXT DEFAULT NULL,
                 expires_at TEXT NOT NULL,
                 created_at TEXT NOT NULL,
+                updated_at TEXT DEFAULT NULL,
                 UNIQUE(client_ip, header_name)
             )
         """)
@@ -68,6 +71,23 @@ class HeaderDatabase(Database):
         self._add_column_if_not_exists(
             'session_headers', 
             'scope_config', 
+            'TEXT DEFAULT NULL'
+        )
+        
+        # 检查并添加新字段（用于旧数据库迁移）
+        self._add_column_if_not_exists(
+            'session_headers', 
+            'replace_strategy', 
+            "TEXT NOT NULL DEFAULT 'REPLACE'"
+        )
+        self._add_column_if_not_exists(
+            'session_headers', 
+            'is_active', 
+            'INTEGER DEFAULT 1'
+        )
+        self._add_column_if_not_exists(
+            'session_headers', 
+            'updated_at', 
             'TEXT DEFAULT NULL'
         )
         

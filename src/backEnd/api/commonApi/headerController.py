@@ -184,13 +184,8 @@ async def get_session_headers(
 
         headers_list = []
         for header_name, session_header in session_headers.items():
-            headers_list.append({
-                "header_name": header_name,
-                "header_value": session_header.header_value,
-                "priority": session_header.priority,
-                "expires_at": session_header.expires_at.strftime('%Y-%m-%d %H:%M:%S'),
-                "created_at": session_header.created_at.strftime('%Y-%m-%d %H:%M:%S')
-            })
+            # 使用模型的to_dict方法获取完整字段
+            headers_list.append(session_header.to_dict())
 
         response_data = {
             "client_ip": client_ip,
@@ -275,8 +270,11 @@ async def delete_session_header(
 
 class SessionHeaderUpdateRequest(BaseModel):
     header_value: str = Field(..., description="新的请求头值")
+    replace_strategy: Optional[str] = Field(None, description="替换策略")
     priority: Optional[int] = Field(None, description="优先级")
+    is_active: Optional[bool] = Field(None, description="是否启用")
     ttl: Optional[int] = Field(None, description="生存时间(秒)")
+    scope: Optional[dict] = Field(None, description="作用域配置")
 
 
 @router.put('/session-headers/{header_name}')
@@ -302,13 +300,33 @@ async def update_session_header(
         
         existing = existing_headers[header_name]
         
+        # 处理replace_strategy
+        from model.SessionHeader import SessionHeaderCreate, ReplaceStrategy
+        replace_strategy = existing.replace_strategy
+        if update_data.replace_strategy is not None:
+            try:
+                replace_strategy = ReplaceStrategy(update_data.replace_strategy)
+            except ValueError:
+                replace_strategy = ReplaceStrategy.REPLACE
+        
+        # 处理scope
+        from model.HeaderScope import HeaderScope
+        scope = existing.scope
+        if update_data.scope is not None:
+            try:
+                scope = HeaderScope.from_dict(update_data.scope)
+            except Exception:
+                scope = None
+        
         # 使用set_session_header更新（它会覆盖现有记录）
-        from model.SessionHeader import SessionHeaderCreate
         updated_header = SessionHeaderCreate(
             header_name=header_name,
             header_value=update_data.header_value,
+            replace_strategy=replace_strategy,
             priority=update_data.priority if update_data.priority is not None else existing.priority,
-            ttl=update_data.ttl if update_data.ttl is not None else 3600
+            is_active=update_data.is_active if update_data.is_active is not None else existing.is_active,
+            ttl=update_data.ttl if update_data.ttl is not None else 3600,
+            scope=scope
         )
         
         success = session_manager.set_session_header(client_ip, updated_header)

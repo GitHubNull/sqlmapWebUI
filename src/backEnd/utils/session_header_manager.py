@@ -1,9 +1,10 @@
 import threading
+import json
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 from collections import defaultdict
 
-from model.SessionHeader import SessionHeader, SessionHeaderCreate
+from model.SessionHeader import SessionHeader, SessionHeaderCreate, ReplaceStrategy
 from model.DataStore import DataStore
 
 # 使用标准库的logging模块
@@ -18,23 +19,47 @@ class SessionHeaderManager:
         # {client_ip: {header_name: SessionHeader}}
         self._session_headers: Dict[str, Dict[str, SessionHeader]] = defaultdict(dict)
         self._lock = threading.Lock()
+        self._id_counter = 1  # ID计数器
         logger.debug("SessionHeaderManager initialized")
         
     def _get_db(self):
         """获取请求头数据库连接"""
         return DataStore.header_db
+    
+    def _generate_id(self) -> int:
+        """生成唯一ID"""
+        self._id_counter += 1
+        return self._id_counter
 
     def set_session_header(self, client_ip: str, header_create: SessionHeaderCreate) -> bool:
         """设置会话性请求头"""
         try:
             with self._lock:
                 expires_at = datetime.now() + timedelta(seconds=header_create.ttl)
+                current_time = datetime.now()
+                
+                # 检查是否已存在，如果存在则复用ID
+                existing_header = None
+                if client_ip in self._session_headers and header_create.header_name in self._session_headers[client_ip]:
+                    existing_header = self._session_headers[client_ip][header_create.header_name]
+                
+                header_id = existing_header.id if existing_header and existing_header.id else self._generate_id()
+                
+                # 处理scope字段
+                scope = header_create.scope
+                
                 session_header = SessionHeader(
+                    id=header_id,
                     header_name=header_create.header_name,
                     header_value=header_create.header_value,
+                    replace_strategy=header_create.replace_strategy,
                     priority=header_create.priority,
+                    is_active=header_create.is_active,
                     expires_at=expires_at,
-                    source_ip=client_ip
+                    created_at=existing_header.created_at if existing_header else current_time,
+                    updated_at=current_time if existing_header else None,
+                    source_ip=client_ip,
+                    scope=scope
                 )
                 
                 # 如果客户端IP不存在，创建新的字典
@@ -44,6 +69,11 @@ class SessionHeaderManager:
                 # 设置或更新请求头
                 self._session_headers[client_ip][header_create.header_name] = session_header
                 
+                # 序列化scope配置
+                scope_config_json = None
+                if scope is not None:
+                    scope_config_json = json.dumps(scope.to_dict(), ensure_ascii=False)
+                
                 # 持久化到数据库
                 try:
                     db = self._get_db()
@@ -51,12 +81,17 @@ class SessionHeaderManager:
                         # 尝试更新现有记录
                         cursor = db.only_execute("""
                             UPDATE session_headers 
-                            SET header_value = ?, priority = ?, expires_at = ?
+                            SET header_value = ?, replace_strategy = ?, priority = ?, is_active = ?,
+                                expires_at = ?, updated_at = ?, scope_config = ?
                             WHERE client_ip = ? AND header_name = ?
                         """, (
                             header_create.header_value,
+                            header_create.replace_strategy.value,
                             header_create.priority,
+                            1 if header_create.is_active else 0,
                             expires_at.strftime('%Y-%m-%d %H:%M:%S'),
+                            current_time.strftime('%Y-%m-%d %H:%M:%S'),
+                            scope_config_json,
                             client_ip,
                             header_create.header_name
                         ))
@@ -65,15 +100,19 @@ class SessionHeaderManager:
                         if cursor.rowcount == 0:
                             db.only_execute("""
                                 INSERT INTO session_headers 
-                                (client_ip, header_name, header_value, priority, expires_at, created_at)
-                                VALUES (?, ?, ?, ?, ?, ?)
+                                (client_ip, header_name, header_value, replace_strategy, priority, is_active, 
+                                 expires_at, created_at, scope_config)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                             """, (
                                 client_ip,
                                 header_create.header_name,
                                 header_create.header_value,
+                                header_create.replace_strategy.value,
                                 header_create.priority,
+                                1 if header_create.is_active else 0,
                                 expires_at.strftime('%Y-%m-%d %H:%M:%S'),
-                                datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                                current_time.strftime('%Y-%m-%d %H:%M:%S'),
+                                scope_config_json
                             ))
                         logger.debug(f"Persisted session header to database for {client_ip}: {header_create.header_name}")
                 except Exception as db_error:

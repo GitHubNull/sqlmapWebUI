@@ -1749,18 +1749,35 @@ async function deleteHeader(headerName: string) {
 async function toggleActive(header: any) {
   try {
     const newStatus = !header.is_active
-    // 更新本地状态
-    const index = sessionHeaders.value.findIndex(h => h.id === header.id)
-    if (index !== -1) {
-      sessionHeaders.value[index].is_active = newStatus
-    }
-    // TODO: 调用实际的更新API
-    toast.add({
-      severity: 'success',
-      summary: '状态已更新',
-      detail: `已${newStatus ? '启用' : '禁用'} "${header.header_name}"`,
-      life: 3000,
+    // 调用更新API
+    const res = await updateSessionHeader(header.header_name, {
+      header_value: header.header_value,
+      replace_strategy: header.replace_strategy,
+      priority: header.priority,
+      is_active: newStatus,
+      scope: header.scope
     })
+    
+    if (res.success) {
+      // 更新本地状态
+      const index = sessionHeaders.value.findIndex(h => h.id === header.id)
+      if (index !== -1) {
+        sessionHeaders.value[index].is_active = newStatus
+      }
+      toast.add({
+        severity: 'success',
+        summary: '状态已更新',
+        detail: `已${newStatus ? '启用' : '禁用'} "${header.header_name}"`,
+        life: 3000,
+      })
+    } else {
+      toast.add({
+        severity: 'error',
+        summary: '操作失败',
+        detail: res.message || '更新状态失败',
+        life: 3000,
+      })
+    }
   } catch (error: any) {
     toast.add({
       severity: 'error',
