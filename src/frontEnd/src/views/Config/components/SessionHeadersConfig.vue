@@ -173,7 +173,7 @@
       :resizableColumns="true"
       columnResizeMode="fit"
     >
-      <Column selectionMode="multiple" style="width: 50px"></Column>
+      <Column selectionMode="multiple" headerStyle="width: 50px; text-align: center;" bodyStyle="text-align: center;"></Column>
       <Column field="id" header="ID" sortable style="width: 80px"></Column>
       <Column field="header_name" header="Header名称" sortable></Column>
       <Column field="header_value" header="Header值">
@@ -1984,6 +1984,20 @@ async function batchToggleActiveHeaders(isActive: boolean) {
       font-size: 0.9em;
       color: var(--text-color-secondary);
     }
+
+    // 选择列checkbox居中
+    :deep(.p-datatable-thead > tr > th:first-child),
+    :deep(.p-datatable-tbody > tr > td:first-child) {
+      text-align: center !important;
+      vertical-align: middle !important;
+      
+      .p-checkbox {
+        margin: 0 auto;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+    }
   }
 
   code {
@@ -2059,6 +2073,11 @@ async function batchToggleActiveHeaders(isActive: boolean) {
 
     // 复选框样式 - 使用更高优先级
     :deep(.p-checkbox) {
+      margin: 0 auto;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+
       .p-checkbox-box {
         width: 18px !important;
         height: 18px !important;
@@ -2087,6 +2106,17 @@ async function batchToggleActiveHeaders(isActive: boolean) {
             z-index: 10 !important;
           }
         }
+      }
+    }
+
+    // 选择列单元格居中
+    :deep(.p-datatable-thead > tr > th:first-child),
+    :deep(.p-datatable-tbody > tr > td:first-child) {
+      text-align: center !important;
+      vertical-align: middle !important;
+      
+      .p-checkbox {
+        margin: 0 auto;
       }
     }
 

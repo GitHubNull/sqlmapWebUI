@@ -174,7 +174,7 @@
       :resizableColumns="true"
       columnResizeMode="fit"
     >
-      <Column selectionMode="multiple" style="width: 50px"></Column>
+      <Column selectionMode="multiple" headerStyle="width: 50px; text-align: center;" bodyStyle="text-align: center;"></Column>
       <Column field="id" header="ID" sortable style="width: 80px"></Column>
       <Column field="name" header="规则名称" sortable></Column>
       <Column field="header_name" header="Header名称" sortable></Column>
@@ -1529,6 +1529,20 @@ async function batchDeleteRules() {
       font-family: monospace;
       font-size: 0.9em;
     }
+
+    // 选择列checkbox居中
+    :deep(.p-datatable-thead > tr > th:first-child),
+    :deep(.p-datatable-tbody > tr > td:first-child) {
+      text-align: center !important;
+      vertical-align: middle !important;
+      
+      .p-checkbox {
+        margin: 0 auto;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+    }
   }
 }
 
@@ -1783,6 +1797,11 @@ async function batchDeleteRules() {
 
   // 复选框样式 - 使用更高优先级
   :deep(.p-checkbox) {
+    margin: 0 auto;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+
     .p-checkbox-box {
       width: 18px !important;
       height: 18px !important;
@@ -1811,6 +1830,17 @@ async function batchDeleteRules() {
           z-index: 10 !important;
         }
       }
+    }
+  }
+
+  // 选择列单元格居中
+  :deep(.p-datatable-thead > tr > th:first-child),
+  :deep(.p-datatable-tbody > tr > td:first-child) {
+    text-align: center !important;
+    vertical-align: middle !important;
+    
+    .p-checkbox {
+      margin: 0 auto;
     }
   }
 
