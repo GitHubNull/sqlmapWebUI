@@ -16,6 +16,7 @@ import {
   getHttpRequestInfo,
   getPayloadDetail,
   getErrors,
+  getScanOptions,
   type ErrorEntry
 } from '@/api/task'
 
@@ -383,6 +384,7 @@ export function useTaskDetail() {
       // 并行加载其他数据
       await Promise.all([
         loadHttpInfo(taskId),
+        loadScanOptions(taskId),
         loadPayloadDetail(taskId),
         loadLogs(taskId),
         loadErrors(taskId),
@@ -402,6 +404,26 @@ export function useTaskDetail() {
       console.error('Failed to load HTTP info:', err)
     } finally {
       loadingHttp.value = false
+    }
+  }
+
+  async function loadScanOptions(taskId: string) {
+    loadingOptions.value = true
+    try {
+      const result = await getScanOptions(taskId)
+      // 后端返回格式: { taskid, options: [{option, value},...], options_cnt }
+      if (result && result.options && task.value) {
+        // 将 options 数组转换为对象格式
+        const optionsObj: Record<string, any> = {}
+        for (const item of result.options) {
+          optionsObj[item.option] = item.value
+        }
+        task.value.options = optionsObj
+      }
+    } catch (err) {
+      console.error('Failed to load scan options:', err)
+    } finally {
+      loadingOptions.value = false
     }
   }
 
@@ -760,6 +782,7 @@ export function useTaskDetail() {
     // 方法
     loadTaskDetail,
     loadHttpInfo,
+    loadScanOptions,
     loadPayloadDetail,
     loadLogs,
     loadErrors,

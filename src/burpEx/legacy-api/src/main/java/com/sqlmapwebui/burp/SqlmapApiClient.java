@@ -65,4 +65,25 @@ public class SqlmapApiClient {
     public String getTaskLogs(String taskId) throws IOException {
         return apiClient.getTaskLogs(taskId);
     }
+    
+    /**
+     * 获取临时目录配置
+     */
+    public String getTempDirConfig() throws IOException {
+        return apiClient.getTempDirConfig();
+    }
+    
+    /**
+     * 设置临时目录配置
+     */
+    public String setTempDirConfig(String tempDir) throws IOException {
+        return apiClient.setTempDirConfig(tempDir);
+    }
+    
+    /**
+     * 重置临时目录为默认值
+     */
+    public String resetTempDirConfig() throws IOException {
+        return apiClient.resetTempDirConfig();
+    }
 }

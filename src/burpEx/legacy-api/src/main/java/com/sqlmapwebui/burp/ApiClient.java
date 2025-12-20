@@ -149,4 +149,62 @@ public class ApiClient {
             return response.body() != null ? response.body().string() : "";
         }
     }
+    
+    /**
+     * 获取临时目录配置
+     */
+    public String getTempDirConfig() throws IOException {
+        Request request = new Request.Builder()
+            .url(baseUrl + "/api/config/temp-dir")
+            .get()
+            .build();
+        
+        try (Response response = httpClient.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Failed to get temp dir config: " + response.code());
+            }
+            return response.body() != null ? response.body().string() : "";
+        }
+    }
+    
+    /**
+     * 设置临时目录配置
+     */
+    public String setTempDirConfig(String tempDir) throws IOException {
+        JsonObject json = new JsonObject();
+        json.addProperty("tempDir", tempDir);
+        
+        RequestBody body = RequestBody.create(json.toString(), JSON);
+        
+        Request request = new Request.Builder()
+            .url(baseUrl + "/api/config/temp-dir")
+            .post(body)
+            .build();
+        
+        try (Response response = httpClient.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Failed to set temp dir config: " + response.code());
+            }
+            return response.body() != null ? response.body().string() : "";
+        }
+    }
+    
+    /**
+     * 重置临时目录为默认值
+     */
+    public String resetTempDirConfig() throws IOException {
+        RequestBody body = RequestBody.create("{}", JSON);
+        
+        Request request = new Request.Builder()
+            .url(baseUrl + "/api/config/temp-dir/reset")
+            .post(body)
+            .build();
+        
+        try (Response response = httpClient.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Failed to reset temp dir config: " + response.code());
+            }
+            return response.body() != null ? response.body().string() : "";
+        }
+    }
 }

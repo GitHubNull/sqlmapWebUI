@@ -43,6 +43,12 @@ public class ServerConfigPanel extends BaseConfigPanel {
     private JLabel ipValidationLabel;
     private JLabel portValidationLabel;
     
+    // 临时目录配置组件
+    private JTextField tempDirField;
+    private JLabel tempDirStatusLabel;
+    private JButton tempDirSaveBtn;
+    private JButton tempDirResetBtn;
+    
     public ServerConfigPanel(ConfigManager configManager, SqlmapApiClient apiClient,
                              Consumer<String> logAppender, Consumer<String> onBackendUrlChange,
                              Consumer<Boolean> onConnectionStatusChange) {
@@ -165,6 +171,18 @@ public class ServerConfigPanel extends BaseConfigPanel {
         formPanel.add(buttonPanel, gbc);
         
         mainPanel.add(formPanel, BorderLayout.NORTH);
+        
+        // 临时目录配置面板
+        JPanel tempDirPanel = createTempDirConfigPanel();
+        
+        // 将两个配置面板放到一个垂直布局的容器中
+        JPanel configContainer = new JPanel();
+        configContainer.setLayout(new BoxLayout(configContainer, BoxLayout.Y_AXIS));
+        configContainer.add(formPanel);
+        configContainer.add(Box.createVerticalStrut(10));
+        configContainer.add(tempDirPanel);
+        
+        mainPanel.add(configContainer, BorderLayout.NORTH);
         
         // 使用说明面板（使用HTML格式）
         JPanel helpPanel = new JPanel(new BorderLayout());
@@ -453,6 +471,213 @@ public class ServerConfigPanel extends BaseConfigPanel {
         validatePortField();
         
         appendLog("[+] 已重置为默认配置");
+    }
+    
+    /**
+     * 创建临时目录配置面板
+     */
+    private JPanel createTempDirConfigPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createTitledBorder("HTTP请求临时文件目录配置"));
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.anchor = GridBagConstraints.WEST;
+        
+        // 第一行: 说明文字
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 4;
+        JLabel descLabel = new JLabel("设置SQLMap扫描时保存HTTP原始报文的临时文件目录(后端服务器上的路径)");
+        descLabel.setForeground(Color.GRAY);
+        panel.add(descLabel, gbc);
+        
+        // 第二行: 临时目录输入框
+        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1;
+        gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        panel.add(new JLabel("临时目录:"), gbc);
+        
+        gbc.gridx = 1; gbc.gridwidth = 3;
+        gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JPanel inputPanel = new JPanel(new BorderLayout(5, 0));
+        tempDirField = new JTextField(30);
+        tempDirField.setToolTipText("输入后端服务器上的临时目录路径，留空则使用默认值");
+        inputPanel.add(tempDirField, BorderLayout.CENTER);
+        
+        tempDirStatusLabel = new JLabel();
+        tempDirStatusLabel.setPreferredSize(new Dimension(20, 20));
+        inputPanel.add(tempDirStatusLabel, BorderLayout.EAST);
+        panel.add(inputPanel, gbc);
+        
+        // 第三行: 按钮
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 4;
+        gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+        
+        JButton loadBtn = new JButton("加载当前配置");
+        loadBtn.addActionListener(e -> loadTempDirConfig());
+        buttonPanel.add(loadBtn);
+        
+        tempDirSaveBtn = new JButton("保存设置");
+        tempDirSaveBtn.addActionListener(e -> saveTempDirConfig());
+        buttonPanel.add(tempDirSaveBtn);
+        
+        tempDirResetBtn = new JButton("恢复默认");
+        tempDirResetBtn.addActionListener(e -> resetTempDirConfig());
+        buttonPanel.add(tempDirResetBtn);
+        
+        panel.add(buttonPanel, gbc);
+        
+        return panel;
+    }
+    
+    /**
+     * 加载临时目录配置
+     */
+    private void loadTempDirConfig() {
+        if (!configManager.isConnected()) {
+            HtmlMessageDialog.showWarning(this, "未连接", "请先连接后端服务器");
+            return;
+        }
+        
+        new SwingWorker<String, Void>() {
+            @Override
+            protected String doInBackground() throws Exception {
+                return apiClient.getTempDirConfig();
+            }
+            
+            @Override
+            protected void done() {
+                try {
+                    String response = get();
+                    parseTempDirResponse(response, true);
+                } catch (Exception e) {
+                    String errorMsg = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
+                    appendLog("[-] 加载临时目录配置失败: " + errorMsg);
+                    setTempDirStatus(false, "加载失败");
+                }
+            }
+        }.execute();
+    }
+    
+    /**
+     * 保存临时目录配置
+     */
+    private void saveTempDirConfig() {
+        if (!configManager.isConnected()) {
+            HtmlMessageDialog.showWarning(this, "未连接", "请先连接后端服务器");
+            return;
+        }
+        
+        String tempDir = tempDirField.getText().trim();
+        
+        new SwingWorker<String, Void>() {
+            @Override
+            protected String doInBackground() throws Exception {
+                return apiClient.setTempDirConfig(tempDir.isEmpty() ? null : tempDir);
+            }
+            
+            @Override
+            protected void done() {
+                try {
+                    String response = get();
+                    parseTempDirResponse(response, false);
+                    appendLog("[+] 临时目录配置已保存");
+                    HtmlMessageDialog.showInfo(ServerConfigPanel.this, "保存成功", 
+                        "<p>临时目录配置已保存到后端服务器</p>");
+                } catch (Exception e) {
+                    String errorMsg = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
+                    appendLog("[-] 保存临时目录配置失败: " + errorMsg);
+                    HtmlMessageDialog.showError(ServerConfigPanel.this, "保存失败", 
+                        "<p>无法保存临时目录配置: " + errorMsg + "</p>");
+                }
+            }
+        }.execute();
+    }
+    
+    /**
+     * 重置临时目录为默认值
+     */
+    private void resetTempDirConfig() {
+        if (!configManager.isConnected()) {
+            HtmlMessageDialog.showWarning(this, "未连接", "请先连接后端服务器");
+            return;
+        }
+        
+        int result = JOptionPane.showConfirmDialog(this, 
+            "确定要将临时目录恢复为默认值吗？", 
+            "确认重置", 
+            JOptionPane.YES_NO_OPTION);
+        
+        if (result != JOptionPane.YES_OPTION) {
+            return;
+        }
+        
+        new SwingWorker<String, Void>() {
+            @Override
+            protected String doInBackground() throws Exception {
+                return apiClient.resetTempDirConfig();
+            }
+            
+            @Override
+            protected void done() {
+                try {
+                    String response = get();
+                    parseTempDirResponse(response, false);
+                    appendLog("[+] 临时目录已恢复为默认值");
+                    HtmlMessageDialog.showInfo(ServerConfigPanel.this, "重置成功", 
+                        "<p>临时目录已恢复为默认值</p>");
+                } catch (Exception e) {
+                    String errorMsg = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
+                    appendLog("[-] 重置临时目录失败: " + errorMsg);
+                    HtmlMessageDialog.showError(ServerConfigPanel.this, "重置失败", 
+                        "<p>无法重置临时目录: " + errorMsg + "</p>");
+                }
+            }
+        }.execute();
+    }
+    
+    /**
+     * 解析临时目录配置API响应
+     */
+    private void parseTempDirResponse(String response, boolean showSuccess) {
+        try {
+            com.google.gson.JsonObject json = com.google.gson.JsonParser.parseString(response).getAsJsonObject();
+            if (json.has("success") && json.get("success").getAsBoolean()) {
+                com.google.gson.JsonObject data = json.getAsJsonObject("data");
+                String currentDir = data.get("currentTempDir").getAsString();
+                String defaultDir = data.get("defaultTempDir").getAsString();
+                boolean isCustom = data.get("isCustom").getAsBoolean();
+                
+                tempDirField.setText(currentDir);
+                setTempDirStatus(true, isCustom ? "自定义目录" : "默认目录");
+                
+                if (showSuccess) {
+                    appendLog("[+] 临时目录配置: " + currentDir + (isCustom ? " (自定义)" : " (默认)"));
+                }
+            } else {
+                String msg = json.has("msg") ? json.get("msg").getAsString() : "未知错误";
+                appendLog("[-] 临时目录配置失败: " + msg);
+                setTempDirStatus(false, msg);
+            }
+        } catch (Exception e) {
+            appendLog("[-] 解析临时目录配置响应失败: " + e.getMessage());
+            setTempDirStatus(false, "解析失败");
+        }
+    }
+    
+    /**
+     * 设置临时目录状态图标
+     */
+    private void setTempDirStatus(boolean success, String tooltip) {
+        if (success) {
+            tempDirStatusLabel.setText("✓");
+            tempDirStatusLabel.setForeground(new Color(39, 174, 96));
+        } else {
+            tempDirStatusLabel.setText("✗");
+            tempDirStatusLabel.setForeground(new Color(231, 76, 60));
+        }
+        tempDirStatusLabel.setToolTipText(tooltip);
     }
     
     private void testConnection() {

@@ -17,7 +17,7 @@ import {
 } from '@/utils/mockData'
 
 // 是否使用Mock数据
-const USE_MOCK_DATA = true
+const USE_MOCK_DATA = false
 
 // Mock数据存储
 let mockHeaderRules: PersistentHeaderRule[] = []

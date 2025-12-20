@@ -1,7 +1,9 @@
 import tempfile
 import os
 import sys
+import random
 from datetime import datetime
+from urllib.parse import urlparse
 
 from third_lib.sqlmap.lib.core.datatype import AttribDict
 from third_lib.sqlmap.lib.core.optiondict import optDict
@@ -15,6 +17,33 @@ from third_lib.sqlmap.lib.core.data import logger
 
 from model.TaskStatus import TaskStatus
 from model.Database import Database
+
+
+# 默认临时文件目录（后端服务启动目录下的temp目录）
+_DEFAULT_TEMP_DIR = os.path.join(os.getcwd(), "temp", "http_requests")
+_custom_temp_dir = None  # 用户自定义的临时文件目录
+
+
+def get_http_request_temp_dir():
+    """获取HTTP请求临时文件目录"""
+    global _custom_temp_dir
+    if _custom_temp_dir:
+        return _custom_temp_dir
+    return _DEFAULT_TEMP_DIR
+
+
+def set_http_request_temp_dir(path: str):
+    """设置HTTP请求临时文件目录"""
+    global _custom_temp_dir
+    if path and path.strip():
+        _custom_temp_dir = path.strip()
+    else:
+        _custom_temp_dir = None
+
+
+def get_default_http_request_temp_dir():
+    """获取默认的HTTP请求临时文件目录"""
+    return _DEFAULT_TEMP_DIR
 
 
 class Task(object):
@@ -33,6 +62,7 @@ class Task(object):
         self.options = None
         self._original_options = None
         self._header_rules_applied = False  # 标记是否已应用请求头规则
+        self._request_file_path = None  # HTTP原始报文文件路径
         self.initialize_options(taskid)
         
         logger.debug(f"[{self.taskid}] Task initialized with {len(self.headers) if self.headers else 0} headers")
@@ -138,6 +168,93 @@ class Task(object):
             logger.error(f"[{self.taskid}] Failed to apply header rules: {e}")
             # 如果应用规则失败，保持原始请求头不变
 
+    def _generate_request_file_name(self):
+        """生成HTTP请求文件名: 日期时间 + 随机6位数字"""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        random_suffix = random.randint(100000, 999999)
+        return f"request_{timestamp}_{random_suffix}.txt"
+
+    def _build_raw_http_request(self):
+        """
+        根据headers和body构建HTTP原始报文
+        格式:
+        POST /path HTTP/1.1
+        Host: example.com
+        Header1: Value1
+        ...
+        
+        body_content
+        """
+        # 解析URL获取请求路径
+        parsed_url = urlparse(self.scanUrl)
+        path = parsed_url.path or "/"
+        if parsed_url.query:
+            path += "?" + parsed_url.query
+        
+        # 确定请求方法 (如果有body则为POST，否则为GET)
+        method = "POST" if self.body else "GET"
+        
+        # 构建请求行
+        request_line = f"{method} {path} HTTP/1.1"
+        
+        # 构建headers部分
+        headers_list = []
+        if self.headers:
+            for header in self.headers:
+                if header and ":" in header:
+                    headers_list.append(header)
+        
+        # 确保Host头存在
+        has_host = any(h.lower().startswith("host:") for h in headers_list)
+        if not has_host and self.host:
+            headers_list.insert(0, f"Host: {self.host}")
+        elif not has_host:
+            # 从URL提取host
+            host = parsed_url.netloc or parsed_url.hostname
+            if host:
+                headers_list.insert(0, f"Host: {host}")
+        
+        # 组装完整报文
+        raw_request = request_line + "\n"
+        raw_request += "\n".join(headers_list)
+        
+        # 如果有body，添加空行和body
+        if self.body:
+            raw_request += "\n\n" + self.body
+        else:
+            raw_request += "\n\n"
+        
+        return raw_request
+
+    def _create_request_file(self):
+        """
+        创建HTTP原始报文临时文件
+        返回文件路径
+        """
+        # 获取临时文件目录
+        temp_dir = get_http_request_temp_dir()
+        
+        # 确保目录存在
+        if not os.path.exists(temp_dir):
+            os.makedirs(temp_dir, exist_ok=True)
+            logger.debug(f"[{self.taskid}] Created temp directory: {temp_dir}")
+        
+        # 生成文件名和完整路径
+        file_name = self._generate_request_file_name()
+        file_path = os.path.join(temp_dir, file_name)
+        
+        # 构建原始HTTP报文
+        raw_request = self._build_raw_http_request()
+        
+        # 写入文件
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(raw_request)
+        
+        logger.info(f"[{self.taskid}] Created HTTP request file: {file_path}")
+        logger.debug(f"[{self.taskid}] HTTP request content:\n{raw_request}")
+        
+        return file_path
+
     def engine_start(self):
         logger.debug(f"[{self.taskid}] Starting engine with headers: {self.headers}")
         # 在SQLMap真正启动前应用请求头规则
@@ -145,12 +262,19 @@ class Task(object):
         
         logger.debug(f"[{self.taskid}] Headers option for SQLMap: {getattr(self.options, 'headers', 'Not set')}")
         
+        # 创建HTTP原始报文文件
+        self._request_file_path = self._create_request_file()
+        
+        # 设置requestFile选项（使用-r参数）
+        self.options.requestFile = self._request_file_path
+        
         handle, configFile = tempfile.mkstemp(prefix=MKSTEMP_PREFIX.CONFIG,
                                               text=True)
         os.close(handle)
         saveConfig(self.options, configFile)
         
         logger.debug(f"[{self.taskid}] SQLMap config saved to {configFile}")
+        logger.info(f"[{self.taskid}] Using request file mode (-r): {self._request_file_path}")
 
         if os.path.exists("third_lib/sqlmap/sqlmap.py"):
             self.process = Popen([sys.executable or "python", "third_lib/sqlmap/sqlmap.py",

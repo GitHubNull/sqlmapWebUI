@@ -7,7 +7,7 @@ import { generateMockTasks, delay, MockDataMode } from '@/utils/mockData'
 
 // ==================== Mock数据配置 ====================
 // 开关：是否使用Mock数据（用于测试大量数据显示）
-const USE_MOCK_DATA = true
+const USE_MOCK_DATA = false
 
 // Mock数据配置
 const MOCK_CONFIG = {
@@ -37,8 +37,48 @@ interface BackendTask {
   remote_addr: string
   errors: number
   logs: number
-  status: number
+  status: string | number  // 后端可能返回字符串或数字
   injected: boolean
+}
+
+/**
+ * 后端状态字符串到前端枚举的映射
+ */
+import { TaskStatus } from '@/types/task'
+
+function mapBackendStatus(status: string | number): TaskStatus {
+  // 如果已经是数字，直接返回
+  if (typeof status === 'number') {
+    return status as TaskStatus
+  }
+  
+  // 字符串状态映射
+  const statusMap: Record<string, TaskStatus> = {
+    'New': TaskStatus.PENDING,
+    'Pending': TaskStatus.PENDING,
+    'Running': TaskStatus.RUNNING,
+    'Runnable': TaskStatus.RUNNING,
+    'Blocked': TaskStatus.RUNNING,
+    'Terminated': TaskStatus.TERMINATED,
+    'Success': TaskStatus.SUCCESS,
+    'Completed': TaskStatus.SUCCESS,
+    'Failed': TaskStatus.FAILED,
+    'Error': TaskStatus.FAILED,
+    'Stopped': TaskStatus.STOPPED,
+  }
+  
+  // 大小写不敏感匹配
+  const normalizedStatus = Object.keys(statusMap).find(
+    key => key.toLowerCase() === status.toLowerCase()
+  )
+  
+  if (normalizedStatus) {
+    return statusMap[normalizedStatus]
+  }
+  
+  // 默认返回 PENDING
+  console.warn(`Unknown task status: ${status}, defaulting to PENDING`)
+  return TaskStatus.PENDING
 }
 
 /**
@@ -50,7 +90,7 @@ function transformBackendTask(backendTask: BackendTask): Task {
     taskid: backendTask.task_id,
     scanUrl: backendTask.scanUrl,
     host: backendTask.host,
-    status: backendTask.status,
+    status: mapBackendStatus(backendTask.status),  // 转换状态
     createTime: backendTask.create_datetime || '',   // 创建时间
     startTime: backendTask.start_datetime || undefined,  // 开始执行时间
     remote_addr: backendTask.remote_addr,
@@ -90,7 +130,7 @@ export function addTask(taskData: Partial<Task>): Promise<{ engineid: number; ta
  */
 export function deleteTask(taskId: string): Promise<void> {
   return request.delete(`/chrome/admin/task/delete`, {
-    params: { taskId },
+    params: { taskid: taskId },
   })
 }
 
@@ -98,9 +138,7 @@ export function deleteTask(taskId: string): Promise<void> {
  * 停止任务
  */
 export function stopTask(taskId: string): Promise<void> {
-  return request.put(`/chrome/admin/task/stop`, null, {
-    params: { taskId },
-  })
+  return request.put(`/chrome/admin/task/stop`, { taskid: taskId })
 }
 
 /**

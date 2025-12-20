@@ -79,6 +79,74 @@ public class SqlmapApiClient {
     }
     
     /**
+     * 获取临时目录配置
+     * @return JSON字符串，包含currentTempDir, defaultTempDir, isCustom
+     */
+    public String getTempDirConfig() throws IOException {
+        Request request = new Request.Builder()
+            .url(baseUrl + "/api/config/temp-dir")
+            .get()
+            .build();
+        
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Failed to get temp dir config: " + response.code());
+            }
+            
+            ResponseBody body = response.body();
+            return body != null ? body.string() : "";
+        }
+    }
+    
+    /**
+     * 设置临时目录配置
+     * @param tempDir 临时目录路径，为null或空则恢复默认
+     * @return JSON响应字符串
+     */
+    public String setTempDirConfig(String tempDir) throws IOException {
+        JsonObject json = new JsonObject();
+        json.addProperty("tempDir", tempDir);
+        
+        RequestBody body = RequestBody.create(json.toString(), JSON);
+        
+        Request request = new Request.Builder()
+            .url(baseUrl + "/api/config/temp-dir")
+            .post(body)
+            .build();
+        
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Failed to set temp dir config: " + response.code());
+            }
+            
+            ResponseBody responseBody = response.body();
+            return responseBody != null ? responseBody.string() : "";
+        }
+    }
+    
+    /**
+     * 重置临时目录为默认值
+     * @return JSON响应字符串
+     */
+    public String resetTempDirConfig() throws IOException {
+        RequestBody body = RequestBody.create("{}", JSON);
+        
+        Request request = new Request.Builder()
+            .url(baseUrl + "/api/config/temp-dir/reset")
+            .post(body)
+            .build();
+        
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Failed to reset temp dir config: " + response.code());
+            }
+            
+            ResponseBody responseBody = response.body();
+            return responseBody != null ? responseBody.string() : "";
+        }
+    }
+    
+    /**
      * 获取基础URL
      */
     public String getBaseUrl() {
