@@ -107,6 +107,22 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
         }
         menuItems.add(markInjectionPoints);
         
+        // 菜单项4: 提交会话Header - 仅在选中单条请求时显示
+        if (messages.size() == 1) {
+            JMenuItem submitSessionHeaders = new JMenuItem("提交会话Header");
+            submitSessionHeaders.addActionListener(e -> {
+                showSessionHeaderDialog(messages.get(0).request());
+            });
+            menuItems.add(submitSessionHeaders);
+            
+            // 菜单项5: 提交Header规则 - 仅在选中单条请求时显示
+            JMenuItem submitHeaderRule = new JMenuItem("提交Header规则");
+            submitHeaderRule.addActionListener(e -> {
+                showHeaderRuleDialog(messages.get(0).request());
+            });
+            menuItems.add(submitHeaderRule);
+        }
+        
         return menuItems;
     }
     
@@ -586,5 +602,616 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
             .replace("\n", "\\n")
             .replace("\r", "\\r")
             .replace("\t", "\\t");
+    }
+    
+    // 常见的会话相关Header名称（不区分大小写匹配）
+    private static final java.util.Set<String> COMMON_SESSION_HEADERS = new java.util.HashSet<>(java.util.Arrays.asList(
+        "cookie", "authorization", "x-auth-token", "x-access-token", "x-api-key",
+        "x-csrf-token", "x-xsrf-token", "session-token", "bearer", "token",
+        "x-session-id", "x-session-token", "x-user-token", "x-request-id",
+        "x-correlation-id", "x-trace-id"
+    ));
+    
+    /**
+     * 显示会话Header配置对话框
+     */
+    private void showSessionHeaderDialog(HttpRequest request) {
+        JDialog dialog = new JDialog((Frame) null, "提交会话Header", true);
+        dialog.setLayout(new BorderLayout(10, 10));
+        dialog.setSize(900, 700);
+        dialog.setLocationRelativeTo(null);
+        
+        JPanel contentPanel = new JPanel(new BorderLayout(10, 10));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        // 说明面板
+        JPanel helpPanel = new JPanel(new BorderLayout());
+        helpPanel.setBorder(BorderFactory.createTitledBorder("使用说明"));
+        JEditorPane helpPane = new JEditorPane();
+        helpPane.setContentType("text/html");
+        helpPane.setEditable(false);
+        helpPane.setOpaque(false);
+        helpPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+        helpPane.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        helpPane.setText(
+            "<html><body style='font-family:sans-serif;'>" +
+            "<b>选择要提交的会话相关Header字段</b><br>" +
+            "常见会话Header（如Cookie、Authorization等）已默认勾选<br>" +
+            "<span style='color:gray;'>提示: 会话Header将临时存储，用于后续的扫描任务</span>" +
+            "</body></html>"
+        );
+        helpPanel.add(helpPane, BorderLayout.CENTER);
+        contentPanel.add(helpPanel, BorderLayout.NORTH);
+        
+        // 中间部分: Header选择列表
+        JPanel headerSelectionPanel = new JPanel(new BorderLayout(5, 5));
+        headerSelectionPanel.setBorder(BorderFactory.createTitledBorder("请求Header列表"));
+        
+        // 提取请求头
+        java.util.List<String[]> headerItems = new java.util.ArrayList<>();
+        request.headers().forEach(header -> {
+            headerItems.add(new String[]{header.name(), header.value()});
+        });
+        
+        // 创建表格模型
+        String[] columnNames = {"选择", "Header名称", "Header值"};
+        Object[][] tableData = new Object[headerItems.size()][3];
+        for (int i = 0; i < headerItems.size(); i++) {
+            String headerName = headerItems.get(i)[0];
+            String headerValue = headerItems.get(i)[1];
+            // 判断是否为常见会话Header，默认勾选
+            boolean isSessionHeader = COMMON_SESSION_HEADERS.contains(headerName.toLowerCase());
+            tableData[i] = new Object[]{isSessionHeader, headerName, headerValue};
+        }
+        
+        javax.swing.table.DefaultTableModel tableModel = new javax.swing.table.DefaultTableModel(tableData, columnNames) {
+            @Override
+            public Class<?> getColumnClass(int column) {
+                return column == 0 ? Boolean.class : String.class;
+            }
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 0; // 只有复选框可编辑
+            }
+        };
+        
+        JTable headerTable = new JTable(tableModel);
+        headerTable.getColumnModel().getColumn(0).setPreferredWidth(50);
+        headerTable.getColumnModel().getColumn(0).setMaxWidth(60);
+        headerTable.getColumnModel().getColumn(1).setPreferredWidth(150);
+        headerTable.getColumnModel().getColumn(2).setPreferredWidth(400);
+        headerTable.setRowHeight(24);
+        
+        JScrollPane tableScrollPane = new JScrollPane(headerTable);
+        headerSelectionPanel.add(tableScrollPane, BorderLayout.CENTER);
+        
+        // 全选/取消全选按钮
+        JPanel tableButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JButton selectAllBtn = new JButton("全选");
+        selectAllBtn.addActionListener(e -> {
+            for (int i = 0; i < tableModel.getRowCount(); i++) {
+                tableModel.setValueAt(true, i, 0);
+            }
+        });
+        JButton deselectAllBtn = new JButton("取消全选");
+        deselectAllBtn.addActionListener(e -> {
+            for (int i = 0; i < tableModel.getRowCount(); i++) {
+                tableModel.setValueAt(false, i, 0);
+            }
+        });
+        JButton selectSessionBtn = new JButton("只选会话Header");
+        selectSessionBtn.addActionListener(e -> {
+            for (int i = 0; i < tableModel.getRowCount(); i++) {
+                String name = (String) tableModel.getValueAt(i, 1);
+                boolean isSession = COMMON_SESSION_HEADERS.contains(name.toLowerCase());
+                tableModel.setValueAt(isSession, i, 0);
+            }
+        });
+        tableButtonPanel.add(selectAllBtn);
+        tableButtonPanel.add(deselectAllBtn);
+        tableButtonPanel.add(selectSessionBtn);
+        headerSelectionPanel.add(tableButtonPanel, BorderLayout.SOUTH);
+        
+        contentPanel.add(headerSelectionPanel, BorderLayout.CENTER);
+        
+        // 作用域配置面板
+        JPanel scopePanel = new JPanel(new GridBagLayout());
+        scopePanel.setBorder(BorderFactory.createTitledBorder("作用域配置（可选）"));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        
+        // 从请求中提取主机名
+        String hostFromRequest = "";
+        try {
+            java.net.URL urlObj = new java.net.URL(request.url());
+            hostFromRequest = urlObj.getHost();
+        } catch (Exception e) {
+            hostFromRequest = "";
+        }
+        
+        JCheckBox enableScopeCheck = new JCheckBox("启用作用域限制");
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        scopePanel.add(enableScopeCheck, gbc);
+        
+        JLabel protocolLabel = new JLabel("协议:");
+        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1; gbc.weightx = 0;
+        scopePanel.add(protocolLabel, gbc);
+        JComboBox<String> protocolCombo = new JComboBox<>(new String[]{"", "http", "https"});
+        gbc.gridx = 1; gbc.weightx = 1;
+        scopePanel.add(protocolCombo, gbc);
+        
+        JLabel hostLabel = new JLabel("主机名模式:");
+        gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0;
+        scopePanel.add(hostLabel, gbc);
+        JTextField hostField = new JTextField(hostFromRequest);
+        gbc.gridx = 1; gbc.weightx = 1;
+        scopePanel.add(hostField, gbc);
+        
+        JLabel pathLabel = new JLabel("路径模式:");
+        gbc.gridx = 0; gbc.gridy = 3; gbc.weightx = 0;
+        scopePanel.add(pathLabel, gbc);
+        JTextField pathField = new JTextField();
+        gbc.gridx = 1; gbc.weightx = 1;
+        scopePanel.add(pathField, gbc);
+        
+        JCheckBox useRegexCheck = new JCheckBox("使用正则表达式");
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
+        scopePanel.add(useRegexCheck, gbc);
+        
+        // TTL配置
+        JLabel ttlLabel = new JLabel("生存时间(秒):");
+        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 1; gbc.weightx = 0;
+        scopePanel.add(ttlLabel, gbc);
+        JSpinner ttlSpinner = new JSpinner(new SpinnerNumberModel(3600, 60, 86400, 60));
+        gbc.gridx = 1; gbc.weightx = 1;
+        scopePanel.add(ttlSpinner, gbc);
+        
+        // 替换策略
+        JLabel strategyLabel = new JLabel("替换策略:");
+        gbc.gridx = 0; gbc.gridy = 6; gbc.weightx = 0;
+        scopePanel.add(strategyLabel, gbc);
+        JComboBox<String> strategyCombo = new JComboBox<>(new String[]{"REPLACE", "APPEND", "PREPEND", "UPSERT"});
+        gbc.gridx = 1; gbc.weightx = 1;
+        scopePanel.add(strategyCombo, gbc);
+        
+        // 优先级
+        JLabel priorityLabel = new JLabel("优先级(0-100):");
+        gbc.gridx = 0; gbc.gridy = 7; gbc.weightx = 0;
+        scopePanel.add(priorityLabel, gbc);
+        JSpinner prioritySpinner = new JSpinner(new SpinnerNumberModel(50, 0, 100, 1));
+        gbc.gridx = 1; gbc.weightx = 1;
+        scopePanel.add(prioritySpinner, gbc);
+        
+        // 禁用/启用作用域字段
+        protocolLabel.setEnabled(false);
+        protocolCombo.setEnabled(false);
+        hostLabel.setEnabled(false);
+        hostField.setEnabled(false);
+        pathLabel.setEnabled(false);
+        pathField.setEnabled(false);
+        useRegexCheck.setEnabled(false);
+        
+        enableScopeCheck.addActionListener(e -> {
+            boolean enabled = enableScopeCheck.isSelected();
+            protocolLabel.setEnabled(enabled);
+            protocolCombo.setEnabled(enabled);
+            hostLabel.setEnabled(enabled);
+            hostField.setEnabled(enabled);
+            pathLabel.setEnabled(enabled);
+            pathField.setEnabled(enabled);
+            useRegexCheck.setEnabled(enabled);
+        });
+        
+        contentPanel.add(scopePanel, BorderLayout.SOUTH);
+        dialog.add(contentPanel, BorderLayout.CENTER);
+        
+        // 底部按钮
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        
+        JButton submitButton = new JButton("提交");
+        submitButton.addActionListener(e -> {
+            // 收集选中的Header
+            java.util.List<String[]> selectedHeaders = new java.util.ArrayList<>();
+            for (int i = 0; i < tableModel.getRowCount(); i++) {
+                Boolean selected = (Boolean) tableModel.getValueAt(i, 0);
+                if (selected != null && selected) {
+                    String name = (String) tableModel.getValueAt(i, 1);
+                    String value = (String) tableModel.getValueAt(i, 2);
+                    selectedHeaders.add(new String[]{name, value});
+                }
+            }
+            
+            if (selectedHeaders.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "请至少选择一个Header字段", "提示", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            
+            // 构建作用域配置
+            String scopeJson = "null";
+            if (enableScopeCheck.isSelected()) {
+                String protocol = (String) protocolCombo.getSelectedItem();
+                String host = hostField.getText().trim();
+                String path = pathField.getText().trim();
+                boolean useRegex = useRegexCheck.isSelected();
+                
+                scopeJson = String.format(
+                    "{\"protocol_pattern\":\"%s\",\"host_pattern\":\"%s\",\"path_pattern\":\"%s\",\"use_regex\":%s}",
+                    escapeJson(protocol), escapeJson(host), escapeJson(path), useRegex
+                );
+            }
+            
+            int ttl = (Integer) ttlSpinner.getValue();
+            String strategy = (String) strategyCombo.getSelectedItem();
+            int priority = (Integer) prioritySpinner.getValue();
+            
+            // 发送到后端
+            sendSessionHeadersToBackend(selectedHeaders, scopeJson, ttl, strategy, priority);
+            dialog.dispose();
+        });
+        buttonPanel.add(submitButton);
+        
+        JButton cancelButton = new JButton("取消");
+        cancelButton.addActionListener(e -> dialog.dispose());
+        buttonPanel.add(cancelButton);
+        
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+    
+    /**
+     * 发送会话Header到后端
+     */
+    private void sendSessionHeadersToBackend(java.util.List<String[]> headers, String scopeJson, 
+                                              int ttl, String strategy, int priority) {
+        try {
+            // 构建JSON payload
+            StringBuilder headersArrayJson = new StringBuilder("[");
+            for (int i = 0; i < headers.size(); i++) {
+                String[] header = headers.get(i);
+                if (i > 0) headersArrayJson.append(",");
+                headersArrayJson.append(String.format(
+                    "{\"header_name\":\"%s\",\"header_value\":\"%s\",\"replace_strategy\":\"%s\",\"priority\":%d,\"is_active\":true,\"ttl\":%d%s}",
+                    escapeJson(header[0]),
+                    escapeJson(header[1]),
+                    strategy,
+                    priority,
+                    ttl,
+                    scopeJson.equals("null") ? "" : ",\"scope\":" + scopeJson
+                ));
+            }
+            headersArrayJson.append("]");
+            
+            String jsonPayload = "{\"headers\":" + headersArrayJson.toString() + "}";
+            
+            // 异步发送
+            new Thread(() -> {
+                try {
+                    String response = apiClient.sendSessionHeaders(jsonPayload);
+                    
+                    SwingUtilities.invokeLater(() -> {
+                        uiTab.appendLog("[+] 已提交 " + headers.size() + " 个会话Header");
+                        uiTab.appendLog("    响应: " + response);
+                    });
+                    
+                    api.logging().logToOutput("[+] Session headers submitted: " + headers.size() + " headers");
+                    
+                } catch (Exception e) {
+                    SwingUtilities.invokeLater(() -> {
+                        uiTab.appendLog("[-] 提交会话Header失败: " + e.getMessage());
+                    });
+                    api.logging().logToError("[-] Error: " + e.getMessage());
+                }
+            }).start();
+            
+        } catch (Exception e) {
+            uiTab.appendLog("[-] 构建JSON失败: " + e.getMessage());
+            api.logging().logToError("[-] Error: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 显示Header规则配置对话框
+     */
+    private void showHeaderRuleDialog(HttpRequest request) {
+        JDialog dialog = new JDialog((Frame) null, "提交Header规则", true);
+        dialog.setLayout(new BorderLayout(10, 10));
+        dialog.setSize(900, 750);
+        dialog.setLocationRelativeTo(null);
+        
+        JPanel contentPanel = new JPanel(new BorderLayout(10, 10));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        // 说明面板
+        JPanel helpPanel = new JPanel(new BorderLayout());
+        helpPanel.setBorder(BorderFactory.createTitledBorder("使用说明"));
+        JEditorPane helpPane = new JEditorPane();
+        helpPane.setContentType("text/html");
+        helpPane.setEditable(false);
+        helpPane.setOpaque(false);
+        helpPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+        helpPane.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        helpPane.setText(
+            "<html><body style='font-family:sans-serif;'>" +
+            "<b>选择要提交为持久化规则的Header字段</b><br>" +
+            "持久化规则将永久保存，并应用于所有匹配的请求<br>" +
+            "<span style='color:gray;'>提示: 每个规则需要一个唯一的名称来标识</span>" +
+            "</body></html>"
+        );
+        helpPanel.add(helpPane, BorderLayout.CENTER);
+        contentPanel.add(helpPanel, BorderLayout.NORTH);
+        
+        // 中间部分: Header选择列表
+        JPanel headerSelectionPanel = new JPanel(new BorderLayout(5, 5));
+        headerSelectionPanel.setBorder(BorderFactory.createTitledBorder("请求Header列表"));
+        
+        // 提取请求头
+        java.util.List<String[]> headerItems = new java.util.ArrayList<>();
+        request.headers().forEach(header -> {
+            headerItems.add(new String[]{header.name(), header.value()});
+        });
+        
+        // 创建表格模型
+        String[] columnNames = {"选择", "Header名称", "Header值"};
+        Object[][] tableData = new Object[headerItems.size()][3];
+        for (int i = 0; i < headerItems.size(); i++) {
+            String headerName = headerItems.get(i)[0];
+            String headerValue = headerItems.get(i)[1];
+            // Header规则默认不勾选，用户手动选择
+            tableData[i] = new Object[]{false, headerName, headerValue};
+        }
+        
+        javax.swing.table.DefaultTableModel tableModel = new javax.swing.table.DefaultTableModel(tableData, columnNames) {
+            @Override
+            public Class<?> getColumnClass(int column) {
+                return column == 0 ? Boolean.class : String.class;
+            }
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 0; // 只有复选框可编辑
+            }
+        };
+        
+        JTable headerTable = new JTable(tableModel);
+        headerTable.getColumnModel().getColumn(0).setPreferredWidth(50);
+        headerTable.getColumnModel().getColumn(0).setMaxWidth(60);
+        headerTable.getColumnModel().getColumn(1).setPreferredWidth(150);
+        headerTable.getColumnModel().getColumn(2).setPreferredWidth(400);
+        headerTable.setRowHeight(24);
+        
+        JScrollPane tableScrollPane = new JScrollPane(headerTable);
+        headerSelectionPanel.add(tableScrollPane, BorderLayout.CENTER);
+        
+        // 全选/取消全选按钮
+        JPanel tableButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JButton selectAllBtn = new JButton("全选");
+        selectAllBtn.addActionListener(e -> {
+            for (int i = 0; i < tableModel.getRowCount(); i++) {
+                tableModel.setValueAt(true, i, 0);
+            }
+        });
+        JButton deselectAllBtn = new JButton("取消全选");
+        deselectAllBtn.addActionListener(e -> {
+            for (int i = 0; i < tableModel.getRowCount(); i++) {
+                tableModel.setValueAt(false, i, 0);
+            }
+        });
+        tableButtonPanel.add(selectAllBtn);
+        tableButtonPanel.add(deselectAllBtn);
+        headerSelectionPanel.add(tableButtonPanel, BorderLayout.SOUTH);
+        
+        contentPanel.add(headerSelectionPanel, BorderLayout.CENTER);
+        
+        // 规则配置面板
+        JPanel ruleConfigPanel = new JPanel(new GridBagLayout());
+        ruleConfigPanel.setBorder(BorderFactory.createTitledBorder("规则配置"));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        
+        // 规则名称前缀
+        JLabel namePrefixLabel = new JLabel("规则名称前缀:");
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 1; gbc.weightx = 0;
+        ruleConfigPanel.add(namePrefixLabel, gbc);
+        JTextField namePrefixField = new JTextField("Rule_");
+        gbc.gridx = 1; gbc.weightx = 1;
+        ruleConfigPanel.add(namePrefixField, gbc);
+        
+        // 替换策略
+        JLabel strategyLabel = new JLabel("替换策略:");
+        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
+        ruleConfigPanel.add(strategyLabel, gbc);
+        JComboBox<String> strategyCombo = new JComboBox<>(new String[]{"REPLACE", "APPEND", "PREPEND", "UPSERT", "CONDITIONAL"});
+        gbc.gridx = 1; gbc.weightx = 1;
+        ruleConfigPanel.add(strategyCombo, gbc);
+        
+        // 优先级
+        JLabel priorityLabel = new JLabel("优先级(0-100):");
+        gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0;
+        ruleConfigPanel.add(priorityLabel, gbc);
+        JSpinner prioritySpinner = new JSpinner(new SpinnerNumberModel(50, 0, 100, 1));
+        gbc.gridx = 1; gbc.weightx = 1;
+        ruleConfigPanel.add(prioritySpinner, gbc);
+        
+        // 是否启用
+        JCheckBox isActiveCheck = new JCheckBox("立即启用规则", true);
+        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
+        ruleConfigPanel.add(isActiveCheck, gbc);
+        
+        // 作用域配置
+        JCheckBox enableScopeCheck = new JCheckBox("启用作用域限制");
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
+        ruleConfigPanel.add(enableScopeCheck, gbc);
+        
+        // 从请求中提取主机名
+        String hostFromRequest = "";
+        try {
+            java.net.URL urlObj = new java.net.URL(request.url());
+            hostFromRequest = urlObj.getHost();
+        } catch (Exception e) {
+            hostFromRequest = "";
+        }
+        
+        JLabel protocolLabel = new JLabel("协议:");
+        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 1; gbc.weightx = 0;
+        ruleConfigPanel.add(protocolLabel, gbc);
+        JComboBox<String> protocolCombo = new JComboBox<>(new String[]{"", "http", "https"});
+        gbc.gridx = 1; gbc.weightx = 1;
+        ruleConfigPanel.add(protocolCombo, gbc);
+        
+        JLabel hostLabel = new JLabel("主机名模式:");
+        gbc.gridx = 0; gbc.gridy = 6; gbc.weightx = 0;
+        ruleConfigPanel.add(hostLabel, gbc);
+        JTextField hostField = new JTextField(hostFromRequest);
+        gbc.gridx = 1; gbc.weightx = 1;
+        ruleConfigPanel.add(hostField, gbc);
+        
+        JLabel pathLabel = new JLabel("路径模式:");
+        gbc.gridx = 0; gbc.gridy = 7; gbc.weightx = 0;
+        ruleConfigPanel.add(pathLabel, gbc);
+        JTextField pathField = new JTextField();
+        gbc.gridx = 1; gbc.weightx = 1;
+        ruleConfigPanel.add(pathField, gbc);
+        
+        JCheckBox useRegexCheck = new JCheckBox("使用正则表达式");
+        gbc.gridx = 0; gbc.gridy = 8; gbc.gridwidth = 2;
+        ruleConfigPanel.add(useRegexCheck, gbc);
+        
+        // 禁用/启用作用域字段
+        protocolLabel.setEnabled(false);
+        protocolCombo.setEnabled(false);
+        hostLabel.setEnabled(false);
+        hostField.setEnabled(false);
+        pathLabel.setEnabled(false);
+        pathField.setEnabled(false);
+        useRegexCheck.setEnabled(false);
+        
+        enableScopeCheck.addActionListener(e -> {
+            boolean enabled = enableScopeCheck.isSelected();
+            protocolLabel.setEnabled(enabled);
+            protocolCombo.setEnabled(enabled);
+            hostLabel.setEnabled(enabled);
+            hostField.setEnabled(enabled);
+            pathLabel.setEnabled(enabled);
+            pathField.setEnabled(enabled);
+            useRegexCheck.setEnabled(enabled);
+        });
+        
+        contentPanel.add(ruleConfigPanel, BorderLayout.SOUTH);
+        dialog.add(contentPanel, BorderLayout.CENTER);
+        
+        // 底部按钮
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        
+        JButton submitButton = new JButton("提交");
+        submitButton.addActionListener(e -> {
+            // 收集选中的Header
+            java.util.List<String[]> selectedHeaders = new java.util.ArrayList<>();
+            for (int i = 0; i < tableModel.getRowCount(); i++) {
+                Boolean selected = (Boolean) tableModel.getValueAt(i, 0);
+                if (selected != null && selected) {
+                    String name = (String) tableModel.getValueAt(i, 1);
+                    String value = (String) tableModel.getValueAt(i, 2);
+                    selectedHeaders.add(new String[]{name, value});
+                }
+            }
+            
+            if (selectedHeaders.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "请至少选择一个Header字段", "提示", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            
+            String namePrefix = namePrefixField.getText().trim();
+            if (namePrefix.isEmpty()) {
+                namePrefix = "Rule_";
+            }
+            
+            // 构建作用域配置
+            String scopeJson = "null";
+            if (enableScopeCheck.isSelected()) {
+                String protocol = (String) protocolCombo.getSelectedItem();
+                String host = hostField.getText().trim();
+                String path = pathField.getText().trim();
+                boolean useRegex = useRegexCheck.isSelected();
+                
+                scopeJson = String.format(
+                    "{\"protocol_pattern\":\"%s\",\"host_pattern\":\"%s\",\"path_pattern\":\"%s\",\"use_regex\":%s}",
+                    escapeJson(protocol), escapeJson(host), escapeJson(path), useRegex
+                );
+            }
+            
+            String strategy = (String) strategyCombo.getSelectedItem();
+            int priority = (Integer) prioritySpinner.getValue();
+            boolean isActive = isActiveCheck.isSelected();
+            
+            // 发送到后端
+            sendHeaderRulesToBackend(selectedHeaders, namePrefix, scopeJson, strategy, priority, isActive);
+            dialog.dispose();
+        });
+        buttonPanel.add(submitButton);
+        
+        JButton cancelButton = new JButton("取消");
+        cancelButton.addActionListener(e -> dialog.dispose());
+        buttonPanel.add(cancelButton);
+        
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+    
+    /**
+     * 发送Header规则到后端
+     */
+    private void sendHeaderRulesToBackend(java.util.List<String[]> headers, String namePrefix,
+                                          String scopeJson, String strategy, int priority, boolean isActive) {
+        // 逐个提交Header规则
+        for (int i = 0; i < headers.size(); i++) {
+            String[] header = headers.get(i);
+            String ruleName = namePrefix + header[0];
+            
+            try {
+                // 构建JSON payload
+                StringBuilder jsonBuilder = new StringBuilder("{");
+                jsonBuilder.append(String.format("\"name\":\"%s\",", escapeJson(ruleName)));
+                jsonBuilder.append(String.format("\"header_name\":\"%s\",", escapeJson(header[0])));
+                jsonBuilder.append(String.format("\"header_value\":\"%s\",", escapeJson(header[1])));
+                jsonBuilder.append(String.format("\"replace_strategy\":\"%s\",", strategy));
+                jsonBuilder.append(String.format("\"priority\":%d,", priority));
+                jsonBuilder.append(String.format("\"is_active\":%s", isActive));
+                if (!scopeJson.equals("null")) {
+                    jsonBuilder.append(",\"scope\":" + scopeJson);
+                }
+                jsonBuilder.append("}");
+                
+                String jsonPayload = jsonBuilder.toString();
+                
+                final String finalRuleName = ruleName;
+                final int index = i;
+                final int total = headers.size();
+                
+                // 异步发送
+                new Thread(() -> {
+                    try {
+                        String response = apiClient.sendHeaderRule(jsonPayload);
+                        
+                        SwingUtilities.invokeLater(() -> {
+                            uiTab.appendLog("[+] 已提交Header规则 (" + (index + 1) + "/" + total + "): " + finalRuleName);
+                            uiTab.appendLog("    响应: " + response);
+                        });
+                        
+                        api.logging().logToOutput("[+] Header rule submitted: " + finalRuleName);
+                        
+                    } catch (Exception e) {
+                        SwingUtilities.invokeLater(() -> {
+                            uiTab.appendLog("[-] 提交Header规则失败: " + finalRuleName + " - " + e.getMessage());
+                        });
+                        api.logging().logToError("[-] Error: " + e.getMessage());
+                    }
+                }).start();
+                
+            } catch (Exception e) {
+                uiTab.appendLog("[-] 构建JSON失败: " + e.getMessage());
+                api.logging().logToError("[-] Error: " + e.getMessage());
+            }
+        }
     }
 }

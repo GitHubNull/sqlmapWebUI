@@ -207,4 +207,48 @@ public class ApiClient {
             return response.body() != null ? response.body().string() : "";
         }
     }
+    
+    /**
+     * 提交会话Header到后端
+     * @param jsonPayload JSON格式的会话Header数据
+     * @return 响应字符串
+     */
+    public String sendSessionHeaders(String jsonPayload) throws IOException {
+        RequestBody body = RequestBody.create(jsonPayload, JSON);
+        
+        Request request = new Request.Builder()
+            .url(baseUrl + "/api/commonApi/header/session-headers")
+            .post(body)
+            .addHeader("Content-Type", "application/json")
+            .build();
+        
+        try (Response response = httpClient.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Failed to send session headers: " + response.code());
+            }
+            return response.body() != null ? response.body().string() : "";
+        }
+    }
+    
+    /**
+     * 提交持久化Header规则到后端
+     * @param jsonPayload JSON格式的Header规则数据
+     * @return 响应字符串
+     */
+    public String sendHeaderRule(String jsonPayload) throws IOException {
+        RequestBody body = RequestBody.create(jsonPayload, JSON);
+        
+        Request request = new Request.Builder()
+            .url(baseUrl + "/api/commonApi/header/persistent-header-rules")
+            .post(body)
+            .addHeader("Content-Type", "application/json")
+            .build();
+        
+        try (Response response = httpClient.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Failed to send header rule: " + response.code());
+            }
+            return response.body() != null ? response.body().string() : "";
+        }
+    }
 }
