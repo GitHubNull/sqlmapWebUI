@@ -436,7 +436,21 @@ async function deleteTask(taskId: string) {
 }
 
 function handleFilterChange(filters: TaskFilters) {
-  taskStore.setFilters(filters)
+  // 判断是否为重置操作（空对象或所有字段都是undefined）
+  const isReset = Object.keys(filters).length === 0 || 
+    Object.values(filters).every(v => v === undefined || v === '' || v === null)
+  
+  if (isReset) {
+    // 重置操作：清空过滤条件并清除URL参数
+    taskStore.clearFilters()
+    // 清除URL中的过滤参数
+    if (route.query.status || route.query.injectable) {
+      router.replace({ path: '/tasks', query: {} })
+    }
+  } else {
+    // 普通过滤操作
+    taskStore.setFilters(filters)
+  }
 }
 
 function handleSort(event: any) {
