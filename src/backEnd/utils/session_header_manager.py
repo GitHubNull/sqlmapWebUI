@@ -98,7 +98,7 @@ class SessionHeaderManager:
                         
                         # 如果没有更新任何记录，则插入新记录
                         if cursor.rowcount == 0:
-                            db.only_execute("""
+                            insert_cursor = db.only_execute("""
                                 INSERT INTO session_headers 
                                 (client_ip, header_name, header_value, replace_strategy, priority, is_active, 
                                  expires_at, created_at, scope_config)
@@ -114,6 +114,20 @@ class SessionHeaderManager:
                                 current_time.strftime('%Y-%m-%d %H:%M:%S'),
                                 scope_config_json
                             ))
+                            # 获取数据库生成的真实ID并更新内存对象
+                            if insert_cursor and insert_cursor.lastrowid:
+                                session_header.id = insert_cursor.lastrowid
+                                self._session_headers[client_ip][header_create.header_name] = session_header
+                        else:
+                            # 更新时也需要获取数据库中的ID
+                            id_cursor = db.only_execute("""
+                                SELECT id FROM session_headers WHERE client_ip = ? AND header_name = ?
+                            """, (client_ip, header_create.header_name))
+                            if id_cursor:
+                                row = id_cursor.fetchone()
+                                if row:
+                                    session_header.id = row[0]
+                                    self._session_headers[client_ip][header_create.header_name] = session_header
                         logger.debug(f"Persisted session header to database for {client_ip}: {header_create.header_name}")
                 except Exception as db_error:
                     logger.error(f"Failed to persist session header to database: {db_error}")
