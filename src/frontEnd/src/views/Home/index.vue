@@ -21,7 +21,7 @@
         <div class="stats-section">
           <h3 class="section-title">任务状态统计</h3>
           <div class="stats-grid status-stats">
-            <Card class="stat-card total">
+            <Card class="stat-card total" @click="navigateToTasks('all')">
               <template #content>
                 <div class="stat-content">
                   <div class="stat-icon">
@@ -35,7 +35,7 @@
               </template>
             </Card>
             
-            <Card class="stat-card running">
+            <Card class="stat-card running" @click="navigateToTasks('running')">
               <template #content>
                 <div class="stat-content">
                   <div class="stat-icon">
@@ -49,7 +49,7 @@
               </template>
             </Card>
             
-            <Card class="stat-card pending">
+            <Card class="stat-card pending" @click="navigateToTasks('pending')">
               <template #content>
                 <div class="stat-content">
                   <div class="stat-icon">
@@ -63,7 +63,7 @@
               </template>
             </Card>
             
-            <Card class="stat-card success">
+            <Card class="stat-card success" @click="navigateToTasks('success')">
               <template #content>
                 <div class="stat-content">
                   <div class="stat-icon">
@@ -77,7 +77,7 @@
               </template>
             </Card>
             
-            <Card class="stat-card failed">
+            <Card class="stat-card failed" @click="navigateToTasks('failed')">
               <template #content>
                 <div class="stat-content">
                   <div class="stat-icon">
@@ -91,7 +91,7 @@
               </template>
             </Card>
             
-            <Card class="stat-card stopped">
+            <Card class="stat-card stopped" @click="navigateToTasks('stopped')">
               <template #content>
                 <div class="stat-content">
                   <div class="stat-icon">
@@ -105,7 +105,7 @@
               </template>
             </Card>
             
-            <Card class="stat-card terminated">
+            <Card class="stat-card terminated" @click="navigateToTasks('terminated')">
               <template #content>
                 <div class="stat-content">
                   <div class="stat-icon">
@@ -125,7 +125,7 @@
         <div class="stats-section">
           <h3 class="section-title">注入结果统计</h3>
           <div class="stats-grid injection-stats">
-            <Card class="stat-card injectable">
+            <Card class="stat-card injectable" @click="navigateToTasks('injectable')">
               <template #content>
                 <div class="stat-content">
                   <div class="stat-icon">
@@ -139,7 +139,7 @@
               </template>
             </Card>
             
-            <Card class="stat-card non-injectable">
+            <Card class="stat-card non-injectable" @click="navigateToTasks('not_injectable')">
               <template #content>
                 <div class="stat-content">
                   <div class="stat-icon">
@@ -153,7 +153,7 @@
               </template>
             </Card>
             
-            <Card class="stat-card unknown">
+            <Card class="stat-card unknown" @click="navigateToTasks('unknown')">
               <template #content>
                 <div class="stat-content">
                   <div class="stat-icon">
@@ -175,8 +175,11 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useTaskStore } from '@/stores/task'
+import { TaskStatus } from '@/types/task'
 
+const router = useRouter()
 const taskStore = useTaskStore()
 
 onMounted(async () => {
@@ -185,6 +188,48 @@ onMounted(async () => {
 
 async function refreshData() {
   await taskStore.fetchTaskList()
+}
+
+// 点击统计卡片跳转到任务列表页并设置过滤条件
+type FilterType = 'all' | 'running' | 'pending' | 'success' | 'failed' | 'stopped' | 'terminated' | 'injectable' | 'not_injectable' | 'unknown'
+
+function navigateToTasks(filterType: FilterType) {
+  const query: Record<string, string> = {}
+  
+  switch (filterType) {
+    case 'all':
+      // 不设置过滤条件，显示全部
+      break
+    case 'running':
+      query.status = String(TaskStatus.RUNNING)
+      break
+    case 'pending':
+      query.status = String(TaskStatus.PENDING)
+      break
+    case 'success':
+      query.status = String(TaskStatus.SUCCESS)
+      break
+    case 'failed':
+      query.status = String(TaskStatus.FAILED)
+      break
+    case 'stopped':
+      query.status = String(TaskStatus.STOPPED)
+      break
+    case 'terminated':
+      query.status = String(TaskStatus.TERMINATED)
+      break
+    case 'injectable':
+      query.injectable = 'injectable'
+      break
+    case 'not_injectable':
+      query.injectable = 'not_injectable'
+      break
+    case 'unknown':
+      query.injectable = 'unknown'
+      break
+  }
+  
+  router.push({ path: '/tasks', query })
 }
 </script>
 

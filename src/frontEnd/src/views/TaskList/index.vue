@@ -234,7 +234,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { useTaskStore } from '@/stores/task'
@@ -248,6 +248,7 @@ import Row from 'primevue/row'
 import Popover from 'primevue/popover'
 
 const router = useRouter()
+const route = useRoute()
 const taskStore = useTaskStore()
 const configStore = useConfigStore()
 const confirm = useConfirm()
@@ -274,12 +275,40 @@ let pollingTimer: number | null = null
 const getPollingInterval = () => configStore.autoRefreshInterval * 60 * 1000
 
 onMounted(() => {
+  // 从URL参数读取过滤条件
+  applyFiltersFromUrl()
+  
   fetchTasks()
   startPolling()
   
   // 监听页面可见性
   document.addEventListener('visibilitychange', handleVisibilityChange)
 })
+
+// 从URL参数解析并应用过滤条件
+function applyFiltersFromUrl() {
+  const filters: TaskFilters = {}
+  
+  // 解析状态过滤
+  const statusParam = route.query.status as string | undefined
+  if (statusParam !== undefined) {
+    const statusNum = parseInt(statusParam, 10)
+    if (!isNaN(statusNum) && statusNum >= 0 && statusNum <= 5) {
+      filters.status = statusNum as TaskStatus
+    }
+  }
+  
+  // 解析注入状态过滤
+  const injectableParam = route.query.injectable as string | undefined
+  if (injectableParam === 'injectable' || injectableParam === 'not_injectable' || injectableParam === 'unknown') {
+    filters.injectableStatus = injectableParam
+  }
+  
+  // 应用过滤条件
+  if (Object.keys(filters).length > 0) {
+    taskStore.setFilters(filters)
+  }
+}
 
 onUnmounted(() => {
   stopPolling()
