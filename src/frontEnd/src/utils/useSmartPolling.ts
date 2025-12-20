@@ -8,10 +8,10 @@ import { useAuthStore } from '@/stores/auth'
 export interface SmartPollingOptions {
   /** 轮询回调函数 */
   callback: () => Promise<void> | void
-  /** 正常轮询间隔（毫秒） */
-  interval?: number
-  /** 页面隐藏时的轮询间隔（毫秒） */
-  backgroundInterval?: number
+  /** 正常轮询间隔（毫秒），可以是数字或返回数字的函数 */
+  interval?: number | (() => number)
+  /** 页面隐藏时的轮询间隔（毫秒），可以是数字或返回数字的函数 */
+  backgroundInterval?: number | (() => number)
   /** 是否在后端不健康时暂停轮询 */
   pauseOnUnhealthy?: boolean
   /** 是否立即执行一次 */
@@ -36,14 +36,21 @@ export function useSmartPolling(options: SmartPollingOptions) {
   let pollingTimer: ReturnType<typeof setTimeout> | null = null
 
   /**
+   * 获取间隔值（支持数字或函数）
+   */
+  function resolveInterval(value: number | (() => number)): number {
+    return typeof value === 'function' ? value() : value
+  }
+
+  /**
    * 获取当前轮询间隔
    */
   function getCurrentInterval(): number {
     // 页面隐藏时使用较长的间隔
     if (!isPageVisible.value) {
-      return backgroundInterval
+      return resolveInterval(backgroundInterval)
     }
-    return interval
+    return resolveInterval(interval)
   }
 
   /**

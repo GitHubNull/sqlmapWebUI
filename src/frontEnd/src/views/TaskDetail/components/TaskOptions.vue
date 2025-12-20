@@ -174,10 +174,6 @@ const toast = useToast()
 
 // 视图模式
 const viewMode = ref<'table' | 'cmdline'>('table')
-const viewModeOptions = [
-  { label: '表格', value: 'table', icon: 'pi pi-table' },
-  { label: '命令行', value: 'cmdline', icon: 'pi pi-terminal' }
-]
 
 // 搜索过滤
 const searchQuery = ref('')

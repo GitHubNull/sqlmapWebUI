@@ -72,8 +72,8 @@ function mapBackendStatus(status: string | number): TaskStatus {
     key => key.toLowerCase() === status.toLowerCase()
   )
   
-  if (normalizedStatus) {
-    return statusMap[normalizedStatus]
+  if (normalizedStatus && statusMap[normalizedStatus] !== undefined) {
+    return statusMap[normalizedStatus] as TaskStatus
   }
   
   // 默认返回 PENDING

@@ -198,19 +198,24 @@ watch(
   { immediate: true }
 )
 
+// 获取用户配置的轮询间隔（分钟转毫秒）
+const getRefreshInterval = () => configStore.autoRefreshInterval * 60 * 1000
+// 后台轮询间隔（配置值的2倍，最大60分钟）
+const getBackgroundInterval = () => Math.min(configStore.autoRefreshInterval * 2, 60) * 60 * 1000
+
 // 组件挂载时初始化
 onMounted(() => {
   currentRoute.value = route.path
   
-  // 使用智能轮询加载任务列表
+  // 使用智能轮询加载任务列表，使用用户配置的刷新间隔
   useSmartPolling({
     callback: async () => {
       await taskStore.fetchTaskList()
     },
-    interval: 5000,              // 页面可见时每5秒一次
-    backgroundInterval: 30000,    // 页面隐藏时每30秒一次
-    pauseOnUnhealthy: true,       // 后端不健康时暂停轮询
-    immediate: true,              // 立即执行一次
+    interval: getRefreshInterval,              // 传递函数引用，动态获取配置值
+    backgroundInterval: getBackgroundInterval,  // 传递函数引用，动态获取配置值
+    pauseOnUnhealthy: true,                     // 后端不健康时暂停轮询
+    immediate: true,                            // 立即执行一次
   })
   
   // 注册全局键盘快捷键
