@@ -145,12 +145,12 @@
               <span v-else class="text-muted">0</span>
             </template>
           </Column>
-          <Column header="操作" :style="{ minWidth: '150px', maxWidth: '200px' }" frozen alignFrozen="right">
+          <Column header="操作" :style="{ minWidth: '120px', maxWidth: '160px' }" frozen alignFrozen="right">
             <template #body="{ data }">
               <div class="action-buttons">
-                <Button icon="pi pi-eye" @click="viewTask(data)" text rounded v-tooltip.top="'查看详情'" />
-                <Button icon="pi pi-stop" @click="stopTask(data.taskid)" text rounded severity="warning" v-if="data.status === 1" v-tooltip.top="'停止任务'" />
-                <Button icon="pi pi-trash" @click="deleteTask(data.taskid)" text rounded severity="danger" v-tooltip.top="'删除任务'" />
+                <Button icon="pi pi-eye" @click="viewTask(data)" text rounded size="small" v-tooltip.top="'查看详情'" />
+                <Button icon="pi pi-stop" @click="stopTask(data.taskid)" text rounded size="small" severity="warning" v-if="data.status === 1" v-tooltip.top="'停止任务'" />
+                <Button icon="pi pi-trash" @click="deleteTask(data.taskid)" text rounded size="small" severity="danger" v-tooltip.top="'删除任务'" />
               </div>
             </template>
           </Column>
@@ -734,9 +734,9 @@ function confirmDeleteAll() {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 100%;
-  padding: 8px 12px;
+  padding: 4px 8px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 14px;
+  font-size: 13px;
   transition: $transition-base;
 
   &:hover {
@@ -746,12 +746,12 @@ function confirmDeleteAll() {
 
 .clickable-id {
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 4px 8px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #6366f1;
-  border-radius: 6px;
+  border-radius: 4px;
   transition: all 0.3s ease;
   display: inline-block;
 
@@ -770,10 +770,10 @@ function confirmDeleteAll() {
 
 .action-buttons {
   display: flex;
-  gap: 8px;
+  gap: 2px;
   justify-content: center;
   align-items: center;
-  padding: 4px;
+  padding: 0;
 }
 
 // 可点击Tag样式
@@ -847,7 +847,7 @@ function confirmDeleteAll() {
 
     td {
       border-bottom: none;
-      padding: 16px 12px;
+      padding: 8px 10px;
       vertical-align: middle;
     }
   }
