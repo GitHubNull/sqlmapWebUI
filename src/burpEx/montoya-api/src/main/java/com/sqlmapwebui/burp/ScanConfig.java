@@ -613,4 +613,66 @@ public class ScanConfig {
         config.setBatch(true);
         return config;
     }
+    
+    // ==================== 参数字符串解析方法 ====================
+    
+    /**
+     * 从命令行参数字符串创建 ScanConfig
+     * 支持多种格式：
+     * - SQLMap 命令行格式: --level=5 --risk=3 --dbms=mysql
+     * - 简化格式: level=5 risk=3 dbms=mysql
+     * - 短选项: -p id --batch -o
+     * - 混合格式: --level 5 --risk 3 -p id
+     * 
+     * @param paramString 参数字符串
+     * @return 解析结果对象，包含 ScanConfig、警告和错误信息
+     */
+    public static ParseResult parseFromString(String paramString) {
+        return ScanConfigParser.parse(paramString);
+    }
+    
+    /**
+     * 从命令行参数字符串创建 ScanConfig（快捷方法）
+     * 如果解析有错误则抛出异常
+     * 
+     * @param paramString 参数字符串
+     * @return ScanConfig 对象
+     * @throws IllegalArgumentException 如果参数解析失败
+     */
+    public static ScanConfig fromCommandLineString(String paramString) throws IllegalArgumentException {
+        return ScanConfigParser.parseOrThrow(paramString);
+    }
+    
+    /**
+     * 从命令行参数字符串创建 ScanConfig（忽略错误）
+     * 即使有解析错误也会返回配置，无法解析的参数使用默认值
+     * 
+     * @param paramString 参数字符串
+     * @return ScanConfig 对象（可能包含默认值）
+     */
+    public static ScanConfig fromCommandLineStringSafe(String paramString) {
+        return ScanConfigParser.parseIgnoreErrors(paramString);
+    }
+    
+    /**
+     * 验证参数字符串是否有效
+     * 
+     * @param paramString 参数字符串
+     * @return true 如果参数字符串可以成功解析（没有错误）
+     */
+    public static boolean isValidParamString(String paramString) {
+        return ScanConfigParser.isValid(paramString);
+    }
+    
+    /**
+     * 从参数字符串合并配置
+     * 将参数字符串解析后的值合并到当前配置中
+     * 
+     * @param paramString 参数字符串
+     * @return 合并后的新配置对象
+     */
+    public ScanConfig mergeFromString(String paramString) {
+        ScanConfig parsed = ScanConfigParser.parseIgnoreErrors(paramString);
+        return ScanConfigParser.merge(this, parsed);
+    }
 }

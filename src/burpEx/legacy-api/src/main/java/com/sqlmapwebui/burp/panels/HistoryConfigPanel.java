@@ -87,7 +87,7 @@ public class HistoryConfigPanel extends BaseConfigPanel {
         add(searchPanel, BorderLayout.NORTH);
         
         // 历史记录表格
-        String[] historyColumns = {"序号", "参数(s)字符串", "日期时间"};
+        String[] historyColumns = {"序号", "命令行参数", "日期时间"};
         historyTableModel = new DefaultTableModel(historyColumns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {

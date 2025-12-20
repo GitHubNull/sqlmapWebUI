@@ -16,6 +16,9 @@ public class PresetConfigDatabase {
     private static final String DB_FILE_NAME = "sqlmap-webui-presets.db";
     private static final String TABLE_NAME = "preset_configs";
     
+    /** SQLite JDBC 驱动是否已加载 */
+    private static boolean driverLoaded = false;
+    
     private final String dbPath;
     private final Consumer<String> logAppender;
     
@@ -25,7 +28,29 @@ public class PresetConfigDatabase {
         String userDir = System.getProperty("user.dir");
         this.dbPath = new File(userDir, DB_FILE_NAME).getAbsolutePath();
         
+        // 确保驱动已加载
+        loadDriver();
         initializeDatabase();
+    }
+    
+    /**
+     * 显式加载 SQLite JDBC 驱动
+     * 在 Burp Suite 环境中，SPI 机制可能无法自动发现驱动
+     */
+    private synchronized void loadDriver() {
+        if (driverLoaded) {
+            return;
+        }
+        
+        try {
+            // 显式加载 SQLite JDBC 驱动类
+            Class.forName("org.sqlite.JDBC");
+            driverLoaded = true;
+            log("[+] SQLite JDBC 驱动加载成功");
+        } catch (ClassNotFoundException e) {
+            log("[-] SQLite JDBC 驱动加载失败: " + e.getMessage());
+            log("[-] 请确保插件 JAR 包含 sqlite-jdbc 依赖");
+        }
     }
     
     /**
@@ -62,11 +87,17 @@ public class PresetConfigDatabase {
      * 添加新配置
      */
     public boolean insert(PresetConfig config) {
+        // 检查同名配置
+        if (existsByName(config.getName())) {
+            log("[-] 添加配置失败: 配置名称 '" + config.getName() + "' 已存在");
+            return false;
+        }
+        
         String sql = "INSERT INTO " + TABLE_NAME + 
             " (name, description, parameter_string, created_time, modified_time) VALUES (?, ?, ?, ?, ?)";
         
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setString(1, config.getName());
             pstmt.setString(2, config.getDescription());
@@ -77,9 +108,12 @@ public class PresetConfigDatabase {
             int affected = pstmt.executeUpdate();
             
             if (affected > 0) {
-                ResultSet rs = pstmt.getGeneratedKeys();
-                if (rs.next()) {
-                    config.setId(rs.getLong(1));
+                // 使用 SQLite 特有的方式获取最后插入的 ID
+                try (Statement stmt = conn.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+                    if (rs.next()) {
+                        config.setId(rs.getLong(1));
+                    }
                 }
                 log("[+] 配置已添加: " + config.getName());
                 return true;
@@ -94,6 +128,12 @@ public class PresetConfigDatabase {
      * 更新配置
      */
     public boolean update(PresetConfig config) {
+        // 检查同名配置（排除自己）
+        if (existsByNameExcludeId(config.getName(), config.getId())) {
+            log("[-] 更新配置失败: 配置名称 '" + config.getName() + "' 已被其他配置使用");
+            return false;
+        }
+        
         String sql = "UPDATE " + TABLE_NAME + 
             " SET name = ?, description = ?, parameter_string = ?, modified_time = ? WHERE id = ?";
         
@@ -115,6 +155,49 @@ public class PresetConfigDatabase {
             }
         } catch (SQLException e) {
             log("[-] 更新配置失败: " + e.getMessage());
+        }
+        return false;
+    }
+    
+    /**
+     * 检查配置名称是否已存在
+     */
+    public boolean existsByName(String name) {
+        String sql = "SELECT COUNT(*) FROM " + TABLE_NAME + " WHERE name = ?";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, name);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            log("[-] 检查配置名称失败: " + e.getMessage());
+        }
+        return false;
+    }
+    
+    /**
+     * 检查配置名称是否已存在（排除指定ID）
+     */
+    public boolean existsByNameExcludeId(String name, long excludeId) {
+        String sql = "SELECT COUNT(*) FROM " + TABLE_NAME + " WHERE name = ? AND id != ?";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, name);
+            pstmt.setLong(2, excludeId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            log("[-] 检查配置名称失败: " + e.getMessage());
         }
         return false;
     }

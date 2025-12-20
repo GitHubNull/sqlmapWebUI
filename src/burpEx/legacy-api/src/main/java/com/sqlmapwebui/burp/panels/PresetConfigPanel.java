@@ -3,6 +3,7 @@ package com.sqlmapwebui.burp.panels;
 import com.sqlmapwebui.burp.ConfigManager;
 import com.sqlmapwebui.burp.PresetConfig;
 import com.sqlmapwebui.burp.PresetConfigDatabase;
+import com.sqlmapwebui.burp.ScanConfigParser;
 import com.sqlmapwebui.burp.SqlmapApiClient;
 
 import javax.swing.*;
@@ -26,7 +27,7 @@ import org.yaml.snakeyaml.DumperOptions;
  */
 public class PresetConfigPanel extends BaseConfigPanel {
     
-    private static final String[] COLUMN_NAMES = {"序号", "名称", "描述", "参数字符串", "创建时间", "最后修改时间"};
+    private static final String[] COLUMN_NAMES = {"序号", "名称", "描述", "命令行参数", "创建时间", "最后修改时间"};
     
     private PresetConfigDatabase database;
     private JTable configTable;
@@ -118,6 +119,11 @@ public class PresetConfigPanel extends BaseConfigPanel {
         addBtn.addActionListener(e -> showAddDialog());
         buttonPanel.add(addBtn);
         
+        JButton guidedAddBtn = new JButton("引导式添加");
+        guidedAddBtn.setToolTipText("通过引导式界面选择参数");
+        guidedAddBtn.addActionListener(e -> showGuidedAddDialog());
+        buttonPanel.add(guidedAddBtn);
+        
         JButton editBtn = new JButton("编辑");
         editBtn.addActionListener(e -> showEditDialog());
         buttonPanel.add(editBtn);
@@ -190,7 +196,7 @@ public class PresetConfigPanel extends BaseConfigPanel {
         configTable.getColumnModel().getColumn(1).setMinWidth(80);
         configTable.getColumnModel().getColumn(2).setPreferredWidth(150);  // 描述
         configTable.getColumnModel().getColumn(2).setMinWidth(100);
-        configTable.getColumnModel().getColumn(3).setPreferredWidth(400);  // 参数字符串
+        configTable.getColumnModel().getColumn(3).setPreferredWidth(400);  // 命令行参数
         configTable.getColumnModel().getColumn(3).setMinWidth(200);
         configTable.getColumnModel().getColumn(4).setPreferredWidth(150);  // 创建时间
         configTable.getColumnModel().getColumn(4).setMinWidth(130);
@@ -227,6 +233,10 @@ public class PresetConfigPanel extends BaseConfigPanel {
         JMenuItem editItem = new JMenuItem("编辑");
         editItem.addActionListener(e -> showEditDialog());
         menu.add(editItem);
+        
+        JMenuItem guidedEditItem = new JMenuItem("引导式编辑");
+        guidedEditItem.addActionListener(e -> showGuidedEditDialog());
+        menu.add(guidedEditItem);
         
         JMenuItem copyItem = new JMenuItem("复制参数");
         copyItem.addActionListener(e -> copyParameterString());
@@ -371,6 +381,106 @@ public class PresetConfigPanel extends BaseConfigPanel {
             if (database.insert(config)) {
                 refreshTable();
                 appendLog("[+] 新增配置: " + config.getName());
+            } else {
+                HtmlMessageDialog.showError(this, "添加失败", 
+                    "配置名称 <b>" + config.getName() + "</b> 已存在，请使用其他名称");
+            }
+        }
+    }
+    
+    /**
+     * 显示引导式添加对话框
+     */
+    private void showGuidedAddDialog() {
+        String paramString = GuidedParamEditorDialog.showNewParamDialog(this);
+        if (paramString != null && !paramString.trim().isEmpty()) {
+            // 显示名称和描述输入对话框
+            showSaveAsPresetDialog(paramString);
+        }
+    }
+    
+    /**
+     * 显示保存为预设配置对话框
+     */
+    private void showSaveAsPresetDialog(String paramString) {
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        
+        gbc.gridx = 0; gbc.gridy = 0;
+        panel.add(new JLabel("配置名称:"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        JTextField nameField = new JTextField(20);
+        panel.add(nameField, gbc);
+        
+        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
+        panel.add(new JLabel("描述:"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        JTextField descField = new JTextField(20);
+        panel.add(descField, gbc);
+        
+        // 使用组合组件避免HTML渲染问题
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
+        JPanel previewPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        JLabel paramLabel = new JLabel("参数: ");
+        paramLabel.setFont(paramLabel.getFont().deriveFont(Font.BOLD));
+        previewPanel.add(paramLabel);
+        
+        String displayParam = paramString.length() > 50 ? paramString.substring(0, 50) + "..." : paramString;
+        JLabel paramValueLabel = new JLabel(displayParam);
+        paramValueLabel.setForeground(Color.GRAY);
+        previewPanel.add(paramValueLabel);
+        panel.add(previewPanel, gbc);
+        
+        // 无视重复复选框
+        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
+        JCheckBox ignoreDuplicateCheckBox = new JCheckBox("无视参数重复");
+        ignoreDuplicateCheckBox.setToolTipText("勾选后将不检查命令行参数是否与现有配置重复");
+        panel.add(ignoreDuplicateCheckBox, gbc);
+        
+        int result = JOptionPane.showConfirmDialog(this, panel, "保存配置",
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        
+        if (result == JOptionPane.OK_OPTION) {
+            String name = nameField.getText().trim();
+            String desc = descField.getText().trim();
+            
+            if (name.isEmpty()) {
+                HtmlMessageDialog.showWarning(this, "警告", "配置名称不能为空");
+                return;
+            }
+            
+            // 检查参数字符串是否重复（如果没有勾选“无视重复”）
+            if (!ignoreDuplicateCheckBox.isSelected()) {
+                List<PresetConfig> allConfigs = database.findAll();
+                List<String> duplicateNames = ScanConfigParser.findEquivalentConfigs(paramString, allConfigs);
+                
+                if (!duplicateNames.isEmpty()) {
+                    String duplicateList = String.join(", ", duplicateNames);
+                    boolean proceed = HtmlMessageDialog.showConfirm(this, "参数重复确认",
+                        "<p>当前参数与以下配置的参数效果等效：</p>" +
+                        "<p style='color: #e74c3c; font-weight: bold;'>" + duplicateList + "</p>" +
+                        "<p>是否仍然继续保存？</p>");
+                    
+                    if (!proceed) {
+                        return;
+                    }
+                }
+            }
+            
+            PresetConfig config = new PresetConfig();
+            config.setName(name);
+            config.setDescription(desc);
+            config.setParameterString(paramString);
+            
+            if (database.insert(config)) {
+                refreshTable();
+                appendLog("[+] 引导式添加配置: " + name);
+                HtmlMessageDialog.showInfo(this, "成功", "配置 <b>" + name + "</b> 已保存");
+            } else {
+                HtmlMessageDialog.showError(this, "添加失败", 
+                    "配置名称 <b>" + name + "</b> 已存在，请使用其他名称");
             }
         }
     }
@@ -408,6 +518,46 @@ public class PresetConfigPanel extends BaseConfigPanel {
             if (database.update(updatedConfig)) {
                 refreshTable();
                 appendLog("[+] 更新配置: " + updatedConfig.getName());
+            } else {
+                HtmlMessageDialog.showError(this, "更新失败", 
+                    "配置名称 <b>" + updatedConfig.getName() + "</b> 已被其他配置使用，请使用其他名称");
+            }
+        }
+    }
+    
+    /**
+     * 显示引导式编辑对话框
+     */
+    private void showGuidedEditDialog() {
+        int selectedRow = configTable.getSelectedRow();
+        if (selectedRow < 0) {
+            HtmlMessageDialog.showWarning(this, "提示", "请先选择要编辑的配置");
+            return;
+        }
+        
+        // 转换为模型索引
+        int modelRow = configTable.convertRowIndexToModel(selectedRow);
+        long id = (Long) tableModel.getValueAt(modelRow, 0);
+        
+        PresetConfig config = database.findById(id);
+        if (config == null) {
+            HtmlMessageDialog.showError(this, "错误", "配置不存在");
+            return;
+        }
+        
+        // 显示引导式编辑器（带当前参数）
+        String newParamString = GuidedParamEditorDialog.showEditParamDialog(this, config.getParameterString());
+        
+        if (newParamString != null) {
+            // 更新配置
+            config.setParameterString(newParamString);
+            if (database.update(config)) {
+                refreshTable();
+                appendLog("[+] 引导式更新配置: " + config.getName());
+                HtmlMessageDialog.showInfo(this, "成功", "配置 <b>" + config.getName() + "</b> 已更新");
+            } else {
+                HtmlMessageDialog.showError(this, "更新失败", 
+                    "配置名称 <b>" + config.getName() + "</b> 已被其他配置使用，请使用其他名称");
             }
         }
     }
@@ -842,6 +992,7 @@ public class PresetConfigPanel extends BaseConfigPanel {
         private JTextField nameField;
         private JTextArea descriptionArea;
         private JTextArea parameterArea;
+        private JCheckBox ignoreDuplicateCheckBox;
         
         public PresetConfigDialog(Window owner, String title, PresetConfig config, PresetConfigDatabase database) {
             super(owner, title, ModalityType.APPLICATION_MODAL);
@@ -854,7 +1005,7 @@ public class PresetConfigPanel extends BaseConfigPanel {
         
         private void initializeDialog() {
             setLayout(new BorderLayout(10, 10));
-            setSize(650, 580);
+            setSize(650, 620);
             setLocationRelativeTo(getOwner());
             setResizable(true);
             
@@ -895,8 +1046,15 @@ public class PresetConfigPanel extends BaseConfigPanel {
             parameterArea.setToolTipText("SQLMap参数字符串，如: --level=5 --risk=3 --batch");
             formPanel.add(new JScrollPane(parameterArea), gbc);
             
+            // 无视重复复选框
+            gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
+            gbc.fill = GridBagConstraints.NONE; gbc.weighty = 0;
+            ignoreDuplicateCheckBox = new JCheckBox("无视参数重复（不检查命令行参数是否与其他配置等效）");
+            ignoreDuplicateCheckBox.setToolTipText("勾选后将不检查命令行参数是否与现有配置重复");
+            formPanel.add(ignoreDuplicateCheckBox, gbc);
+            
             // 帮助说明面板
-            gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2; 
+            gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2; 
             gbc.fill = GridBagConstraints.BOTH; gbc.weighty = 0.3;
             JEditorPane helpPane = new JEditorPane();
             helpPane.setContentType("text/html");
@@ -989,6 +1147,32 @@ public class PresetConfigPanel extends BaseConfigPanel {
                     "名称「" + name + "」已存在，请使用其他名称");
                 nameField.requestFocus();
                 return;
+            }
+            
+            // 检查参数字符串是否重复（如果没有勾选“无视重复”）
+            if (!ignoreDuplicateCheckBox.isSelected()) {
+                List<PresetConfig> allConfigs = database.findAll();
+                List<String> duplicateNames;
+                
+                if (config.getId() > 0) {
+                    // 编辑模式：排除自己
+                    duplicateNames = ScanConfigParser.findEquivalentConfigsExcludeId(parameters, allConfigs, config.getId());
+                } else {
+                    // 新增模式
+                    duplicateNames = ScanConfigParser.findEquivalentConfigs(parameters, allConfigs);
+                }
+                
+                if (!duplicateNames.isEmpty()) {
+                    String duplicateList = String.join(", ", duplicateNames);
+                    boolean proceed = HtmlMessageDialog.showConfirm(this, "参数重复确认",
+                        "<p>当前参数与以下配置的参数效果等效：</p>" +
+                        "<p style='color: #e74c3c; font-weight: bold;'>" + duplicateList + "</p>" +
+                        "<p>是否仍然继续保存？</p>");
+                    
+                    if (!proceed) {
+                        return;
+                    }
+                }
             }
             
             config.setName(name);

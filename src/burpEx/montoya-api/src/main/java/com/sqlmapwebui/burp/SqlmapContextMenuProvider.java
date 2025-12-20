@@ -102,17 +102,25 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
         JPanel contentPanel = new JPanel(new BorderLayout(10, 10));
         contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        // 说明标签
+        // 说明标签 - 使用JEditorPane确保HTML正确渲染
         JPanel helpPanel = new JPanel(new BorderLayout());
         helpPanel.setBorder(BorderFactory.createTitledBorder("使用说明"));
-        JLabel helpLabel = new JLabel(
-            "<html><b>在请求中使用 <font color='red'>*</font> 标记注入点</b><br>" +
-            "示例: id=1<font color='red'>*</font>&name=test → 只测试id参数<br>" +
-            "示例: Cookie: session=abc<font color='red'>*</font> → 测试Cookie值<br>" +
-            "示例: {\"user\":\"admin<font color='red'>*</font>\"} → 测试JSON字段<br>" +
-            "<font color='gray'>提示: 可标记多个注入点，sqlmap会依次测试</font></html>"
+        JEditorPane helpPane = new JEditorPane();
+        helpPane.setContentType("text/html");
+        helpPane.setEditable(false);
+        helpPane.setOpaque(false);
+        helpPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+        helpPane.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        helpPane.setText(
+            "<html><body style='font-family:sans-serif;'>" +
+            "<b>在请求中使用 <span style='color:red;'>*</span> 标记注入点</b><br>" +
+            "示例: id=1<span style='color:red;'>*</span>&amp;name=test → 只测试id参数<br>" +
+            "示例: Cookie: session=abc<span style='color:red;'>*</span> → 测试Cookie值<br>" +
+            "示例: {\"user\":\"admin<span style='color:red;'>*</span>\"} → 测试JSON字段<br>" +
+            "<span style='color:gray;'>提示: 可标记多个注入点，sqlmap会依次测试</span>" +
+            "</body></html>"
         );
-        helpPanel.add(helpLabel, BorderLayout.CENTER);
+        helpPanel.add(helpPane, BorderLayout.CENTER);
         contentPanel.add(helpPanel, BorderLayout.NORTH);
         
         // HTTP请求编辑区
