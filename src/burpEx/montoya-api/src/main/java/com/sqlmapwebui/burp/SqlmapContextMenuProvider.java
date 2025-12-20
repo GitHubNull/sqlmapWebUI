@@ -59,31 +59,52 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
         
         final List<HttpRequestResponse> messages = selectedMessages;
         
+        // 检测请求是否为二进制内容
+        HttpRequest firstRequest = messages.get(0).request();
+        BinaryContentDetector.DetectionResult detectionResult = BinaryContentDetector.detect(firstRequest);
+        boolean isBinary = detectionResult.isBinary();
+        String binarySuffix = isBinary ? " (二进制报文)" : "";
+        
         // 菜单项1: 使用默认配置发送
-        JMenuItem sendWithDefault = new JMenuItem("Send to SQLMap WebUI");
-        sendWithDefault.addActionListener(e -> {
-            for (HttpRequestResponse message : messages) {
-                sendRequestToBackend(message.request(), configManager.getDefaultConfig());
-            }
-        });
+        JMenuItem sendWithDefault = new JMenuItem("Send to SQLMap WebUI" + binarySuffix);
+        if (isBinary) {
+            sendWithDefault.setEnabled(false);
+            sendWithDefault.setToolTipText("二进制报文无法发起扫描任务: " + detectionResult.getReason());
+        } else {
+            sendWithDefault.addActionListener(e -> {
+                for (HttpRequestResponse message : messages) {
+                    sendRequestToBackend(message.request(), configManager.getDefaultConfig());
+                }
+            });
+        }
         menuItems.add(sendWithDefault);
         
         // 菜单项2: 选择配置发送
-        JMenuItem sendWithOptions = new JMenuItem("Send to SQLMap WebUI (选择配置)...");
-        sendWithOptions.addActionListener(e -> {
-            if (!messages.isEmpty()) {
-                showConfigSelectionDialog(messages.get(0).request());
-            }
-        });
+        JMenuItem sendWithOptions = new JMenuItem("Send to SQLMap WebUI (选择配置)..." + binarySuffix);
+        if (isBinary) {
+            sendWithOptions.setEnabled(false);
+            sendWithOptions.setToolTipText("二进制报文无法发起扫描任务: " + detectionResult.getReason());
+        } else {
+            sendWithOptions.addActionListener(e -> {
+                if (!messages.isEmpty()) {
+                    showConfigSelectionDialog(messages.get(0).request());
+                }
+            });
+        }
         menuItems.add(sendWithOptions);
         
         // 菜单项3: 标记注入点并扫描 - 新功能
-        JMenuItem markInjectionPoints = new JMenuItem("标记注入点并扫描 (*)");
-        markInjectionPoints.addActionListener(e -> {
-            if (!messages.isEmpty()) {
-                showMarkInjectionPointsDialog(messages.get(0));
-            }
-        });
+        JMenuItem markInjectionPoints = new JMenuItem("标记注入点并扫描 (*)" + binarySuffix);
+        if (isBinary) {
+            markInjectionPoints.setEnabled(false);
+            markInjectionPoints.setToolTipText("二进制报文无法发起扫描任务: " + detectionResult.getReason());
+        } else {
+            markInjectionPoints.addActionListener(e -> {
+                if (!messages.isEmpty()) {
+                    showMarkInjectionPointsDialog(messages.get(0));
+                }
+            });
+        }
         menuItems.add(markInjectionPoints);
         
         return menuItems;
