@@ -1,6 +1,7 @@
 package com.sqlmapwebui.burp.panels;
 
 import com.sqlmapwebui.burp.ParamMeta;
+import com.sqlmapwebui.burp.ParseResult;
 import com.sqlmapwebui.burp.ScanConfig;
 import com.sqlmapwebui.burp.ScanConfigParser;
 
@@ -599,11 +600,30 @@ public class GuidedParamEditor extends JPanel {
         Map<String, ParamMeta> allMeta = ScanConfigParser.getParamMeta();
         
         for (Map.Entry<String, Object> entry : selectedParams.entrySet()) {
-            ParamMeta meta = allMeta.get(entry.getKey());
+            String paramName = entry.getKey();
+            Object value = entry.getValue();
+            ParamMeta meta = allMeta.get(paramName);
+            
             if (meta != null) {
-                selectedParamModel.addElement(new SelectedParam(meta, entry.getValue()));
+                selectedParamModel.addElement(new SelectedParam(meta, value));
+            } else {
+                // 为未识别的参数创建临时元数据
+                Class<?> type = inferType(value);
+                ParamMeta tempMeta = new ParamMeta(paramName, "未知参数", type, 
+                    type == Boolean.class ? false : "", null, null, null);
+                selectedParamModel.addElement(new SelectedParam(tempMeta, value));
             }
         }
+    }
+    
+    /**
+     * 推断值的类型
+     */
+    private Class<?> inferType(Object value) {
+        if (value instanceof Boolean) return Boolean.class;
+        if (value instanceof Integer) return Integer.class;
+        if (value instanceof Float || value instanceof Double) return Float.class;
+        return String.class;
     }
     
     /**
@@ -677,11 +697,12 @@ public class GuidedParamEditor extends JPanel {
             Object value = entry.getValue();
             ParamMeta meta = allMeta.get(paramName);
             
-            if (meta == null) continue;
-            
             String cliName = getCliName(paramName);
             
-            if (meta.isBoolean()) {
+            // 确定是否为布尔类型
+            boolean isBoolean = meta != null ? meta.isBoolean() : (value instanceof Boolean);
+            
+            if (isBoolean) {
                 if (Boolean.TRUE.equals(value)) {
                     sb.append(cliName).append(" ");
                 }
@@ -813,15 +834,118 @@ public class GuidedParamEditor extends JPanel {
             return;
         }
         
-        // 使用解析器解析
-        ScanConfig config = ScanConfig.fromCommandLineStringSafe(paramString);
-        Map<String, Object> options = config.toOptionsMap();
+        // 使用解析器解析，获取所有已解析的参数（包括默认值）
+        ParseResult result = ScanConfigParser.parse(paramString);
+        Map<String, ParamMeta> allMeta = ScanConfigParser.getParamMeta();
         
-        selectedParams.putAll(options);
+        // 从解析结果中提取已解析的参数
+        for (String paramName : result.getParsedParams()) {
+            ParamMeta meta = allMeta.get(paramName);
+            if (meta != null) {
+                // 从配置中获取实际值
+                Object value = getConfigValue(result.getConfig(), meta.getName(), meta);
+                if (value != null) {
+                    selectedParams.put(meta.getName(), value);
+                }
+            } else {
+                // 未识别的参数，使用原始值
+                String originalValue = result.getOriginalValues().get(paramName);
+                if (originalValue != null) {
+                    selectedParams.put(paramName, originalValue);
+                } else {
+                    selectedParams.put(paramName, true); // 布尔参数
+                }
+            }
+        }
         
         refreshSelectedParamList();
         refreshParamList();
         updateCommandPreview();
+    }
+    
+    /**
+     * 从配置中获取参数值
+     */
+    private Object getConfigValue(ScanConfig config, String paramName, ParamMeta meta) {
+        try {
+            switch (paramName) {
+                // Detection
+                case "level": return config.getLevel();
+                case "risk": return config.getRisk();
+                case "string": return config.getString();
+                case "notString": return config.getNotString();
+                case "regexp": return config.getRegexp();
+                case "code": return config.getCode();
+                case "smart": return config.isSmart();
+                case "textOnly": return config.isTextOnly();
+                case "titles": return config.isTitles();
+                
+                // Injection
+                case "testParameter": return config.getTestParameter();
+                case "skip": return config.getSkip();
+                case "skipStatic": return config.isSkipStatic();
+                case "paramExclude": return config.getParamExclude();
+                case "dbms": return config.getDbms();
+                case "os": return config.getOs();
+                case "prefix": return config.getPrefix();
+                case "suffix": return config.getSuffix();
+                case "tamper": return config.getTamper();
+                
+                // Techniques
+                case "technique": return config.getTechnique();
+                case "timeSec": return config.getTimeSec();
+                
+                // Request
+                case "method": return config.getMethod();
+                case "data": return config.getData();
+                case "cookie": return config.getCookie();
+                case "agent": return config.getAgent();
+                case "referer": return config.getReferer();
+                case "headers": return config.getHeaders();
+                case "proxy": return config.getProxy();
+                case "proxyCred": return config.getProxyCred();
+                case "delay": return config.getDelay();
+                case "timeout": return config.getTimeout();
+                case "retries": return config.getRetries();
+                case "randomAgent": return config.isRandomAgent();
+                case "tor": return config.isTor();
+                case "forceSSL": return config.isForceSSL();
+                case "skipUrlEncode": return config.isSkipUrlEncode();
+                
+                // Optimization
+                case "optimize": return config.isOptimize();
+                case "keepAlive": return config.isKeepAlive();
+                case "nullConnection": return config.isNullConnection();
+                case "threads": return config.getThreads();
+                
+                // Enumeration
+                case "getBanner": return config.isGetBanner();
+                case "getCurrentUser": return config.isGetCurrentUser();
+                case "getCurrentDb": return config.isGetCurrentDb();
+                case "isDba": return config.isIsDba();
+                case "getUsers": return config.isGetUsers();
+                case "getDbs": return config.isGetDbs();
+                case "getTables": return config.isGetTables();
+                case "getColumns": return config.isGetColumns();
+                case "dumpTable": return config.isDumpTable();
+                case "dumpAll": return config.isDumpAll();
+                case "db": return config.getDb();
+                case "tbl": return config.getTbl();
+                case "col": return config.getCol();
+                
+                // General
+                case "batch": return config.isBatch();
+                case "forms": return config.isForms();
+                case "crawlDepth": return config.getCrawlDepth();
+                case "flushSession": return config.isFlushSession();
+                case "freshQueries": return config.isFreshQueries();
+                case "verbose": return config.getVerbose();
+                
+                default: return null;
+            }
+        } catch (Exception e) {
+            return meta.getDefaultValue();
+        }
     }
     
     /**

@@ -128,6 +128,11 @@ public class PresetConfigPanel extends BaseConfigPanel {
         editBtn.addActionListener(e -> showEditDialog());
         buttonPanel.add(editBtn);
         
+        JButton guidedEditBtn = new JButton("引导式编辑");
+        guidedEditBtn.setToolTipText("通过引导式界面编辑选中配置的参数");
+        guidedEditBtn.addActionListener(e -> showGuidedEditDialog());
+        buttonPanel.add(guidedEditBtn);
+        
         JButton deleteBtn = new JButton("删除选中");
         deleteBtn.addActionListener(e -> deleteSelected());
         buttonPanel.add(deleteBtn);
@@ -1037,13 +1042,22 @@ public class PresetConfigPanel extends BaseConfigPanel {
             
             // 参数字符串
             gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0; gbc.weighty = 0;
-            formPanel.add(new JLabel("参数字符串 *:"), gbc);
+            JPanel paramLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            paramLabelPanel.add(new JLabel("命令行参数 *:"));
+            JButton guidedEditBtn = new JButton("引导式编辑");
+            guidedEditBtn.setFont(new Font("Microsoft YaHei", Font.PLAIN, 11));
+            guidedEditBtn.setMargin(new Insets(2, 8, 2, 8));
+            guidedEditBtn.setToolTipText("打开引导式参数编辑器，可视化编辑现有参数或添加新参数");
+            guidedEditBtn.addActionListener(e -> openGuidedParamEditor());
+            paramLabelPanel.add(Box.createHorizontalStrut(10));
+            paramLabelPanel.add(guidedEditBtn);
+            formPanel.add(paramLabelPanel, gbc);
             
             gbc.gridx = 1; gbc.fill = GridBagConstraints.BOTH; gbc.weightx = 1.0; gbc.weighty = 0.7;
             parameterArea = new JTextArea(6, 30);
             parameterArea.setLineWrap(true);
             parameterArea.setWrapStyleWord(true);
-            parameterArea.setToolTipText("SQLMap参数字符串，如: --level=5 --risk=3 --batch");
+            parameterArea.setToolTipText("SQLMap命令行参数，如: --level=5 --risk=3 --batch");
             formPanel.add(new JScrollPane(parameterArea), gbc);
             
             // 无视重复复选框
@@ -1119,6 +1133,19 @@ public class PresetConfigPanel extends BaseConfigPanel {
                 nameField.setText(config.getName());
                 descriptionArea.setText(config.getDescription());
                 parameterArea.setText(config.getParameterString());
+            }
+        }
+        
+        /**
+         * 打开引导式参数编辑器
+         */
+        private void openGuidedParamEditor() {
+            String currentParams = parameterArea.getText().trim();
+            String result = GuidedParamEditorDialog.showEditParamDialog(this, currentParams);
+            
+            if (result != null) {
+                parameterArea.setText(result);
+                parameterArea.setCaretPosition(0);
             }
         }
         
