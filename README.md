@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.6.0-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.7.6-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -26,6 +26,22 @@
   - 多字段排序（任务ID、状态、创建时间）
   - 汇总统计行（实时显示任务统计数据）
   - 智能轮询（根据任务状态自动调整刷新频率）
+
+### 扫描配置管理 🆕
+- **默认配置**: 设置全局默认扫描参数
+- **常用配置**: 保存常用配置组合，支持 CRUD 操作
+- **历史配置**: 查看历史扫描使用过的配置
+- **引导式编辑器**: 可视化配置 SQLMap 参数，无需记忆命令行
+- **参数预览**: 实时预览生成的命令行参数
+
+### HTTP 请求解析 🆕
+- 支持多种请求格式自动解析：
+  - cURL (Bash/CMD)
+  - PowerShell Invoke-WebRequest
+  - JavaScript fetch
+  - 原始 HTTP 报文
+- **智能格式检测**: 自动识别输入格式
+- **代码编辑器**: 行号显示、语法高亮、搜索过滤
 
 ### 批量操作
 - **批量停止**: 一键停止多个运行中的任务
@@ -236,6 +252,14 @@ sqlmapWebUI/
 请在使用前阅读 [免责声明](DISCLAIMER.md)。
 
 ## 📝 更新日志
+
+### v1.7.6 (2024-12)
+- 新增扫描配置预设管理（默认配置/常用配置/历史配置）
+- 新增引导式参数编辑器
+- 新增 HTTP 请求解析器（支持 cURL/PowerShell/fetch/原始 HTTP）
+- 新增代码编辑器组件（行号、语法高亮、搜索）
+- 前端代码模块化重构
+- 修复 fetch 解析器转义引号处理问题
 
 ### v1.6.0 (2024-12)
 - 新增请求头规则作用域配置功能

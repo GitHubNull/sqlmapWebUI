@@ -22,13 +22,16 @@ sqlmapWebUI/
 │   │   ├── model/         # Data models
 │   │   │   ├── requestModel/     # Request DTOs
 │   │   │   ├── Task.py           # Task model
+│   │   │   ├── ScanPreset.py     # Scan configuration presets
+│   │   │   ├── ScanPresetDatabase.py  # Preset database operations
 │   │   │   ├── HeaderScope.py    # Header scope configuration
 │   │   │   ├── PersistentHeaderRule.py  # Persistent header rules
 │   │   │   ├── SessionHeader.py  # Session-level headers
 │   │   │   └── ...
 │   │   ├── service/       # Business logic layer
 │   │   │   ├── taskService.py    # Task management
-│   │   │   └── headerRuleService.py  # Header rules management
+│   │   │   ├── headerRuleService.py  # Header rules management
+│   │   │   └── scanPresetService.py  # Scan preset management
 │   │   ├── utils/         # Utility functions
 │   │   │   ├── header_processor.py   # Header processing
 │   │   │   ├── scope_matcher.py      # Scope matching logic
@@ -42,16 +45,20 @@ sqlmapWebUI/
 │   │       ├── components/# Shared components
 │   │       │   ├── TaskFilter.vue    # Task filtering component
 │   │       │   ├── TaskSummary.vue   # Task statistics summary
-│   │       │   └── ScopeConfigPanel.vue  # Scope configuration UI
+│   │       │   ├── ScopeConfigPanel.vue  # Scope configuration UI
+│   │       │   ├── HttpCodeEditor.vue    # Code editor with syntax highlighting
+│   │       │   └── GuidedParamEditor.vue # Guided SQLMap parameter editor
 │   │       ├── stores/    # Pinia state management
 │   │       │   ├── task.ts          # Task state store
-│   │       │   └── config.ts        # Config state store
+│   │       │   ├── config.ts        # Config state store
+│   │       │   └── scanPreset.ts    # Scan preset state store
 │   │       ├── types/     # TypeScript type definitions
 │   │       ├── utils/     # Utility functions
 │   │       └── views/     # Page views
 │   │           ├── Home/            # Dashboard
 │   │           ├── TaskList/        # Task list page
 │   │           ├── TaskDetail/      # Task detail page
+│   │           ├── AddTask/         # Add scan task page
 │   │           └── Config/          # Configuration page
 │   ├── burpEx/            # Burp Suite extensions
 │   │   ├── legacy-api/    # Legacy Burp API (Java 11)
@@ -84,6 +91,22 @@ sqlmapWebUI/
 - Sorting by multiple fields
 - Summary statistics row in task list
 - Smart polling (adjusts refresh rate based on task status)
+
+### Scan Configuration Management
+- **Default Configuration**: Global default scan parameters
+- **Preset Configurations**: Saved scan parameter combinations with CRUD
+- **History Configurations**: Past scan configurations record
+- **Guided Parameter Editor**: Visual SQLMap parameter configuration
+- **Parameter Preview**: Real-time command line parameter preview
+
+### HTTP Request Parsing
+- Multi-format request parsing:
+  - cURL (Bash/CMD)
+  - PowerShell Invoke-WebRequest
+  - JavaScript fetch
+  - Raw HTTP message
+- Smart format detection
+- Code editor with line numbers and syntax highlighting
 
 ### Header Rules Management
 - **Persistent Rules**: Long-term header rules stored in database
@@ -199,6 +222,17 @@ POST   /commonApi/header/session-headers             # Set session headers
 GET    /commonApi/header/session-headers             # Get session headers
 DELETE /commonApi/header/session-headers             # Clear session headers
 POST   /commonApi/header/header-processing/preview   # Preview header processing
+```
+
+### Scan Preset API Endpoints
+```
+GET    /commonApi/scanPreset/list          # List all presets
+GET    /commonApi/scanPreset/:id           # Get single preset
+POST   /commonApi/scanPreset               # Create preset
+PUT    /commonApi/scanPreset/:id           # Update preset
+DELETE /commonApi/scanPreset/:id           # Delete preset
+GET    /commonApi/scanPreset/default       # Get default config
+PUT    /commonApi/scanPreset/default       # Update default config
 ```
 
 ## Git Workflow

@@ -33,6 +33,8 @@ burpEx/
 | **提交扫描任务** | 右键菜单发送 HTTP 请求到后端 |
 | **默认配置管理** | 设置和保存默认扫描参数 |
 | **常用配置管理** | 添加/编辑/删除常用扫描配置 |
+| **历史配置记录** | 查看历史扫描使用的配置 |
+| **引导式编辑器** | 可视化配置 SQLMap 参数 |
 | **配置选择** | 提交时可选择默认配置、常用配置或历史记录配置 |
 | **活动日志** | 记录所有操作和发送结果 |
 
@@ -49,7 +51,8 @@ burpEx/
 |--------|------|
 | 服务器配置 | 设置后端 URL、测试连接状态 |
 | 默认配置 | 设置 Level、Risk、DBMS、Technique、Batch 等默认参数 |
-| 常用配置 | 管理常用配置列表（添加/编辑/删除） |
+| 常用配置 | 管理常用配置列表（添加/编辑/删除），支持引导式编辑 |
+| 历史配置 | 查看历史扫描使用的配置记录 |
 | 活动日志 | 查看操作日志和发送历史 |
 
 ## 版本选择
@@ -183,7 +186,9 @@ src/main/java/com/sqlmapwebui/burp/
 │   ├── MainPanel.java          # 主面板（Tab容器）
 │   ├── ServerConfigPanel.java  # 服务器配置面板
 │   ├── DefaultConfigPanel.java # 默认配置面板
-│   ├── SavedConfigPanel.java   # 常用配置面板
+│   ├── PresetConfigPanel.java  # 常用配置面板
+│   ├── HistoryConfigPanel.java # 历史配置面板
+│   ├── GuidedParamEditorDialog.java # 引导式参数编辑器
 │   └── ActivityLogPanel.java   # 活动日志面板
 ├── config/
 │   ├── ConfigManager.java      # 配置管理器

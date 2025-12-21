@@ -22,6 +22,12 @@
 - 扫描结果查询
 - 批量任务操作
 
+### 扫描配置预设管理
+- **默认配置**: 全局默认扫描参数
+- **常用配置**: 保存的配置组合，支持 CRUD
+- **历史配置**: 历史扫描配置记录
+- 存储在 SQLite 数据库
+
 ### 请求头规则管理
 - **持久化规则**: 存储在 SQLite 数据库
   - CRUD 完整操作
@@ -87,6 +93,8 @@ src/backEnd/
 │   ├── TaskStatus.py         # 任务状态枚举
 │   ├── DataStore.py          # 内存数据存储（单例）
 │   ├── Database.py           # 数据库连接
+│   ├── ScanPreset.py         # 扫描配置预设模型
+│   ├── ScanPresetDatabase.py # 预设数据库操作
 │   ├── HeaderScope.py        # 请求头作用域配置
 │   ├── PersistentHeaderRule.py  # 持久化请求头规则
 │   ├── SessionHeader.py      # 会话级请求头
@@ -97,7 +105,8 @@ src/backEnd/
 │       └── TaskRequest.py    # 任务请求模型
 ├── service/                  # 业务逻辑层
 │   ├── taskService.py        # 任务管理服务
-│   └── headerRuleService.py  # 请求头规则服务（单例）
+│   ├── headerRuleService.py  # 请求头规则服务（单例）
+│   └── scanPresetService.py  # 扫描配置预设服务
 ├── utils/                    # 工具函数
 │   ├── header_processor.py   # 请求头处理器
 │   ├── scope_matcher.py      # 作用域匹配器
@@ -153,6 +162,18 @@ src/backEnd/
 | POST | `/commonApi/header/parse-headers-batch` | 批量解析请求头 |
 | POST | `/commonApi/header/create-persistent-rules-batch` | 批量创建规则 |
 
+### 扫描配置预设 API
+
+| 方法 | 端点 | 说明 |
+|------|------|------|
+| GET | `/commonApi/scanPreset/list` | 获取预设列表 |
+| GET | `/commonApi/scanPreset/:id` | 获取单个预设 |
+| POST | `/commonApi/scanPreset` | 创建预设 |
+| PUT | `/commonApi/scanPreset/:id` | 更新预设 |
+| DELETE | `/commonApi/scanPreset/:id` | 删除预设 |
+| GET | `/commonApi/scanPreset/default` | 获取默认配置 |
+| PUT | `/commonApi/scanPreset/default` | 更新默认配置 |
+
 ### Burp Suite API
 
 | 方法 | 端点 | 说明 |
@@ -175,7 +196,7 @@ src/backEnd/
 MAX_TASKS_COUNT = 3
 
 # 版本号
-VERSION = "1.6.0"
+VERSION = "1.7.6"
 ```
 
 ### 环境变量

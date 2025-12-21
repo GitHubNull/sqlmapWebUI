@@ -58,19 +58,24 @@ sqlmapWebUI/
 - `views/Home/` - 首页仪表盘，显示任务统计
 - `views/TaskList/` - 任务列表，支持过滤/排序/批量操作
 - `views/TaskDetail/` - 任务详情，显示日志/结果/配置
+- `views/AddTask/` - 添加扫描任务页面
 - `views/Config/` - 配置页面（Tab 布局）
   - 系统配置
   - Header 规则管理
   - 会话 Header 管理
+  - 扫描配置管理（默认配置/常用配置/历史配置）
 
 关键组件：
 - `components/TaskFilter.vue` - 任务过滤器
 - `components/TaskSummary.vue` - 任务汇总统计
 - `components/ScopeConfigPanel.vue` - 作用域配置面板
+- `components/HttpCodeEditor.vue` - 代码编辑器（行号、语法高亮）
+- `components/GuidedParamEditor.vue` - 引导式参数编辑器
 
 状态管理：
 - `stores/task.ts` - 任务状态，包含过滤、排序、统计计算
 - `stores/config.ts` - 配置状态
+- `stores/scanPreset.ts` - 扫描配置预设状态
 
 ### VulnShop 靶场 (src/vulnTestServer/)
 独立的漏洞测试环境，包含：
@@ -104,6 +109,22 @@ sqlmapWebUI/
 - 多字段排序
 - 汇总统计行
 - 智能轮询（根据任务状态调整刷新频率）
+
+### 扫描配置管理
+- **默认配置**: 全局默认扫描参数
+- **常用配置**: 保存的配置组合，支持 CRUD
+- **历史配置**: 历史扫描配置记录
+- **引导式编辑器**: 可视化配置 SQLMap 参数
+- **参数预览**: 实时预览命令行参数
+
+### HTTP 请求解析
+- 多格式解析支持：
+  - cURL (Bash/CMD)
+  - PowerShell Invoke-WebRequest
+  - JavaScript fetch
+  - 原始 HTTP 报文
+- 智能格式检测
+- 代码编辑器（行号、语法高亮、搜索）
 
 ### 请求头规则管理
 - **持久化规则**: 存储在数据库的长期规则

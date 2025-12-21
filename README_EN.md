@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.6.0-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.7.6-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -26,6 +26,22 @@ A modern SQLMap web interface that provides a convenient SQL injection testing p
   - Multi-field sorting (Task ID, status, creation time)
   - Summary statistics row (real-time task statistics display)
   - Smart polling (automatically adjusts refresh frequency based on task status)
+
+### Scan Configuration Management 🆕
+- **Default Configuration**: Set global default scan parameters
+- **Preset Configurations**: Save commonly used configuration combinations with full CRUD support
+- **History Configurations**: View configurations used in past scans
+- **Guided Editor**: Visually configure SQLMap parameters without memorizing command line
+- **Parameter Preview**: Real-time preview of generated command line parameters
+
+### HTTP Request Parsing 🆕
+- Support for automatic parsing of multiple request formats:
+  - cURL (Bash/CMD)
+  - PowerShell Invoke-WebRequest
+  - JavaScript fetch
+  - Raw HTTP message
+- **Smart Format Detection**: Automatically identify input format
+- **Code Editor**: Line numbers, syntax highlighting, search filter
 
 ### Batch Operations
 - **Batch Stop**: Stop multiple running tasks at once
@@ -243,6 +259,14 @@ For detailed usage, please refer to [doc/USAGE_GUIDE.md](doc/USAGE_GUIDE.md)
 Please read the [Disclaimer](DISCLAIMER.md) before use.
 
 ## Changelog
+
+### v1.7.6 (2024-12)
+- Added scan configuration preset management (default/preset/history)
+- Added guided parameter editor
+- Added HTTP request parser (supports cURL/PowerShell/fetch/raw HTTP)
+- Added code editor component (line numbers, syntax highlighting, search)
+- Frontend code modular refactoring
+- Fixed fetch parser escaped quotes handling issue
 
 ### v1.6.0 (2024-12)
 - Added header rules scope configuration feature

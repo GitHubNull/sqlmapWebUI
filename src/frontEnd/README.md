@@ -27,6 +27,18 @@
 - **汇总统计行**: 实时显示任务统计数据
 - **智能轮询**: 根据任务状态自动调整刷新频率
 
+### 扫描配置管理
+- **默认配置**: 全局默认扫描参数
+- **常用配置**: 保存常用配置组合，支持 CRUD
+- **历史配置**: 历史扫描使用的配置记录
+- **引导式编辑器**: 可视化配置 SQLMap 参数
+- **参数预览**: 实时预览生成的命令行参数
+
+### HTTP 请求解析
+- **多格式支持**: cURL/PowerShell/fetch/原始 HTTP
+- **智能格式检测**: 自动识别输入格式
+- **代码编辑器**: 行号显示、语法高亮、搜索过滤
+
 ### 请求头规则管理
 - **持久化规则**: 创建/编辑/删除长期有效的请求头规则
 - **会话级规则**: 临时请求头，支持 TTL 自动过期
@@ -88,19 +100,28 @@ src/frontEnd/
 │   ├── components/       # 公共组件
 │   │   ├── TaskFilter.vue      # 任务过滤器
 │   │   ├── TaskSummary.vue     # 任务汇总统计
-│   │   └── ScopeConfigPanel.vue # 作用域配置面板
+│   │   ├── ScopeConfigPanel.vue # 作用域配置面板
+│   │   ├── HttpCodeEditor.vue  # 代码编辑器（行号、语法高亮）
+│   │   └── GuidedParamEditor.vue # 引导式参数编辑器
 │   ├── router/           # 路由配置
 │   ├── stores/           # Pinia 状态管理
 │   │   ├── task.ts       # 任务状态 (含过滤/排序/统计)
-│   │   └── config.ts     # 配置状态
+│   │   ├── config.ts     # 配置状态
+│   │   └── scanPreset.ts # 扫描配置预设状态
 │   ├── types/            # TypeScript 类型定义
 │   │   ├── task.ts       # 任务相关类型
-│   │   └── headerRule.ts # 请求头规则类型
+│   │   ├── headerRule.ts # 请求头规则类型
+│   │   └── scanPreset.ts # 扫描配置预设类型
 │   ├── utils/            # 工具函数
+│   │   └── httpRequestParser/ # HTTP请求解析器（模块化）
+│   │       ├── parsers/   # 格式解析器
+│   │       ├── formatters/ # 格式化器
+│   │       └── index.ts  # 统一入口
 │   ├── views/            # 页面组件
 │   │   ├── Home/         # 首页仪表盘
 │   │   ├── TaskList/     # 任务列表页
 │   │   ├── TaskDetail/   # 任务详情页
+│   │   ├── AddTask/      # 添加扫描任务页
 │   │   └── Config/       # 配置页面 (Tab 布局)
 │   ├── App.vue           # 根组件
 │   ├── main.ts           # 应用入口
@@ -138,6 +159,13 @@ src/frontEnd/
 - **系统配置 Tab**: 自动刷新间隔设置
 - **Header 规则管理 Tab**: 持久化规则 CRUD
 - **会话 Header 管理 Tab**: 临时规则管理
+- **扫描配置管理 Tab**: 默认配置/常用配置/历史配置
+
+### 添加扫描任务页
+- HTTP 请求输入（支持多格式解析）
+- 代码编辑器（行号、语法高亮）
+- 扫描配置选择（默认/常用/历史）
+- 引导式参数编辑
 
 ## 环境变量
 
