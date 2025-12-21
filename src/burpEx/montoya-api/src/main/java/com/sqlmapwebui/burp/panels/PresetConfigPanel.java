@@ -375,12 +375,47 @@ public class PresetConfigPanel extends BaseConfigPanel {
     }
     
     /**
-     * 显示引导式添加对话框
+     * 显示引导式添加对话框（一步完成名称、描述和参数配置）
      */
     private void showGuidedAddDialog() {
-        String paramString = GuidedParamEditorDialog.showNewParamDialog(this);
-        if (paramString != null && !paramString.trim().isEmpty()) {
-            showSaveAsPresetDialog(paramString);
+        Window window = SwingUtilities.getWindowAncestor(this);
+        GuidedParamEditorDialog dialog = new GuidedParamEditorDialog(
+            window, "引导式参数配置 - 新建", null, null, null);
+        String paramString = dialog.showDialog();
+        
+        if (paramString != null) {
+            String name = dialog.getResultName();
+            String desc = dialog.getResultDescription();
+            
+            // 检查参数重复
+            List<PresetConfig> allConfigs = database.findAll();
+            List<String> duplicateNames = ScanConfigParser.findEquivalentConfigs(paramString, allConfigs);
+            
+            if (!duplicateNames.isEmpty()) {
+                String duplicateList = String.join(", ", duplicateNames);
+                boolean proceed = HtmlMessageDialog.showConfirm(this, "参数重复确认",
+                    "<p>当前参数与以下配置的参数效果等效：</p>" +
+                    "<p style='color: #e74c3c; font-weight: bold;'>" + duplicateList + "</p>" +
+                    "<p>是否仍然继续保存？</p>");
+                
+                if (!proceed) {
+                    return;
+                }
+            }
+            
+            PresetConfig config = new PresetConfig();
+            config.setName(name);
+            config.setDescription(desc);
+            config.setParameterString(paramString);
+            
+            if (database.insert(config)) {
+                refreshTable();
+                appendLog("[+] 引导式添加配置: " + name);
+                HtmlMessageDialog.showInfo(this, "成功", "配置 <b>" + name + "</b> 已保存");
+            } else {
+                HtmlMessageDialog.showError(this, "添加失败", 
+                    "配置名称 <b>" + name + "</b> 已存在，请使用其他名称");
+            }
         }
     }
     
@@ -507,7 +542,7 @@ public class PresetConfigPanel extends BaseConfigPanel {
     }
     
     /**
-     * 显示引导式编辑对话框
+     * 显示引导式编辑对话框（一步完成名称、描述和参数配置）
      */
     private void showGuidedEditDialog() {
         int selectedRow = configTable.getSelectedRow();
@@ -525,18 +560,27 @@ public class PresetConfigPanel extends BaseConfigPanel {
             return;
         }
         
-        String newParamString = GuidedParamEditorDialog.showEditParamDialog(
-            this, config.getParameterString(), config.getName(), config.getDescription());
+        Window window = SwingUtilities.getWindowAncestor(this);
+        GuidedParamEditorDialog dialog = new GuidedParamEditorDialog(
+            window, "引导式参数配置 - 编辑", 
+            config.getParameterString(), config.getName(), config.getDescription());
+        String newParamString = dialog.showDialog();
         
         if (newParamString != null) {
+            String newName = dialog.getResultName();
+            String newDesc = dialog.getResultDescription();
+            
+            config.setName(newName);
+            config.setDescription(newDesc);
             config.setParameterString(newParamString);
+            
             if (database.update(config)) {
                 refreshTable();
-                appendLog("[+] 引导式更新配置: " + config.getName());
-                HtmlMessageDialog.showInfo(this, "成功", "配置 <b>" + config.getName() + "</b> 已更新");
+                appendLog("[+] 引导式更新配置: " + newName);
+                HtmlMessageDialog.showInfo(this, "成功", "配置 <b>" + newName + "</b> 已更新");
             } else {
                 HtmlMessageDialog.showError(this, "更新失败", 
-                    "配置名称 <b>" + config.getName() + "</b> 已被其他配置使用，请使用其他名称");
+                    "配置名称 <b>" + newName + "</b> 已被其他配置使用，请使用其他名称");
             }
         }
     }

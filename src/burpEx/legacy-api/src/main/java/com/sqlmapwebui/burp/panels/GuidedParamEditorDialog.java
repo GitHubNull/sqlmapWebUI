@@ -8,9 +8,10 @@ import java.awt.event.WindowEvent;
 /**
  * 引导式参数编辑器对话框
  * 封装 GuidedParamEditor 组件为模态对话框
+ * 支持新增和编辑模式，在一个界面完成名称、描述和参数配置
  * 
  * @author SQLMap WebUI Team
- * @version 1.0.0
+ * @version 1.1.0
  */
 public class GuidedParamEditorDialog extends JDialog {
     
@@ -23,10 +24,22 @@ public class GuidedParamEditorDialog extends JDialog {
     /** 结果参数字符串 */
     private String resultParamString = "";
     
-    /** 配置名称（编辑模式显示） */
+    /** 结果配置名称 */
+    private String resultName = "";
+    
+    /** 结果配置描述 */
+    private String resultDescription = "";
+    
+    /** 配置名称输入框 */
+    private JTextField nameField;
+    
+    /** 配置描述输入框 */
+    private JTextField descField;
+    
+    /** 初始配置名称（编辑模式） */
     private String presetName;
     
-    /** 配置描述（编辑模式显示） */
+    /** 初始配置描述（编辑模式） */
     private String presetDescription;
     
     /**
@@ -76,11 +89,9 @@ public class GuidedParamEditorDialog extends JDialog {
     private void initializeDialog() {
         setLayout(new BorderLayout(10, 10));
         
-        // 顶部配置信息面板（编辑模式下显示）
-        if (presetName != null && !presetName.isEmpty()) {
-            JPanel infoPanel = createPresetInfoPanel();
-            add(infoPanel, BorderLayout.NORTH);
-        }
+        // 顶部配置信息输入面板（始终显示可编辑的输入框）
+        JPanel infoPanel = createPresetInputPanel();
+        add(infoPanel, BorderLayout.NORTH);
         
         // 主编辑器面板
         add(editor, BorderLayout.CENTER);
@@ -89,10 +100,20 @@ public class GuidedParamEditorDialog extends JDialog {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
         
-        JButton okButton = new JButton("确定");
+        JButton okButton = new JButton("保存");
         okButton.setPreferredSize(new Dimension(80, 28));
         okButton.addActionListener(e -> {
+            // 验证名称不能为空
+            String name = nameField.getText().trim();
+            if (name.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "请输入配置名称", "提示", JOptionPane.WARNING_MESSAGE);
+                nameField.requestFocus();
+                return;
+            }
+            
             confirmed = true;
+            resultName = name;
+            resultDescription = descField.getText().trim();
             resultParamString = editor.getCommandLine();
             dispose();
         });
@@ -110,8 +131,8 @@ public class GuidedParamEditorDialog extends JDialog {
         
         // 对话框设置
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(900, 750);
-        setMinimumSize(new Dimension(800, 600));
+        setSize(900, 780);
+        setMinimumSize(new Dimension(800, 650));
         setLocationRelativeTo(getOwner());
         
         // 窗口关闭事件
@@ -161,6 +182,20 @@ public class GuidedParamEditorDialog extends JDialog {
     }
     
     /**
+     * 获取结果配置名称
+     */
+    public String getResultName() {
+        return resultName;
+    }
+    
+    /**
+     * 获取结果配置描述
+     */
+    public String getResultDescription() {
+        return resultDescription;
+    }
+    
+    /**
      * 获取编辑器组件（用于高级操作）
      */
     public GuidedParamEditor getEditor() {
@@ -168,9 +203,9 @@ public class GuidedParamEditorDialog extends JDialog {
     }
     
     /**
-     * 创建配置信息面板
+     * 创建配置输入面板（可编辑的名称和描述输入框）
      */
-    private JPanel createPresetInfoPanel() {
+    private JPanel createPresetInputPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(BorderFactory.createCompoundBorder(
@@ -185,50 +220,50 @@ public class GuidedParamEditorDialog extends JDialog {
         // 配置名称行
         JPanel nameRow = new JPanel(new BorderLayout(5, 0));
         nameRow.setOpaque(false);
+        nameRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         
         JPanel nameLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         nameLabelPanel.setOpaque(false);
+        nameLabelPanel.setPreferredSize(new Dimension(100, 25));
         JLabel nameIcon = new JLabel("● ");
         nameIcon.setForeground(new Color(99, 102, 241));
         nameLabelPanel.add(nameIcon);
-        JLabel nameLabel = new JLabel("配置名称：");
+        JLabel nameLabel = new JLabel("配置名称");
         nameLabel.setForeground(Color.GRAY);
         nameLabelPanel.add(nameLabel);
+        JLabel requiredMark = new JLabel(" *");
+        requiredMark.setForeground(Color.RED);
+        nameLabelPanel.add(requiredMark);
         nameRow.add(nameLabelPanel, BorderLayout.WEST);
         
-        JLabel nameValue = new JLabel(presetName);
-        nameValue.setForeground(new Color(99, 102, 241));
-        nameValue.setFont(nameValue.getFont().deriveFont(Font.BOLD));
-        nameRow.add(nameValue, BorderLayout.CENTER);
+        nameField = new JTextField();
+        nameField.setText(presetName != null ? presetName : "");
+        nameField.setFont(nameField.getFont().deriveFont(Font.BOLD));
+        nameRow.add(nameField, BorderLayout.CENTER);
         
         panel.add(nameRow);
+        panel.add(Box.createVerticalStrut(6));
         
-        // 配置描述行（始终显示，无描述时显示占位文本）
-        panel.add(Box.createVerticalStrut(4));
-        
+        // 配置描述行
         JPanel descRow = new JPanel(new BorderLayout(5, 0));
         descRow.setOpaque(false);
+        descRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         
         JPanel descLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         descLabelPanel.setOpaque(false);
+        descLabelPanel.setPreferredSize(new Dimension(100, 25));
         JLabel descIcon = new JLabel("○ ");
         descIcon.setForeground(new Color(99, 102, 241));
         descLabelPanel.add(descIcon);
-        JLabel descLabel = new JLabel("描    述：");
+        JLabel descLabel = new JLabel("描    述");
         descLabel.setForeground(Color.GRAY);
         descLabelPanel.add(descLabel);
         descRow.add(descLabelPanel, BorderLayout.WEST);
         
-        String descText = (presetDescription != null && !presetDescription.isEmpty()) 
-            ? presetDescription : "(无描述)";
-        JLabel descValue = new JLabel(descText);
-        if (presetDescription == null || presetDescription.isEmpty()) {
-            descValue.setForeground(Color.GRAY);
-        } else {
-            descValue.setForeground(Color.DARK_GRAY);
-        }
-        descValue.setFont(descValue.getFont().deriveFont(Font.ITALIC));
-        descRow.add(descValue, BorderLayout.CENTER);
+        descField = new JTextField();
+        descField.setText(presetDescription != null ? presetDescription : "");
+        descField.setFont(descField.getFont().deriveFont(Font.ITALIC));
+        descRow.add(descField, BorderLayout.CENTER);
         
         panel.add(descRow);
         

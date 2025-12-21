@@ -142,7 +142,7 @@ import dayjs from 'dayjs'
 import type { ScanPreset, ScanPresetCreate, ScanPresetUpdate } from '@/types/scanPreset'
 import { useScanPresetStore } from '@/stores/scanPreset'
 import { toParameterString, parseParameterString } from '@/utils/scanConfigParser'
-import GuidedParamEditorDialog from '@/components/GuidedParamEditorDialog.vue'
+import GuidedParamEditorDialog, { type GuidedEditorResult } from '@/components/GuidedParamEditorDialog.vue'
 
 const emit = defineEmits<{
   select: [preset: ScanPreset]
@@ -316,25 +316,29 @@ function showGuidedEditDialog() {
 }
 
 // 引导式编辑器确认回调
-async function onGuidedEditorConfirm(paramString: string) {
+async function onGuidedEditorConfirm(result: GuidedEditorResult) {
   try {
-    const parseResult = parseParameterString(paramString)
+    const parseResult = parseParameterString(result.paramString)
     
     if (guidedEditorMode.value === 'edit' && editingId.value) {
       // 编辑模式：更新现有配置
       await scanPresetStore.updatePreset(editingId.value, {
-        name: editForm.value.name,
-        description: editForm.value.description,
-        parameter_string: paramString,
+        name: result.name,
+        description: result.description,
+        parameter_string: result.paramString,
         options: parseResult.options
       })
       toast.add({ severity: 'success', summary: '更新成功', life: 2000 })
     } else {
-      // 新增模式：弹出名称输入对话框
-      editForm.value = { name: '', description: '', parameter_string: paramString }
-      dialogTitle.value = '保存引导式配置'
-      showDialog.value = true
-      return // 等待用户在对话框中输入名称后保存
+      // 新增模式：直接保存，名称和描述已经在结果中
+      await scanPresetStore.createPreset({
+        name: result.name,
+        description: result.description,
+        preset_type: 'preset',
+        parameter_string: result.paramString,
+        options: parseResult.options
+      })
+      toast.add({ severity: 'success', summary: '添加成功', life: 2000 })
     }
     
     await refreshTable()
