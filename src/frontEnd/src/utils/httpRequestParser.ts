@@ -261,51 +261,112 @@ function parseCurlCmd(input: string): ParsedHttpRequest | null {
 
 /**
  * 解析 PowerShell 格式
+ * 
+ * PowerShell 特殊字符处理:
+ * - ` (反引号) 是转义字符
+ * - `" 表示转义的双引号
+ * - ` + 换行 是续行符
+ * - @{ } 是哈希表语法
  */
 function parsePowerShell(input: string): ParsedHttpRequest | null {
   try {
-    let normalized = input.replace(/`\s*\n\s*/g, ' ').trim()
+    // Step 1: 处理 PowerShell 续行符 (反引号 + 换行)
+    let normalized = input.replace(/`\s*\r?\n\s*/g, ' ').trim()
     
-    // 提取URL
+    // Step 2: 提取URL (在处理转义之前，因为URL通常不包含转义字符)
     let url = ''
-    const urlMatch = normalized.match(/(?:Invoke-WebRequest|Invoke-RestMethod|iwr)\s+(?:-Uri\s+)?['"]?(https?:\/\/[^\s'"]+)['"]?/i)
-    if (urlMatch && urlMatch[1]) {
-      url = urlMatch[1]
+    // 匹配 -Uri "url" 或 -Uri 'url' 或直接跟在命令后面的URL
+    const urlPatterns = [
+      /(?:Invoke-WebRequest|Invoke-RestMethod|iwr)\s+(?:-[^U]\w+\s+[^-]+\s+)*-Uri\s+"([^"]+)"/i,
+      /(?:Invoke-WebRequest|Invoke-RestMethod|iwr)\s+(?:-[^U]\w+\s+[^-]+\s+)*-Uri\s+'([^']+)'/i,
+      /(?:Invoke-WebRequest|Invoke-RestMethod|iwr)\s+(?:-UseBasicParsing\s+)?-Uri\s+"([^"]+)"/i,
+      /(?:Invoke-WebRequest|Invoke-RestMethod|iwr)\s+"(https?:\/\/[^"]+)"/i,
+      /(?:Invoke-WebRequest|Invoke-RestMethod|iwr)\s+'(https?:\/\/[^']+)'/i
+    ]
+    for (const pattern of urlPatterns) {
+      const match = normalized.match(pattern)
+      if (match && match[1]) {
+        url = match[1]
+        break
+      }
     }
         
-    // 提取方法
+    // Step 3: 提取方法
     let method = 'GET'
-    const methodMatch = normalized.match(/-Method\s+['"]?(\w+)['"]?/i)
+    const methodMatch = normalized.match(/-Method\s+['"]?(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)['"]?/i)
     if (methodMatch && methodMatch[1]) {
       method = methodMatch[1].toUpperCase()
     }
-        
-    // 提取Headers - PowerShell使用 @{ } 语法
-    const headers: Record<string, string> = {}
-    const headersMatch = normalized.match(/-Headers\s+@\{([^}]+)\}/i)
-    if (headersMatch && headersMatch[1]) {
-      const headerBlock = headersMatch[1]
-      // 解析 "Name"="Value" 或 'Name'='Value' 格式
-      const headerPairs = headerBlock.match(/['"]([^'"]+)['"]\s*=\s*['"]([^'"]+)['"]/g)
-      if (headerPairs) {
-        headerPairs.forEach(pair => {
-          const pairMatch = pair.match(/['"]([^'"]+)['"]\s*=\s*['"]([^'"]+)['"]/) 
-          if (pairMatch && pairMatch[1] && pairMatch[2]) {
-            headers[pairMatch[1]] = pairMatch[2]
-          }
-        })
-      }
+    
+    // Step 4: 提取 ContentType
+    let contentType = ''
+    const contentTypeMatch = normalized.match(/-ContentType\s+['"]([^'"]+)['"]/i)
+    if (contentTypeMatch && contentTypeMatch[1]) {
+      contentType = contentTypeMatch[1]
     }
         
-    // 提取Body
-    let body = ''
-    const bodyMatch = normalized.match(/-Body\s+['"]([^'"]+)['"]/i) ||
-                      normalized.match(/-Body\s+@['"]([^'"]+)['"]/i)
-    if (bodyMatch && bodyMatch[1]) {
-      body = bodyMatch[1]
-      if (!methodMatch) {
-        method = 'POST'
+    // Step 5: 提取Headers - PowerShell使用 @{ } 语法
+    const headers: Record<string, string> = {}
+    // 匹配 @{ 到 } 之间的内容，包括换行
+    const headersMatch = normalized.match(/-Headers\s+@\{([\s\S]*?)\}(?=\s+-|\s*$)/i)
+    if (headersMatch && headersMatch[1]) {
+      const headerBlock = headersMatch[1]
+      
+      // 解析每一行 header
+      // 格式: "Name"="Value" 或 'Name'='Value'
+      // PowerShell 中 `" 表示转义的双引号
+      const headerRegex = /['"]([^'"]+)['"]\s*=\s*"((?:[^"`]|`")*)"/g
+      let headerMatch
+      while ((headerMatch = headerRegex.exec(headerBlock)) !== null) {
+        if (headerMatch[1] && headerMatch[2] !== undefined) {
+          // 处理 PowerShell 转义: `" => "
+          let value = headerMatch[2].replace(/`"/g, '"')
+          // 处理其他转义: `` => `, `n => newline 等
+          value = value.replace(/``/g, '`')
+          headers[headerMatch[1]] = value
+        }
       }
+      
+      // 也尝试匹配单引号格式
+      const singleQuoteRegex = /['"]([^'"]+)['"]\s*=\s*'([^']*)'/g
+      while ((headerMatch = singleQuoteRegex.exec(headerBlock)) !== null) {
+        if (headerMatch[1] && headerMatch[2] !== undefined && !headers[headerMatch[1]]) {
+          headers[headerMatch[1]] = headerMatch[2]
+        }
+      }
+    }
+    
+    // 如果提取到了 ContentType，添加到 headers
+    if (contentType && !headers['Content-Type'] && !headers['content-type']) {
+      headers['Content-Type'] = contentType
+    }
+        
+    // Step 6: 提取Body
+    let body = ''
+    // 匹配 -Body "content" 其中 content 可能包含 `" 转义
+    const bodyPatterns = [
+      /-Body\s+"((?:[^"`]|`["\\tnr])*)"/i,  // 双引号，处理 `" 转义
+      /-Body\s+'([^']*)'/i,                     // 单引号
+      /-Body\s+@"([\s\S]*?)"@/i                 // Here-String
+    ]
+    
+    for (const pattern of bodyPatterns) {
+      const match = normalized.match(pattern)
+      if (match && match[1] !== undefined) {
+        body = match[1]
+        // 处理 PowerShell 转义
+        body = body.replace(/`"/g, '"')   // `" => "
+        body = body.replace(/`n/g, '\n')  // `n => newline
+        body = body.replace(/`r/g, '\r')  // `r => carriage return
+        body = body.replace(/`t/g, '\t')  // `t => tab
+        body = body.replace(/``/g, '`')   // `` => `
+        break
+      }
+    }
+    
+    // 如果有 body 但没有明确指定方法，默认为 POST
+    if (body && !methodMatch) {
+      method = 'POST'
     }
     
     if (!url) {
