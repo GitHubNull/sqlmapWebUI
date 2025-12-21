@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.7.6-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.7.7-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -252,6 +252,11 @@ sqlmapWebUI/
 请在使用前阅读 [免责声明](DISCLAIMER.md)。
 
 ## 📝 更新日志
+
+### v1.7.7 (2024-12)
+- 更新所有项目文档反映最新功能特性
+- 完善 AGENTS.md 和 CLAUDE.md AI 编程指南
+- 优化用户使用指南文档
 
 ### v1.7.6 (2024-12)
 - 新增扫描配置预设管理（默认配置/常用配置/历史配置）
