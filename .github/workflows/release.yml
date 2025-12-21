@@ -490,72 +490,73 @@ jobs:
           # 生成比较链接
           if [ -n "$PREV_TAG" ]; then
             COMPARE_URL="https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${GITHUB_REF_NAME}"
-            COMPARE_SECTION="\n[📊 查看完整代码变更](${COMPARE_URL}) | 共 ${TOTAL_COMMITS} 个提交，${CONTRIBUTORS} 位贡献者\n"
+            COMPARE_SECTION="[📊 查看完整代码变更](${COMPARE_URL}) | 共 ${TOTAL_COMMITS} 个提交，${CONTRIBUTORS} 位贡献者"
           else
-            COMPARE_SECTION="\n*这是首次发布版本*\n"
+            COMPARE_SECTION="这是首次发布版本"
           fi
           
           cat > release_notes.md << EOF
-          # SQLMap WebUI v${VERSION}
-          
-          ## 📋 版本概述
-          
-          发布日期: $(date +'%Y-%m-%d')
-          ${COMPARE_SECTION}
-          
-          ## 🔄 更新内容
-          
-          ${CHANGELOG_CONTENT}
-          
-          ---
-          
-          ## 📦 发布包说明
-          
-          ### 后端应用 (sqlmapwebui-${VERSION}.zip)
-          完整的后端服务包，包含：
-          - Python 后端 API 服务
-          - 前端静态资源（已集成）
-          - 启动脚本 (start.sh / start.bat)
-          
-          **使用方法：**
-          \`\`\`bash
-          # Linux/Mac
-          unzip sqlmapwebui-${VERSION}.zip
-          cd sqlmapwebui-${VERSION}
-          ./start.sh
-          
-          # Windows
-          # 解压后运行 start.bat
-          \`\`\`
-          
-          ### Burp Suite 插件
-          
-          #### Montoya API 版本 (推荐)
-          - **文件**: sqlmap-webui-burp-montoya-${VERSION}.jar
-          - **适用**: Burp Suite 2023.1 及以上版本
-          - **Java 要求**: Java 17+
-          
-          #### Legacy API 版本
-          - **文件**: sqlmap-webui-burp-legacy-${VERSION}.jar
-          - **适用**: Burp Suite 老版本
-          - **Java 要求**: Java 11+
-          
-          ### 漏洞测试靶场 (vulnTestServer-${VERSION}.zip)
-          用于测试的漏洞环境，包含多种 SQL 注入场景。
-          
-          **使用方法：**
-          \`\`\`bash
-          unzip vulnTestServer-${VERSION}.zip
-          cd vulnTestServer-${VERSION}
-          ./start.sh  # 或 Windows 运行 start.bat
-          \`\`\`
-          
-          ## ⚠️ 安全提示
-          本工具仅用于授权的安全测试。请确保在使用前获得适当的授权。
-          
-          ---
-          *此版本由 GitHub Actions 自动构建发布*
-          EOF
+# SQLMap WebUI v${VERSION}
+
+## 📋 版本概述
+
+发布日期: $(date +'%Y-%m-%d')
+
+${COMPARE_SECTION}
+
+## 🔄 更新内容
+
+${CHANGELOG_CONTENT}
+
+---
+
+## 📦 发布包说明
+
+### 后端应用 (sqlmapwebui-${VERSION}.zip)
+完整的后端服务包，包含：
+- Python 后端 API 服务
+- 前端静态资源（已集成）
+- 启动脚本 (start.sh / start.bat)
+
+**使用方法：**
+\`\`\`bash
+# Linux/Mac
+unzip sqlmapwebui-${VERSION}.zip
+cd sqlmapwebui-${VERSION}
+./start.sh
+
+# Windows
+# 解压后运行 start.bat
+\`\`\`
+
+### Burp Suite 插件
+
+#### Montoya API 版本 (推荐)
+- **文件**: sqlmap-webui-burp-montoya-${VERSION}.jar
+- **适用**: Burp Suite 2023.1 及以上版本
+- **Java 要求**: Java 17+
+
+#### Legacy API 版本
+- **文件**: sqlmap-webui-burp-legacy-${VERSION}.jar
+- **适用**: Burp Suite 老版本
+- **Java 要求**: Java 11+
+
+### 漏洞测试靶场 (vulnTestServer-${VERSION}.zip)
+用于测试的漏洞环境，包含多种 SQL 注入场景。
+
+**使用方法：**
+\`\`\`bash
+unzip vulnTestServer-${VERSION}.zip
+cd vulnTestServer-${VERSION}
+./start.sh  # 或 Windows 运行 start.bat
+\`\`\`
+
+## ⚠️ 安全提示
+本工具仅用于授权的安全测试。请确保在使用前获得适当的授权。
+
+---
+*此版本由 GitHub Actions 自动构建发布*
+EOF
       
       - name: Create Release
         uses: softprops/action-gh-release@v2
