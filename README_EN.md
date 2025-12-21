@@ -1,11 +1,15 @@
 # SQLMap Web UI
 
 <p align="center">
+  <img src="src/frontEnd/public/logo.svg" alt="SQLMap WebUI Logo" width="120" height="120">
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Python-3.13+-blue.svg" alt="Python">
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.7.7-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.7.9-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -260,12 +264,21 @@ Please read the [Disclaimer](DISCLAIMER.md) before use.
 
 ## Changelog
 
-### v1.7.7 (2024-12)
+### v1.7.9 (2025-12)
+- Added project Logo design (shield + injection syringe concept)
+- Web: Updated favicon, status bar, and About page Logo
+- BurpSuite Plugin: Added Help/About dialog (usage help, license, disclaimer)
+- BurpSuite Plugin: About page uses Java2D custom Logo drawing
+- Fixed PrimeVue 4 component deprecation warnings (TabView → Tabs)
+- Fixed JLabel HTML rendering issue in BurpSuite plugin
+- Updated project documentation with Logo display
+
+### v1.7.7 (2025-12)
 - Updated all project documentation to reflect latest features
 - Improved AGENTS.md and CLAUDE.md AI programming guides
 - Optimized user usage guide documentation
 
-### v1.7.6 (2024-12)
+### v1.7.6 (2025-12)
 - Added scan configuration preset management (default/preset/history)
 - Added guided parameter editor
 - Added HTTP request parser (supports cURL/PowerShell/fetch/raw HTTP)
@@ -273,7 +286,7 @@ Please read the [Disclaimer](DISCLAIMER.md) before use.
 - Frontend code modular refactoring
 - Fixed fetch parser escaped quotes handling issue
 
-### v1.6.0 (2024-12)
+### v1.6.0 (2025-12)
 - Added header rules scope configuration feature
 - Added session-level header management
 - Added batch header import functionality
@@ -282,12 +295,12 @@ Please read the [Disclaimer](DISCLAIMER.md) before use.
 - Optimized smart polling strategy
 - Updated project documentation
 
-### v1.5.1 (2024-12)
+### v1.5.1 (2025-12)
 - Updated project documentation
 - Improved Burp Suite plugin integration
 - Fixed backend configuration issues
 
-### v1.5.0 (2024-12)
+### v1.5.0 (2025-12)
 - Added VulnShop SQL injection testing lab
 - Support for 8 SQL injection vulnerability types
 - Modern UI with light/dark theme support

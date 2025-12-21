@@ -1,5 +1,9 @@
 # 免责声明 (Disclaimer)
 
+<p align="center">
+  <img src="src/frontEnd/public/logo.svg" alt="SQLMap WebUI Logo" width="80" height="80">
+</p>
+
 ## 中文版
 
 ### 重要声明
@@ -94,4 +98,4 @@ If you discover any security vulnerabilities or have any questions, please conta
 
 ---
 
-**最后更新 / Last Updated**: 2024-12
+**最后更新 / Last Updated**: 2025-12

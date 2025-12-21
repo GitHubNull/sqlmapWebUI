@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <!-- 主渐变 - 紫色到蓝色 -->
+    <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6"/>
+      <stop offset="50%" style="stop-color:#6366F1"/>
+      <stop offset="100%" style="stop-color:#06B6D4"/>
+    </linearGradient>
+    <!-- 高光渐变 -->
+    <linearGradient id="highlightGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.3)"/>
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0)"/>
+    </linearGradient>
+    <!-- 阴影 -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#6366F1" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- 盾牌主体 -->
+  <path d="M256 48 L448 112 L448 240 C448 360 256 464 256 464 C256 464 64 360 64 240 L64 112 Z" 
+        fill="url(#mainGradient)" 
+        filter="url(#shadow)"/>
+  
+  <!-- 盾牌高光 -->
+  <path d="M256 48 L448 112 L448 180 C380 160 256 150 256 150 C256 150 132 160 64 180 L64 112 Z" 
+        fill="url(#highlightGradient)"/>
+  
+  <!-- SQL 注入针头图标 -->
+  <g transform="translate(256, 256)">
+    <!-- 针筒主体 -->
+    <rect x="-24" y="-100" width="48" height="120" rx="8" fill="white" opacity="0.95"/>
+    <!-- 针筒刻度线 -->
+    <rect x="-16" y="-80" width="32" height="4" fill="#8B5CF6" opacity="0.6"/>
+    <rect x="-16" y="-60" width="32" height="4" fill="#8B5CF6" opacity="0.6"/>
+    <rect x="-16" y="-40" width="32" height="4" fill="#8B5CF6" opacity="0.6"/>
+    <!-- 针头 -->
+    <polygon points="-8,20 8,20 4,80 -4,80" fill="white" opacity="0.95"/>
+    <polygon points="-4,80 4,80 0,100" fill="white" opacity="0.9"/>
+    <!-- 推杆 -->
+    <rect x="-16" y="-130" width="32" height="30" rx="4" fill="white" opacity="0.85"/>
+    <rect x="-10" y="-140" width="20" height="16" rx="3" fill="white" opacity="0.8"/>
+  </g>
+  
+  <!-- 数据流效果 (SQL符号) -->
+  <text x="140" y="280" font-family="Consolas, monospace" font-size="36" font-weight="bold" fill="white" opacity="0.7">;</text>
+  <text x="352" y="320" font-family="Consolas, monospace" font-size="36" font-weight="bold" fill="white" opacity="0.7">'</text>
+  <text x="160" y="360" font-family="Consolas, monospace" font-size="32" font-weight="bold" fill="white" opacity="0.5">--</text>
+  
+  <!-- 盾牌边框 -->
+  <path d="M256 48 L448 112 L448 240 C448 360 256 464 256 464 C256 464 64 360 64 240 L64 112 Z" 
+        fill="none" 
+        stroke="rgba(255,255,255,0.3)" 
+        stroke-width="4"/>
+</svg>

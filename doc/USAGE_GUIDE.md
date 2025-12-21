@@ -1,5 +1,9 @@
 # SQLMap Web UI 使用指南
 
+<p align="center">
+  <img src="../src/frontEnd/public/logo.svg" alt="SQLMap WebUI Logo" width="80" height="80">
+</p>
+
 本文档详细介绍 SQLMap Web UI 的完整使用方法，包括主应用、VulnShop 靶场和扩展插件。
 
 ## 目录

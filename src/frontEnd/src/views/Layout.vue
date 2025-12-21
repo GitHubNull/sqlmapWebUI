@@ -3,7 +3,7 @@
     <!-- 顶部状态栏 -->
     <header class="status-bar">
       <div class="status-bar-left">
-        <Avatar icon="pi pi-shield" class="app-logo" shape="circle" size="normal" />
+        <img src="/favicon.svg" alt="SQLMap WebUI Logo" class="app-logo-img" />
         <span class="app-name">SqlmapWebUI</span>
       </div>
       <div class="status-bar-right">
@@ -338,22 +338,19 @@ onUnmounted(() => {
   z-index: 2;
 }
 
-.app-logo {
-  background: $gradient-primary;
-  color: white;
+.app-logo-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   box-shadow:
     $shadow-raised,
-    inset 0 1px 2px rgba(255, 255, 255, 0.3),
     0 0 20px rgba(99, 102, 241, 0.4);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  transform: scale(1.1);
   transition: $transition-base;
 
   &:hover {
-    transform: scale(1.2) rotate(5deg);
+    transform: scale(1.15) rotate(5deg);
     box-shadow:
       $shadow-floating,
-      inset 0 1px 2px rgba(255, 255, 255, 0.4),
       0 0 30px rgba(99, 102, 241, 0.6);
   }
 }
