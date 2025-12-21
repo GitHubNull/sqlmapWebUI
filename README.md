@@ -1,11 +1,15 @@
 # SQLMap Web UI
 
 <p align="center">
+  <img src="src/frontEnd/public/logo.svg" alt="SQLMap WebUI Logo" width="120" height="120">
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Python-3.13+-blue.svg" alt="Python">
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.7.7-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.7.9-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -63,7 +67,6 @@
 - **批量导入**: 支持从文本批量导入请求头
 
 ### 扩展集成
-- **Chrome 扩展**: 从浏览器直接发送请求到扫描平台
 - **Burp Suite 插件**: 支持 Legacy API 和 Montoya API 两种版本
   - 右键菜单快速发送请求
   - 可配置扫描参数（Level、Risk、DBMS、Technique）
@@ -109,7 +112,6 @@
 - **Burp Suite 插件**
   - Montoya API (Java 17+, Burp 2023.1+)
   - Legacy API (Java 11+)
-- **Chrome 扩展** - JavaScript
 
 ## 🚀 快速开始
 
@@ -177,7 +179,7 @@ sqlmapWebUI/
 ├── src/
 │   ├── backEnd/                 # 后端代码
 │   │   ├── api/                 # API 路由
-│   │   │   ├── chromeExApi/     # Chrome 扩展 API
+│   │   │   ├── chromeExApi/     # Chrome 浏览器页面 API
 │   │   │   ├── burpSuiteExApi/  # Burp Suite API
 │   │   │   └── commonApi/       # 通用 API (认证/请求头规则/配置)
 │   │   ├── model/               # 数据模型
@@ -253,12 +255,21 @@ sqlmapWebUI/
 
 ## 📝 更新日志
 
-### v1.7.7 (2024-12)
+### v1.7.9 (2025-12)
+- 新增项目 Logo 设计（盾牌+注入针头概念）
+- Web 端：更新 favicon、状态栏、关于页面 Logo
+- BurpSuite 插件：新增帮助/关于对话框（含使用帮助、开源协议、免责声明）
+- BurpSuite 插件：关于页面使用 Java2D 绘制自定义 Logo
+- 修复 PrimeVue 4 组件废弃警告（TabView → Tabs）
+- 修复 BurpSuite 插件中 JLabel HTML 渲染问题
+- 更新项目文档添加 Logo 展示
+
+### v1.7.7 (2025-12)
 - 更新所有项目文档反映最新功能特性
 - 完善 AGENTS.md 和 CLAUDE.md AI 编程指南
 - 优化用户使用指南文档
 
-### v1.7.6 (2024-12)
+### v1.7.6 (2025-12)
 - 新增扫描配置预设管理（默认配置/常用配置/历史配置）
 - 新增引导式参数编辑器
 - 新增 HTTP 请求解析器（支持 cURL/PowerShell/fetch/原始 HTTP）
@@ -266,7 +277,7 @@ sqlmapWebUI/
 - 前端代码模块化重构
 - 修复 fetch 解析器转义引号处理问题
 
-### v1.6.0 (2024-12)
+### v1.6.0 (2025-12)
 - 新增请求头规则作用域配置功能
 - 新增会话级请求头管理
 - 新增批量请求头导入功能
@@ -275,12 +286,12 @@ sqlmapWebUI/
 - 智能轮询策略优化
 - 更新项目文档
 
-### v1.5.1 (2024-12)
+### v1.5.1 (2025-12)
 - 更新项目文档
 - 改进 Burp Suite 插件集成
 - 修复后端配置问题
 
-### v1.5.0 (2024-12)
+### v1.5.0 (2025-12)
 - 新增 VulnShop SQL 注入测试靶场
 - 支持 8 种 SQL 注入漏洞类型
 - 现代化 UI，支持亮色/暗色主题

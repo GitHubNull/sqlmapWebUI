@@ -3,6 +3,7 @@ package com.sqlmapwebui.burp.dialogs;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.geom.*;
 
 /**
  * 关于/帮助对话框
@@ -11,6 +12,91 @@ import java.awt.*;
 public class AboutDialog extends JDialog {
     
     private static final String VERSION = "1.7.9";
+    
+    /**
+     * 自定义Logo组件 - 绘制盾牌+注入针头图标
+     */
+    private static class LogoPanel extends JPanel {
+        private final int size;
+        
+        public LogoPanel(int size) {
+            this.size = size;
+            setPreferredSize(new Dimension(size, size));
+            setOpaque(false);
+        }
+        
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            
+            float scale = size / 64f;
+            
+            // 盾牌路径
+            Path2D shield = new Path2D.Float();
+            shield.moveTo(32 * scale, 4 * scale);  // 顶部中心
+            shield.lineTo(56 * scale, 12 * scale); // 右上
+            shield.lineTo(56 * scale, 28 * scale); // 右中
+            shield.quadTo(56 * scale, 48 * scale, 32 * scale, 60 * scale); // 右曲线到底部
+            shield.quadTo(8 * scale, 48 * scale, 8 * scale, 28 * scale);   // 左曲线
+            shield.lineTo(8 * scale, 12 * scale);  // 左上
+            shield.closePath();
+            
+            // 渐变填充
+            GradientPaint gradient = new GradientPaint(
+                0, 0, new Color(139, 92, 246),      // 紫色
+                size, size, new Color(6, 182, 212)   // 青色
+            );
+            g2d.setPaint(gradient);
+            g2d.fill(shield);
+            
+            // 盾牌边框
+            g2d.setColor(new Color(255, 255, 255, 60));
+            g2d.setStroke(new BasicStroke(2 * scale));
+            g2d.draw(shield);
+            
+            // 注射器主体
+            g2d.setColor(new Color(255, 255, 255, 240));
+            RoundRectangle2D syringe = new RoundRectangle2D.Float(
+                28 * scale, 16 * scale, 8 * scale, 20 * scale, 3 * scale, 3 * scale
+            );
+            g2d.fill(syringe);
+            
+            // 注射器刻度
+            g2d.setColor(new Color(139, 92, 246, 150));
+            g2d.fillRect((int)(30 * scale), (int)(20 * scale), (int)(4 * scale), (int)(2 * scale));
+            g2d.fillRect((int)(30 * scale), (int)(26 * scale), (int)(4 * scale), (int)(2 * scale));
+            
+            // 针头
+            g2d.setColor(new Color(255, 255, 255, 230));
+            Path2D needle = new Path2D.Float();
+            needle.moveTo(29 * scale, 36 * scale);
+            needle.lineTo(35 * scale, 36 * scale);
+            needle.lineTo(33 * scale, 48 * scale);
+            needle.lineTo(31 * scale, 48 * scale);
+            needle.closePath();
+            g2d.fill(needle);
+            
+            // 针尖
+            Path2D tip = new Path2D.Float();
+            tip.moveTo(31 * scale, 48 * scale);
+            tip.lineTo(33 * scale, 48 * scale);
+            tip.lineTo(32 * scale, 54 * scale);
+            tip.closePath();
+            g2d.fill(tip);
+            
+            // 推杆
+            g2d.setColor(new Color(255, 255, 255, 200));
+            RoundRectangle2D plunger = new RoundRectangle2D.Float(
+                29 * scale, 10 * scale, 6 * scale, 6 * scale, 2 * scale, 2 * scale
+            );
+            g2d.fill(plunger);
+            
+            g2d.dispose();
+        }
+    }
     
     public AboutDialog(Frame parent) {
         super(parent, "关于 SQLMap WebUI Extension", true);
@@ -63,11 +149,9 @@ public class AboutDialog extends JDialog {
         // 顶部：图标和基本信息
         JPanel headerPanel = new JPanel(new BorderLayout(15, 10));
         
-        // 创建一个图标标签（使用文字模拟）
-        JLabel iconLabel = new JLabel("🛡", JLabel.CENTER);
-        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 48));
-        iconLabel.setPreferredSize(new Dimension(80, 80));
-        headerPanel.add(iconLabel, BorderLayout.WEST);
+        // 创建自定义Logo组件
+        LogoPanel logoPanel = new LogoPanel(72);
+        headerPanel.add(logoPanel, BorderLayout.WEST);
         
         // 标题和版本
         JPanel titlePanel = new JPanel();
@@ -84,9 +168,13 @@ public class AboutDialog extends JDialog {
         titlePanel.add(versionLabel);
         titlePanel.add(Box.createVerticalStrut(10));
         
-        JLabel descLabel = new JLabel("<html>一个用于 Burp Suite 的 SQLMap 集成插件，<br>可快速将HTTP请求发送至SQLMap后端进行SQL注入检测。</html>");
-        descLabel.setFont(new Font("Microsoft YaHei", Font.PLAIN, 12));
-        titlePanel.add(descLabel);
+        JLabel descLabel1 = new JLabel("一个用于 Burp Suite 的 SQLMap 集成插件，");
+        descLabel1.setFont(new Font("Microsoft YaHei", Font.PLAIN, 12));
+        titlePanel.add(descLabel1);
+        
+        JLabel descLabel2 = new JLabel("可快速将HTTP请求发送至SQLMap后端进行SQL注入检测。");
+        descLabel2.setFont(new Font("Microsoft YaHei", Font.PLAIN, 12));
+        titlePanel.add(descLabel2);
         
         headerPanel.add(titlePanel, BorderLayout.CENTER);
         panel.add(headerPanel, BorderLayout.NORTH);

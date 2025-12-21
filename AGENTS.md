@@ -7,7 +7,7 @@ This file provides guidance to AI coding assistants when working with this repos
 SQLMap Web UI is a comprehensive SQL injection testing platform that includes:
 - **Main Application**: FastAPI backend + Vue 3 frontend web interface
 - **VulnShop Lab**: Built-in vulnerability testing environment
-- **Browser Extensions**: Chrome extension and Burp Suite plugins
+- **Browser Extensions**: Burp Suite plugins
 
 ## Project Structure
 
@@ -16,7 +16,7 @@ sqlmapWebUI/
 ├── src/
 │   ├── backEnd/           # FastAPI backend service (Python 3.13+)
 │   │   ├── api/           # API routes
-│   │   │   ├── chromeExApi/      # Chrome extension API
+│   │   │   ├── chromeExApi/      # Chrome browser page API
 │   │   │   ├── burpSuiteExApi/   # Burp Suite plugin API
 │   │   │   └── commonApi/        # Common APIs (auth, headers, config)
 │   │   ├── model/         # Data models

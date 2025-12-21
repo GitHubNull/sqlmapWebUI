@@ -20,7 +20,7 @@
             <TabPanel value="0">
             <div class="about-content">
               <div class="app-info">
-                <Avatar icon="pi pi-shield" class="app-logo" shape="circle" size="xlarge" />
+                <img src="/logo.svg" alt="SQLMap WebUI Logo" class="app-logo-img" />
                 <div class="app-details">
                   <h1>SQLMap Web UI</h1>
                   <p class="version">版本 {{ version }}</p>
@@ -213,7 +213,6 @@ import TabList from 'primevue/tablist'
 import Tab from 'primevue/tab'
 import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
-import Avatar from 'primevue/avatar'
 import Divider from 'primevue/divider'
 import Tag from 'primevue/tag'
 import Button from 'primevue/button'
@@ -336,12 +335,11 @@ function openLink(url: string) {
   align-items: center;
   gap: 1.5rem;
   
-  .app-logo {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-600));
-    color: white;
+  .app-logo-img {
     width: 80px;
     height: 80px;
-    font-size: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
   }
   
   .app-details {

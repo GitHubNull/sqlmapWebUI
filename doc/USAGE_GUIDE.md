@@ -1,5 +1,9 @@
 # SQLMap Web UI 使用指南
 
+<p align="center">
+  <img src="../src/frontEnd/public/logo.svg" alt="SQLMap WebUI Logo" width="80" height="80">
+</p>
+
 本文档详细介绍 SQLMap Web UI 的完整使用方法，包括主应用、VulnShop 靶场和扩展插件。
 
 ## 目录
@@ -24,7 +28,7 @@ SQLMap Web UI 是一个完整的 SQL 注入测试平台，包含三个主要组�
 |------|------|------|
 | Web 应用 | SQL 注入扫描任务管理界面 | 8775 (后端) / 5173 (前端开发) |
 | VulnShop 靶场 | 内置漏洞测试环境 | 9527 |
-| 扩展插件 | Chrome 扩展 / Burp Suite 插件 | - |
+| 扩展插件 | Burp Suite 插件 | - |
 
 ### 系统要求
 
@@ -504,12 +508,6 @@ mvn clean package -DskipTests
 | Risk | 风险级别 (1-3) | 1 |
 | DBMS | 数据库类型 | 自动检测 |
 | Technique | 注入技术 | BEUSTQ (全部) |
-
-### 7.2 Chrome 扩展
-
-1. 加载扩展到 Chrome
-2. 配置后端服务器地址
-3. 在目标页面右键选择发送请求
 
 ---
 

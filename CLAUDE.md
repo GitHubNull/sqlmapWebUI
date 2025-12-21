@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 SQLMap Web UI 是一个完整的 SQL 注入测试平台，包含：
 - **主应用**: FastAPI + Vue 3 的 Web 界面
 - **VulnShop 靶场**: 内置漏洞测试环境
-- **浏览器扩展**: Chrome 扩展和 Burp Suite 插件
+- **浏览器扩展**: Burp Suite 插件
 
 ## 项目架构
 
@@ -27,7 +27,7 @@ sqlmapWebUI/
 - `app.py` - FastAPI 应用核心，包含 CORS 配置、路由挂载
 - `config.py` - 版本号和全局配置
 - `api/` - API 路由模块
-  - `chromeExApi/` - Chrome 扩展相关 API
+  - `chromeExApi/` - Chrome 浏览器页面 API
   - `burpSuiteExApi/` - Burp Suite 扩展相关 API
   - `commonApi/` - 通用 API
     - `headerController.py` - 请求头规则管理 API

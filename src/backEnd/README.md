@@ -44,7 +44,7 @@
   - 正则表达式支持
 
 ### 扩展集成
-- Chrome 扩展 API
+- Chrome 浏览器页面 API
 - Burp Suite 插件 API
 - 统一的认证机制
 
@@ -80,7 +80,7 @@ uv run python main.py
 ```
 src/backEnd/
 ├── api/                      # API 路由模块
-│   ├── chromeExApi/          # Chrome 扩展 API
+│   ├── chromeExApi/          # Chrome 浏览器页面 API
 │   │   └── admin.py          # 任务管理接口
 │   ├── burpSuiteExApi/       # Burp Suite 插件 API
 │   │   └── admin.py          # 扫描提交接口
