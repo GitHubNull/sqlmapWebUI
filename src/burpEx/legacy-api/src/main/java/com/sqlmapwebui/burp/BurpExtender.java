@@ -116,7 +116,7 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
         stdout.println("[+] " + EXTENSION_NAME + " v" + EXTENSION_VERSION + " (Legacy API) loaded successfully!");
         stdout.println("[+] Backend URL: " + configManager.getBackendUrl());
         stdout.println("[+] 功能: 提交扫描任务、配置管理");
-        stdout.println("[+] 右键菜单: Send to SQLMap WebUI / Send to SQLMap WebUI (选择配置)...");
+        stdout.println("[+] 右键菜单: Send to SQLMap WebUI / Send to SQLMap WebUI (配置扫描)...");
     }
     
     /**
@@ -177,38 +177,45 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
             }
             menuItems.add(sendWithDefault);
             
-            // 选择配置发送
-            JMenuItem sendWithOptions = new JMenuItem("Send to SQLMap WebUI (选择配置)..." + menuSuffix);
+            // 标记注入点并扫描 - 支持多选报文
+            int maxMarkCount = configManager.getMaxInjectionMarkCount();
+            JMenuItem markInjectionPoints = new JMenuItem("标记注入点并扫描 (*)" + menuSuffix);
+            if (filterResult.allBinary()) {
+                markInjectionPoints.setEnabled(false);
+                markInjectionPoints.setToolTipText("所有选中的报文都是二进制格式，无法发起扫描任务");
+            } else {
+                // 超过限制时显示警告但仍然可点击（对话框会处理超限情况）
+                if (filterResult.textCount() > maxMarkCount) {
+                    markInjectionPoints.setToolTipText(
+                        String.format("选中的纯文本报文数量(%d)超过标记上限(%d)，仅前%d个报文可进行注入点标记", 
+                            filterResult.textCount(), maxMarkCount, maxMarkCount));
+                }
+                markInjectionPoints.addActionListener(e -> {
+                    if (filterResult.hasTextMessages()) {
+                        BatchInjectionMarkDialog dialog = new BatchInjectionMarkDialog(
+                            callbacks, apiClient, configManager, uiTab, helpers);
+                        dialog.show(filterResult.textMessages, filterResult.binaryMessages);
+                    }
+                });
+            }
+            menuItems.add(markInjectionPoints);
+            
+            // 配置扫描发送（高级配置对话框）
+            JMenuItem sendWithOptions = new JMenuItem("Send to SQLMap WebUI (配置扫描)..." + menuSuffix);
             if (filterResult.allBinary()) {
                 sendWithOptions.setEnabled(false);
                 sendWithOptions.setToolTipText("所有选中的报文都是二进制格式，无法发起扫描任务");
             } else {
                 sendWithOptions.addActionListener(e -> {
                     if (filterResult.hasTextMessages()) {
-                        ConfigSelectionDialog dialog = new ConfigSelectionDialog(
-                            callbacks, apiClient, configManager, uiTab);
-                        dialog.show(filterResult.textMessages.get(0));
+                        // 使用新的高级配置对话框
+                        AdvancedScanConfigDialog dialog = new AdvancedScanConfigDialog(
+                            callbacks, apiClient, configManager, uiTab, helpers);
+                        dialog.show(filterResult.textMessages, filterResult.binaryMessages);
                     }
                 });
             }
             menuItems.add(sendWithOptions);
-            
-            // 标记注入点并扫描
-            JMenuItem markInjectionPoints = new JMenuItem("标记注入点并扫描 (*)" + 
-                (filterResult.allBinary() ? " (二进制报文)" : ""));
-            if (filterResult.allBinary()) {
-                markInjectionPoints.setEnabled(false);
-                markInjectionPoints.setToolTipText("所有选中的报文都是二进制格式，无法发起扫描任务");
-            } else {
-                markInjectionPoints.addActionListener(e -> {
-                    if (filterResult.hasTextMessages()) {
-                        InjectionPointDialog dialog = new InjectionPointDialog(
-                            callbacks, apiClient, configManager, uiTab);
-                        dialog.show(filterResult.textMessages.get(0));
-                    }
-                });
-            }
-            menuItems.add(markInjectionPoints);
             
             // 提交会话Header 和 Header规则 - 仅在选中单条请求时显示
             if (selectedMessages.length == 1 && filterResult.hasTextMessages()) {

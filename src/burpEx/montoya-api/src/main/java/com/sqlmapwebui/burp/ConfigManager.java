@@ -22,11 +22,18 @@ public class ConfigManager {
     private static final String KEY_HISTORY_CONFIGS = "historyConfigs";
     private static final String KEY_MAX_HISTORY_SIZE = "maxHistorySize";
     private static final String KEY_AUTO_DEDUPE = "autoDedupe";
+    private static final String KEY_MAX_INJECTION_MARK_COUNT = "maxInjectionMarkCount";
+    private static final String KEY_SHOW_BINARY_WARNING = "showBinaryWarning";
     
     // 历史记录数量限制
     public static final int MIN_HISTORY_SIZE = 3;
     public static final int MAX_HISTORY_SIZE = 32;
     public static final int DEFAULT_HISTORY_SIZE = 20;
+    
+    // 注入点标记数量限制（批量标记支持更多报文）
+    public static final int MIN_INJECTION_MARK_COUNT = 3;
+    public static final int MAX_INJECTION_MARK_COUNT = 15;
+    public static final int DEFAULT_INJECTION_MARK_COUNT = 10;
     
     private final MontoyaApi api;
     private final PersistedObject persistence;
@@ -36,6 +43,8 @@ public class ConfigManager {
     private String backendUrl = "http://localhost:5000";
     private int maxHistorySize = DEFAULT_HISTORY_SIZE;
     private boolean autoDedupe = true; // 默认开启自动去重
+    private int maxInjectionMarkCount = DEFAULT_INJECTION_MARK_COUNT; // 多选报文时允许标记注入点的最大数量
+    private boolean showBinaryWarning = false; // 是否显示二进制报文警告
     private ScanConfig defaultConfig;
     private List<ScanConfig> presetConfigs;  // 常用配置
     private List<ScanConfig> historyConfigs; // 历史配置
@@ -78,6 +87,23 @@ public class ConfigManager {
         String savedAutoDedupe = persistence.getString(KEY_AUTO_DEDUPE);
         if (savedAutoDedupe != null && !savedAutoDedupe.isEmpty()) {
             autoDedupe = Boolean.parseBoolean(savedAutoDedupe);
+        }
+        
+        // 加载注入点标记数量配置
+        String savedMaxInjectionMarkCount = persistence.getString(KEY_MAX_INJECTION_MARK_COUNT);
+        if (savedMaxInjectionMarkCount != null && !savedMaxInjectionMarkCount.isEmpty()) {
+            try {
+                int count = Integer.parseInt(savedMaxInjectionMarkCount);
+                maxInjectionMarkCount = Math.max(MIN_INJECTION_MARK_COUNT, Math.min(MAX_INJECTION_MARK_COUNT, count));
+            } catch (NumberFormatException e) {
+                maxInjectionMarkCount = DEFAULT_INJECTION_MARK_COUNT;
+            }
+        }
+        
+        // 加载二进制报文警告配置
+        String savedShowBinaryWarning = persistence.getString(KEY_SHOW_BINARY_WARNING);
+        if (savedShowBinaryWarning != null && !savedShowBinaryWarning.isEmpty()) {
+            showBinaryWarning = Boolean.parseBoolean(savedShowBinaryWarning);
         }
         
         // 加载默认配置
@@ -164,6 +190,28 @@ public class ConfigManager {
     public void setAutoDedupe(boolean enabled) {
         this.autoDedupe = enabled;
         persistence.setString(KEY_AUTO_DEDUPE, String.valueOf(enabled));
+    }
+    
+    // ============ 注入点标记数量配置 ============
+    
+    public int getMaxInjectionMarkCount() {
+        return maxInjectionMarkCount;
+    }
+    
+    public void setMaxInjectionMarkCount(int count) {
+        this.maxInjectionMarkCount = Math.max(MIN_INJECTION_MARK_COUNT, Math.min(MAX_INJECTION_MARK_COUNT, count));
+        persistence.setString(KEY_MAX_INJECTION_MARK_COUNT, String.valueOf(this.maxInjectionMarkCount));
+    }
+    
+    // ============ 二进制报文警告配置 ============
+    
+    public boolean isShowBinaryWarning() {
+        return showBinaryWarning;
+    }
+    
+    public void setShowBinaryWarning(boolean show) {
+        this.showBinaryWarning = show;
+        persistence.setString(KEY_SHOW_BINARY_WARNING, String.valueOf(show));
     }
     
     // ============ 连接状态管理 ============

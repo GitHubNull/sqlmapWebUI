@@ -20,8 +20,8 @@ import java.util.stream.Collectors;
  * 
  * 提供右键菜单：
  * 1. Send to SQLMap WebUI - 使用默认配置发送
- * 2. Send to SQLMap WebUI (选择配置)... - 选择配置发送
- * 3. 标记注入点并扫描 (*) - 手动标记注入点
+ * 2. 标记注入点并扫描 (*) - 手动标记注入点
+ * 3. Send to SQLMap WebUI (配置扫描)... - 高级配置发送
  * 4. 提交会话Header - 提交临时会话Header
  * 5. 提交Header规则 - 提交持久化Header规则
  * 
@@ -142,39 +142,46 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
         }
         menuItems.add(sendWithDefault);
         
-        // 菜单项2: 选择配置发送
-        JMenuItem sendWithOptions = new JMenuItem("Send to SQLMap WebUI (选择配置)..." + menuSuffix);
+        // 菜单项2: 标记注入点并扫描 - 支持多选报文
+        JMenuItem markInjectionPoints = new JMenuItem("标记注入点并扫描 (*)" + menuSuffix);
+        if (filterResult.allBinary()) {
+            markInjectionPoints.setEnabled(false);
+            markInjectionPoints.setToolTipText("所有选中的报文都是二进制格式，无法发起扫描任务");
+        } else {
+            // 检查数量限制，超过限制时显示警告但仍然可点击
+            int maxMarkCount = configManager.getMaxInjectionMarkCount();
+            if (filterResult.textCount() > maxMarkCount) {
+                markInjectionPoints.setToolTipText(
+                    String.format("选中的纯文本报文数量(%d)超过标记上限(%d)，仅前%d个报文可进行注入点标记", 
+                        filterResult.textCount(), maxMarkCount, maxMarkCount));
+            }
+            markInjectionPoints.addActionListener(e -> {
+                if (filterResult.hasTextMessages()) {
+                    // 使用新的批量注入点标记对话框
+                    BatchInjectionMarkDialog dialog = new BatchInjectionMarkDialog(
+                        api, apiClient, configManager, uiTab);
+                    dialog.show(filterResult.textMessages, filterResult.binaryMessages);
+                }
+            });
+        }
+        menuItems.add(markInjectionPoints);
+        
+        // 菜单项3: 配置扫描发送（高级配置对话框）
+        JMenuItem sendWithOptions = new JMenuItem("Send to SQLMap WebUI (配置扫描)..." + menuSuffix);
         if (filterResult.allBinary()) {
             sendWithOptions.setEnabled(false);
             sendWithOptions.setToolTipText("所有选中的报文都是二进制格式，无法发起扫描任务");
         } else {
             sendWithOptions.addActionListener(e -> {
                 if (filterResult.hasTextMessages()) {
-                    // 使用第一个纯文本请求打开配置选择对话框
-                    ConfigSelectionDialog dialog = new ConfigSelectionDialog(
+                    // 使用新的高级配置对话框
+                    AdvancedScanConfigDialog dialog = new AdvancedScanConfigDialog(
                         api, apiClient, configManager, uiTab);
-                    dialog.show(filterResult.textMessages.get(0).request());
+                    dialog.show(filterResult.textMessages, filterResult.binaryMessages);
                 }
             });
         }
         menuItems.add(sendWithOptions);
-        
-        // 菜单项3: 标记注入点并扫描 - 只对第一个纯文本请求有效
-        JMenuItem markInjectionPoints = new JMenuItem("标记注入点并扫描 (*)" + 
-            (filterResult.allBinary() ? " (二进制报文)" : ""));
-        if (filterResult.allBinary()) {
-            markInjectionPoints.setEnabled(false);
-            markInjectionPoints.setToolTipText("所有选中的报文都是二进制格式，无法发起扫描任务");
-        } else {
-            markInjectionPoints.addActionListener(e -> {
-                if (filterResult.hasTextMessages()) {
-                    InjectionPointDialog dialog = new InjectionPointDialog(
-                        api, apiClient, configManager, uiTab);
-                    dialog.show(filterResult.textMessages.get(0));
-                }
-            });
-        }
-        menuItems.add(markInjectionPoints);
         
         // 菜单项4和5: 提交会话Header 和 Header规则 - 仅在选中单条请求时显示
         if (messages.size() == 1 && filterResult.hasTextMessages()) {

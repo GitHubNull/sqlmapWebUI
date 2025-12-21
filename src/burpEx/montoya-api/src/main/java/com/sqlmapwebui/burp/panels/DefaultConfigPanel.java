@@ -59,6 +59,12 @@ public class DefaultConfigPanel extends BaseConfigPanel {
     // 批量扫描选项
     private JCheckBox autoDedupeCheckBox;
     
+    // 注入点标记数量配置
+    private JSpinner injectionMarkCountSpinner;
+    
+    // 二进制报文警告配置
+    private JCheckBox showBinaryWarningCheckBox;
+    
     // 常用配置数据库引用
     private PresetConfigDatabase presetDatabase;
     
@@ -402,6 +408,56 @@ public class DefaultConfigPanel extends BaseConfigPanel {
         dedupeDesc.setForeground(Color.GRAY);
         dedupeDesc.setFont(dedupeDesc.getFont().deriveFont(11f));
         panel.add(dedupeDesc, gbc);
+        gbc.insets = new Insets(6, 10, 6, 10);
+        row++;
+        
+        // 注入点标记数量限制
+        gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 1;
+        gbc.anchor = GridBagConstraints.WEST;
+        panel.add(new JLabel("注入点标记数量限制:"), gbc);
+        gbc.gridx = 1;
+        injectionMarkCountSpinner = new JSpinner(new SpinnerNumberModel(
+            configManager.getMaxInjectionMarkCount(),
+            ConfigManager.MIN_INJECTION_MARK_COUNT,
+            ConfigManager.MAX_INJECTION_MARK_COUNT, 1));
+        injectionMarkCountSpinner.setToolTipText("多选报文时允许标记注入点的最大数量 (3-15)");
+        injectionMarkCountSpinner.addChangeListener(e -> {
+            int value = (Integer) injectionMarkCountSpinner.getValue();
+            configManager.setMaxInjectionMarkCount(value);
+            appendLog("[+] 注入点标记数量限制已设置为: " + value);
+        });
+        panel.add(injectionMarkCountSpinner, gbc);
+        row++;
+        
+        // 注入点标记说明
+        gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 2;
+        gbc.insets = new Insets(0, 24, 6, 10);
+        JLabel markDesc = new JLabel("多选报文超过此数量时仅显示前 N 个可标记");
+        markDesc.setForeground(Color.GRAY);
+        markDesc.setFont(markDesc.getFont().deriveFont(11f));
+        panel.add(markDesc, gbc);
+        gbc.insets = new Insets(6, 10, 6, 10);
+        row++;
+        
+        // 二进制报文警告
+        gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 2;
+        showBinaryWarningCheckBox = new JCheckBox("显示二进制报文警告", configManager.isShowBinaryWarning());
+        showBinaryWarningCheckBox.setToolTipText("多选报文时，如果包含二进制报文则显示警告提示");
+        showBinaryWarningCheckBox.addItemListener(e -> {
+            configManager.setShowBinaryWarning(showBinaryWarningCheckBox.isSelected());
+            appendLog(showBinaryWarningCheckBox.isSelected() ?
+                "[+] 已开启二进制报文警告" : "[-] 已关闭二进制报文警告");
+        });
+        panel.add(showBinaryWarningCheckBox, gbc);
+        row++;
+        
+        // 二进制警告说明
+        gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 2;
+        gbc.insets = new Insets(0, 24, 6, 10);
+        JLabel binaryDesc = new JLabel("显示被过滤的二进制报文URL列表");
+        binaryDesc.setForeground(Color.GRAY);
+        binaryDesc.setFont(binaryDesc.getFont().deriveFont(11f));
+        panel.add(binaryDesc, gbc);
         
         // 初始化单选按钮状态
         updateRadioButtonStates();
