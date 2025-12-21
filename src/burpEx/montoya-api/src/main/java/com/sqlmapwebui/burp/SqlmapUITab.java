@@ -2,6 +2,7 @@ package com.sqlmapwebui.burp;
 
 import burp.api.montoya.MontoyaApi;
 import com.sqlmapwebui.burp.panels.*;
+import com.sqlmapwebui.burp.dialogs.AboutDialog;
 
 import javax.swing.*;
 import java.awt.*;
@@ -105,10 +106,21 @@ public class SqlmapUITab extends JPanel {
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
         panel.add(titleLabel, BorderLayout.WEST);
         
+        // 右侧面板：包含状态标签和帮助按钮
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        
         statusLabel = new JLabel("● 未连接");
         statusLabel.setForeground(Color.RED);
         statusLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
-        panel.add(statusLabel, BorderLayout.EAST);
+        rightPanel.add(statusLabel);
+        
+        // 帮助按钮
+        JButton helpButton = new JButton("帮助/关于");
+        helpButton.setFont(new Font("Microsoft YaHei", Font.PLAIN, 12));
+        helpButton.addActionListener(e -> AboutDialog.showDialog(this));
+        rightPanel.add(helpButton);
+        
+        panel.add(rightPanel, BorderLayout.EAST);
         
         return panel;
     }

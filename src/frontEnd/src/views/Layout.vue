@@ -7,6 +7,17 @@
         <span class="app-name">SqlmapWebUI</span>
       </div>
       <div class="status-bar-right">
+        <!-- 帮助按钮 -->
+        <Button 
+          icon="pi pi-question-circle" 
+          @click="navigateTo('/about')" 
+          text 
+          rounded 
+          severity="secondary"
+          class="help-button"
+          v-tooltip.bottom="'帮助/关于'"
+        />
+        
         <!-- 主题切换 -->
 
         <div class="theme-switch">
