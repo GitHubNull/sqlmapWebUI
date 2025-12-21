@@ -9,6 +9,25 @@ import { generateMockTasks, delay, MockDataMode } from '@/utils/mockData'
 // 开关：是否使用Mock数据（用于测试大量数据显示）
 const USE_MOCK_DATA = false
 
+// 开关：扫描结果页面使用Mock数据（用于测试边界情况）
+const USE_PAYLOAD_MOCK = false
+
+// Mock数据场景选择
+enum PayloadMockScene {
+  NORMAL = 'normal',                    // 正常数据：单个注入点
+  MULTI_INJECTION = 'multi_injection',  // 多个注入点
+  MULTI_TECHNIQUES = 'multi_techniques', // 多种注入技术
+  NO_INJECTION = 'no_injection',        // 无注入点
+  EMPTY_DATA = 'empty_data',            // 空数据
+  PARTIAL_DATA = 'partial_data',        // 部分字段缺失
+  INVALID_JSON = 'invalid_json',        // 无效JSON
+  OTHER_DATA = 'other_data',            // 其他扫描数据（DBMS信息等）
+  FULL_DATA = 'full_data',              // 完整数据（注入+数据库信息）
+}
+
+// 当前测试场景
+const PAYLOAD_MOCK_SCENE: PayloadMockScene = PayloadMockScene.MULTI_INJECTION
+
 // Mock数据配置
 const MOCK_CONFIG = {
   count: 200,                      // 数据数量
@@ -588,40 +607,9 @@ export async function getHttpRequestInfo(taskId: string): Promise<any> {
  * 获取载荷详情
  */
 export async function getPayloadDetail(taskId: string): Promise<PayloadEntry[]> {
-  if (USE_MOCK_DATA) {
-    // 生成mock载荷详情数据
-    return Promise.resolve([
-      {
-        index: 1,
-        status: '无注入',
-        contentType: 'boolean-based blind',
-        value: "1' AND 1=1--"
-      },
-      {
-        index: 2,
-        status: '无注入',
-        contentType: 'boolean-based blind',
-        value: "1' AND 1=2--"
-      },
-      {
-        index: 3,
-        status: '无注入',
-        contentType: 'time-based blind',
-        value: "1' AND SLEEP(5)--"
-      },
-      {
-        index: 4,
-        status: '无注入',
-        contentType: 'UNION query',
-        value: "1' UNION SELECT 1,2,3--"
-      },
-      {
-        index: 5,
-        status: '无注入',
-        contentType: 'error-based',
-        value: "1' AND (SELECT * FROM (SELECT COUNT(*),CONCAT(version(),FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)a)--"
-      }
-    ])
+  if (USE_MOCK_DATA || USE_PAYLOAD_MOCK) {
+    // 根据场景生成不同的mock数据
+    return Promise.resolve(generatePayloadMockData(PAYLOAD_MOCK_SCENE))
   }
 
   // 真实API调用，后端使用content_type，需要转换为contentType
@@ -639,6 +627,406 @@ export async function getPayloadDetail(taskId: string): Promise<PayloadEntry[]> 
     }))
   }
   return []
+}
+
+/**
+ * 生成扫描结果Mock数据
+ */
+function generatePayloadMockData(scene: PayloadMockScene): PayloadEntry[] {
+  switch (scene) {
+    case PayloadMockScene.NORMAL:
+      // 场景1: 正常单个注入点
+      return [
+        {
+          index: 1,
+          status: 1,
+          contentType: 'TARGET',
+          value: JSON.stringify({
+            url: 'http://127.0.0.1:9527/api/user/profile',
+            query: 'id=1',
+            data: null
+          })
+        },
+        {
+          index: 2,
+          status: 1,
+          contentType: 'TECHNIQUES',
+          value: JSON.stringify([{
+            place: 'GET',
+            parameter: 'id',
+            ptype: 1,
+            prefix: '',
+            suffix: '',
+            dbms: 'MySQL',
+            dbms_version: ['>= 5.0'],
+            data: {
+              '1': {
+                title: 'AND boolean-based blind - WHERE or HAVING clause',
+                payload: 'id=1 AND 1234=1234',
+                vector: 'AND [INFERENCE]',
+                trueCode: 200,
+                falseCode: 404
+              }
+            }
+          }])
+        }
+      ]
+
+    case PayloadMockScene.MULTI_INJECTION:
+      // 场景2: 多个注入点（GET + POST）
+      return [
+        {
+          index: 1,
+          status: 1,
+          contentType: 'TARGET',
+          value: JSON.stringify({
+            url: 'http://127.0.0.1:9527/api/user/search',
+            query: 'name=test&page=1',
+            data: 'keyword=admin&limit=10'
+          })
+        },
+        {
+          index: 2,
+          status: 1,
+          contentType: 'TECHNIQUES',
+          value: JSON.stringify([
+            {
+              place: 'GET',
+              parameter: 'name',
+              ptype: 1,
+              dbms: 'MySQL',
+              dbms_version: ['>= 5.5'],
+              data: {
+                '1': {
+                  title: 'AND boolean-based blind',
+                  payload: "name=test' AND 1=1-- -",
+                  vector: 'AND [INFERENCE]',
+                  trueCode: 200,
+                  falseCode: 500
+                }
+              }
+            },
+            {
+              place: 'POST',
+              parameter: 'keyword',
+              ptype: 1,
+              dbms: 'MySQL',
+              dbms_version: ['>= 5.5'],
+              data: {
+                '5': {
+                  title: 'MySQL >= 5.0.12 time-based blind',
+                  payload: "keyword=admin' AND SLEEP(5)-- -",
+                  vector: 'AND [RANDNUM]=IF([INFERENCE],SLEEP([SLEEPTIME]),[RANDNUM])'
+                }
+              }
+            },
+            {
+              place: 'GET',
+              parameter: 'page',
+              ptype: 2,
+              dbms: 'MySQL',
+              data: {
+                '3': {
+                  title: 'MySQL UNION query (NULL)',
+                  payload: 'page=1 UNION ALL SELECT NULL,CONCAT(0x716b6a7671,0x7a6847),NULL--',
+                  vector: '[QUERY] UNION ALL SELECT [COLSTART][PAYLOADF][COLSTOP]'
+                }
+              }
+            }
+          ])
+        }
+      ]
+
+    case PayloadMockScene.MULTI_TECHNIQUES:
+      // 场景3: 单个参数多种注入技术
+      return [
+        {
+          index: 1,
+          status: 1,
+          contentType: 'TARGET',
+          value: JSON.stringify({
+            url: 'http://example.com/api/products',
+            query: 'id=1'
+          })
+        },
+        {
+          index: 2,
+          status: 1,
+          contentType: 'TECHNIQUES',
+          value: JSON.stringify([{
+            place: 'GET',
+            parameter: 'id',
+            ptype: 1,
+            prefix: "'",
+            suffix: '-- -',
+            dbms: 'MySQL',
+            dbms_version: ['>= 5.0.12', '< 8.0'],
+            os: 'Linux',
+            data: {
+              '1': {
+                title: 'AND boolean-based blind - WHERE or HAVING clause',
+                payload: "id=1' AND 5678=5678-- -",
+                vector: 'AND [INFERENCE]',
+                trueCode: 200,
+                falseCode: 404
+              },
+              '2': {
+                title: 'MySQL >= 5.0 error-based - extractvalue',
+                payload: "id=1' AND EXTRACTVALUE(1,CONCAT(0x7e,VERSION()))-- -",
+                vector: 'AND EXTRACTVALUE([RANDNUM],CONCAT(0x7e,[QUERY]))'
+              },
+              '3': {
+                title: 'MySQL UNION query (NULL) - 3 columns',
+                payload: "id=1' UNION ALL SELECT NULL,CONCAT(0x71,VERSION()),NULL-- -",
+                vector: '[QUERY] UNION ALL SELECT [COLSTART][PAYLOAD][COLSTOP]'
+              },
+              '5': {
+                title: 'MySQL >= 5.0.12 time-based blind',
+                payload: "id=1' AND SLEEP(5)-- -",
+                vector: 'AND [RANDNUM]=IF([INFERENCE],SLEEP([SLEEPTIME]),[RANDNUM])'
+              }
+            }
+          }])
+        }
+      ]
+
+    case PayloadMockScene.NO_INJECTION:
+      // 场景4: 无注入点（仅TARGET）
+      return [
+        {
+          index: 1,
+          status: 1,
+          contentType: 'TARGET',
+          value: JSON.stringify({
+            url: 'http://secure-site.com/api/users',
+            query: 'id=123'
+          })
+        },
+        {
+          index: 2,
+          status: 0,
+          contentType: 'TECHNIQUES',
+          value: '[]'  // 空数组
+        }
+      ]
+
+    case PayloadMockScene.EMPTY_DATA:
+      // 场景5: 空数据
+      return []
+
+    case PayloadMockScene.PARTIAL_DATA:
+      // 场景6: 部分字段缺失
+      return [
+        {
+          index: 1,
+          status: 1,
+          contentType: 'TARGET',
+          value: JSON.stringify({
+            url: 'http://test.com/api'  // 缺少query和data
+          })
+        },
+        {
+          index: 2,
+          status: 1,
+          contentType: 'TECHNIQUES',
+          value: JSON.stringify([{
+            // 缺少place和dbms
+            parameter: 'unknown_param',
+            data: {
+              '1': {
+                title: 'Some injection technique',
+                payload: 'test payload'
+                // 缺少vector, trueCode, falseCode
+              }
+            }
+          }])
+        }
+      ]
+
+    case PayloadMockScene.INVALID_JSON:
+      // 场景7: 无效JSON
+      return [
+        {
+          index: 1,
+          status: 1,
+          contentType: 'TARGET',
+          value: 'invalid json {{{'
+        },
+        {
+          index: 2,
+          status: 1,
+          contentType: 'TECHNIQUES',
+          value: 'not a valid json array'
+        }
+      ]
+
+    case PayloadMockScene.OTHER_DATA:
+      // 场景8: 其他扫描数据（无注入但有数据库信息）
+      return [
+        {
+          index: 1,
+          status: 1,
+          contentType: 'TARGET',
+          value: JSON.stringify({
+            url: 'http://target.com/api/data',
+            query: 'id=1'
+          })
+        },
+        {
+          index: 2,
+          status: 1,
+          contentType: 'DBMS_FINGERPRINT',
+          value: 'MySQL >= 5.6'
+        },
+        {
+          index: 3,
+          status: 1,
+          contentType: 'BANNER',
+          value: '5.7.32-0ubuntu0.18.04.1'
+        },
+        {
+          index: 4,
+          status: 1,
+          contentType: 'CURRENT_USER',
+          value: 'root@localhost'
+        },
+        {
+          index: 5,
+          status: 1,
+          contentType: 'CURRENT_DB',
+          value: 'test_database'
+        },
+        {
+          index: 6,
+          status: 1,
+          contentType: 'HOSTNAME',
+          value: 'db-server-01'
+        },
+        {
+          index: 7,
+          status: 1,
+          contentType: 'DBS',
+          value: JSON.stringify(['information_schema', 'mysql', 'test_database', 'production_db'])
+        },
+        {
+          index: 8,
+          status: 1,
+          contentType: 'TABLES',
+          value: JSON.stringify(['users', 'orders', 'products', 'sessions', 'logs'])
+        }
+      ]
+
+    case PayloadMockScene.FULL_DATA:
+    default:
+      // 场景9: 完整数据（注入点+数据库信息）
+      return [
+        {
+          index: 1,
+          status: 1,
+          contentType: 'TARGET',
+          value: JSON.stringify({
+            url: 'http://vulnerable-app.com/api/users/profile',
+            query: 'userId=1&action=view',
+            data: null
+          })
+        },
+        {
+          index: 2,
+          status: 1,
+          contentType: 'TECHNIQUES',
+          value: JSON.stringify([
+            {
+              place: 'GET',
+              parameter: 'userId',
+              ptype: 1,
+              prefix: "'",
+              suffix: '-- -',
+              dbms: 'MySQL',
+              dbms_version: ['>= 5.6', '< 8.0'],
+              os: 'Linux Ubuntu',
+              data: {
+                '1': {
+                  title: 'AND boolean-based blind - WHERE or HAVING clause',
+                  payload: "userId=1' AND 9999=9999-- -",
+                  vector: 'AND [INFERENCE]',
+                  trueCode: 200,
+                  falseCode: 404
+                },
+                '5': {
+                  title: 'MySQL >= 5.0.12 AND time-based blind (query SLEEP)',
+                  payload: "userId=1' AND SLEEP(5)-- -",
+                  vector: 'AND [RANDNUM]=IF([INFERENCE],SLEEP([SLEEPTIME]),[RANDNUM])'
+                }
+              }
+            },
+            {
+              place: 'GET',
+              parameter: 'action',
+              ptype: 1,
+              dbms: 'MySQL',
+              data: {
+                '3': {
+                  title: 'MySQL UNION query (NULL) - 5 columns',
+                  payload: "action=view' UNION ALL SELECT NULL,NULL,CONCAT(0x71,VERSION()),NULL,NULL-- -",
+                  vector: '[QUERY] UNION ALL SELECT [COLSTART][PAYLOAD][COLSTOP]'
+                }
+              }
+            }
+          ])
+        },
+        {
+          index: 3,
+          status: 1,
+          contentType: 'DBMS_FINGERPRINT',
+          value: 'MySQL >= 5.6 and < 8.0'
+        },
+        {
+          index: 4,
+          status: 1,
+          contentType: 'BANNER',
+          value: '5.7.42-log'
+        },
+        {
+          index: 5,
+          status: 1,
+          contentType: 'CURRENT_USER',
+          value: 'webapp@%'
+        },
+        {
+          index: 6,
+          status: 1,
+          contentType: 'CURRENT_DB',
+          value: 'vulnerable_app'
+        },
+        {
+          index: 7,
+          status: 1,
+          contentType: 'IS_DBA',
+          value: 'False'
+        },
+        {
+          index: 8,
+          status: 1,
+          contentType: 'DBS',
+          value: JSON.stringify(['information_schema', 'mysql', 'performance_schema', 'vulnerable_app'])
+        },
+        {
+          index: 9,
+          status: 1,
+          contentType: 'TABLES',
+          value: JSON.stringify(['users', 'user_sessions', 'products', 'orders', 'payments', 'admin_logs'])
+        },
+        {
+          index: 10,
+          status: 1,
+          contentType: 'COLUMNS',
+          value: JSON.stringify({
+            'users': ['id', 'username', 'password', 'email', 'created_at', 'role'],
+            'admin_logs': ['id', 'action', 'user_id', 'ip', 'timestamp']
+          })
+        }
+      ]
+  }
 }
 
 /**
