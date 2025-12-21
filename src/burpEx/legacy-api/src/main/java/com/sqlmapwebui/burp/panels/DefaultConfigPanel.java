@@ -56,6 +56,9 @@ public class DefaultConfigPanel extends BaseConfigPanel {
     private JComboBox<String> presetConfigCombo;
     private ButtonGroup configSourceGroup;
     
+    // 批量扫描选项
+    private JCheckBox autoDedupeCheckBox;
+    
     // 常用配置数据库引用
     private PresetConfigDatabase presetDatabase;
     
@@ -361,6 +364,44 @@ public class DefaultConfigPanel extends BaseConfigPanel {
             appendLog("[+] 配置列表已刷新");
         });
         panel.add(refreshBtn, gbc);
+        row++;
+        
+        // 分隔线
+        gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 2;
+        gbc.insets = new Insets(15, 10, 6, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(new JSeparator(), gbc);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.insets = new Insets(6, 10, 6, 10);
+        row++;
+        
+        // 批量扫描选项标题
+        gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        JLabel batchOptionsLabel = new JLabel("批量扫描选项");
+        batchOptionsLabel.setFont(batchOptionsLabel.getFont().deriveFont(Font.BOLD));
+        panel.add(batchOptionsLabel, gbc);
+        row++;
+        
+        // 自动去重复选框
+        gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 2;
+        autoDedupeCheckBox = new JCheckBox("自动过滤重复请求", configManager.isAutoDedupe());
+        autoDedupeCheckBox.setToolTipText("<html>多选发送扫描任务时自动过滤重复的HTTP请求<br>判断标准: 协议+方法+主机+端口+Path+参数</html>");
+        autoDedupeCheckBox.addItemListener(e -> {
+            configManager.setAutoDedupe(autoDedupeCheckBox.isSelected());
+            appendLog(autoDedupeCheckBox.isSelected() ? 
+                "[+] 已开启自动去重" : "[-] 已关闭自动去重");
+        });
+        panel.add(autoDedupeCheckBox, gbc);
+        row++;
+        
+        // 去重说明
+        gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 2;
+        gbc.insets = new Insets(0, 24, 6, 10);
+        JLabel dedupeDesc = new JLabel("判断标准: 协议/方法/主机/端口/Path/参数");
+        dedupeDesc.setForeground(Color.GRAY);
+        dedupeDesc.setFont(dedupeDesc.getFont().deriveFont(11f));
+        panel.add(dedupeDesc, gbc);
         
         // 初始化单选按钮状态
         updateRadioButtonStates();

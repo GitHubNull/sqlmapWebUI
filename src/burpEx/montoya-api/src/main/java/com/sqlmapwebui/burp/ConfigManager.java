@@ -21,6 +21,7 @@ public class ConfigManager {
     private static final String KEY_PRESET_CONFIGS = "presetConfigs";
     private static final String KEY_HISTORY_CONFIGS = "historyConfigs";
     private static final String KEY_MAX_HISTORY_SIZE = "maxHistorySize";
+    private static final String KEY_AUTO_DEDUPE = "autoDedupe";
     
     // 历史记录数量限制
     public static final int MIN_HISTORY_SIZE = 3;
@@ -34,6 +35,7 @@ public class ConfigManager {
     // 配置数据
     private String backendUrl = "http://localhost:5000";
     private int maxHistorySize = DEFAULT_HISTORY_SIZE;
+    private boolean autoDedupe = true; // 默认开启自动去重
     private ScanConfig defaultConfig;
     private List<ScanConfig> presetConfigs;  // 常用配置
     private List<ScanConfig> historyConfigs; // 历史配置
@@ -70,6 +72,12 @@ public class ConfigManager {
             } catch (NumberFormatException e) {
                 maxHistorySize = DEFAULT_HISTORY_SIZE;
             }
+        }
+        
+        // 加载自动去重配置
+        String savedAutoDedupe = persistence.getString(KEY_AUTO_DEDUPE);
+        if (savedAutoDedupe != null && !savedAutoDedupe.isEmpty()) {
+            autoDedupe = Boolean.parseBoolean(savedAutoDedupe);
         }
         
         // 加载默认配置
@@ -145,6 +153,17 @@ public class ConfigManager {
         persistence.setString(KEY_MAX_HISTORY_SIZE, String.valueOf(this.maxHistorySize));
         // 如果当前历史记录超过新的最大值，则裁剪
         trimHistory();
+    }
+    
+    // ============ 自动去重配置 ============
+    
+    public boolean isAutoDedupe() {
+        return autoDedupe;
+    }
+    
+    public void setAutoDedupe(boolean enabled) {
+        this.autoDedupe = enabled;
+        persistence.setString(KEY_AUTO_DEDUPE, String.valueOf(enabled));
     }
     
     // ============ 连接状态管理 ============

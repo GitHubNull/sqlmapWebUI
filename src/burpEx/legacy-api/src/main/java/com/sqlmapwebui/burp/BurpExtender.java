@@ -251,24 +251,52 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
     
     /**
      * 发送过滤后的纯文本请求，并记录被过滤的二进制请求日志
+     * 第一步：过滤二进制请求
+     * 第二步：去重处理（如果开启）
      */
     private void sendFilteredRequests(FilterResult filterResult, ScanConfig config) {
-        // 记录过滤统计
+        // 第一步：记录二进制过滤统计
         if (filterResult.binaryCount() > 0) {
-            uiTab.appendLog(String.format("[*] 过滤统计: 共选中 %d 个请求，%d 个纯文本可扫描，%d 个二进制已过滤",
-                filterResult.totalCount(), filterResult.textCount(), filterResult.binaryCount()));
+            uiTab.appendLog(String.format("[*] 二进制过滤: %d 个请求已跳过", filterResult.binaryCount()));
             
             // 记录被过滤的二进制请求URL
             for (IHttpRequestResponse binaryMsg : filterResult.binaryMessages) {
                 IRequestInfo reqInfo = helpers.analyzeRequest(binaryMsg);
                 String url = reqInfo.getUrl().toString();
                 BinaryContentDetector.DetectionResult detection = BinaryContentDetector.detect(binaryMsg, helpers);
-                uiTab.appendLog(String.format("    [跳过] %s (原因: %s)", url, detection.getReason()));
+                uiTab.appendLog(String.format("    [跳过-二进制] %s (原因: %s)", url, detection.getReason()));
             }
         }
         
+        // 第二步：去重处理
+        List<IHttpRequestResponse> messagesToSend = filterResult.textMessages;
+        int duplicateCount = 0;
+        
+        if (configManager.isAutoDedupe() && messagesToSend.size() > 1) {
+            RequestDeduplicator.DedupeResult dedupeResult = RequestDeduplicator.deduplicate(messagesToSend, helpers);
+            
+            if (dedupeResult.hasDuplicates()) {
+                duplicateCount = dedupeResult.duplicateCount();
+                uiTab.appendLog(String.format("[*] 重复过滤: %d 个重复请求已跳过", duplicateCount));
+                
+                // 记录被过滤的重复请求
+                for (IHttpRequestResponse dupMsg : dedupeResult.getDuplicateMessages()) {
+                    String desc = RequestDeduplicator.getRequestDescription(dupMsg, helpers);
+                    uiTab.appendLog(String.format("    [跳过-重复] %s", desc));
+                }
+                
+                messagesToSend = dedupeResult.getUniqueMessages();
+            }
+        }
+        
+        // 输出统计汇总
+        if (filterResult.binaryCount() > 0 || duplicateCount > 0) {
+            uiTab.appendLog(String.format("[*] 最终统计: 共选中 %d 个请求，实际发送 %d 个",
+                filterResult.totalCount(), messagesToSend.size()));
+        }
+        
         // 发送纯文本请求
-        for (IHttpRequestResponse message : filterResult.textMessages) {
+        for (IHttpRequestResponse message : messagesToSend) {
             sendRequestToBackend(message, config);
         }
     }
