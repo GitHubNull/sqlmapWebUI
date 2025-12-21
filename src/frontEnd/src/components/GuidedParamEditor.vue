@@ -129,7 +129,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, defineProps, defineEmits, defineExpose } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import Select from 'primevue/select'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
