@@ -18,10 +18,21 @@ sqlmapWebUI/
 │   │   ├── api/           # API routes
 │   │   │   ├── chromeExApi/      # Chrome extension API
 │   │   │   ├── burpSuiteExApi/   # Burp Suite plugin API
-│   │   │   └── commonApi/        # Common APIs (auth, headers)
+│   │   │   └── commonApi/        # Common APIs (auth, headers, config)
 │   │   ├── model/         # Data models
+│   │   │   ├── requestModel/     # Request DTOs
+│   │   │   ├── Task.py           # Task model
+│   │   │   ├── HeaderScope.py    # Header scope configuration
+│   │   │   ├── PersistentHeaderRule.py  # Persistent header rules
+│   │   │   ├── SessionHeader.py  # Session-level headers
+│   │   │   └── ...
 │   │   ├── service/       # Business logic layer
+│   │   │   ├── taskService.py    # Task management
+│   │   │   └── headerRuleService.py  # Header rules management
 │   │   ├── utils/         # Utility functions
+│   │   │   ├── header_processor.py   # Header processing
+│   │   │   ├── scope_matcher.py      # Scope matching logic
+│   │   │   └── task_monitor.py       # Task monitoring
 │   │   ├── third_lib/sqlmap/     # SQLMap integration (git submodule)
 │   │   ├── app.py         # FastAPI application core
 │   │   └── main.py        # Entry point
@@ -29,10 +40,19 @@ sqlmapWebUI/
 │   │   └── src/
 │   │       ├── api/       # API request functions
 │   │       ├── components/# Shared components
+│   │       │   ├── TaskFilter.vue    # Task filtering component
+│   │       │   ├── TaskSummary.vue   # Task statistics summary
+│   │       │   └── ScopeConfigPanel.vue  # Scope configuration UI
 │   │       ├── stores/    # Pinia state management
+│   │       │   ├── task.ts          # Task state store
+│   │       │   └── config.ts        # Config state store
 │   │       ├── types/     # TypeScript type definitions
 │   │       ├── utils/     # Utility functions
 │   │       └── views/     # Page views
+│   │           ├── Home/            # Dashboard
+│   │           ├── TaskList/        # Task list page
+│   │           ├── TaskDetail/      # Task detail page
+│   │           └── Config/          # Configuration page
 │   ├── burpEx/            # Burp Suite extensions
 │   │   ├── legacy-api/    # Legacy Burp API (Java 11)
 │   │   └── montoya-api/   # Montoya API (Java 17, Burp 2023.1+)
@@ -49,10 +69,41 @@ sqlmapWebUI/
 
 | Component | Technologies |
 |-----------|-------------|
-| Backend | Python 3.13+, FastAPI, SQLMap, SQLite |
+| Backend | Python 3.13+, FastAPI, SQLMap, SQLite, uv |
 | Frontend | Vue 3, TypeScript, PrimeVue, Pinia, Vite |
 | Burp Plugins | Java 11 (Legacy), Java 17 (Montoya) |
 | Package Managers | uv (Python), pnpm (Node.js), Maven (Java) |
+
+## Core Features
+
+### Task Management
+- Create/monitor/stop SQL injection scan tasks
+- Real-time log viewing
+- Batch operations (batch stop, batch delete, flush all)
+- Multi-dimensional filtering (URL, message, status, date range, injection status)
+- Sorting by multiple fields
+- Summary statistics row in task list
+- Smart polling (adjusts refresh rate based on task status)
+
+### Header Rules Management
+- **Persistent Rules**: Long-term header rules stored in database
+  - Full CRUD operations
+  - Priority-based ordering (0-100)
+  - Multiple replace strategies (REPLACE, APPEND, PREPEND, etc.)
+- **Session Headers**: Temporary headers with TTL expiration
+- **Scope Configuration**: URL matching for targeted header application
+  - Protocol pattern (http/https)
+  - Hostname pattern (supports wildcards)
+  - Port pattern (supports multiple values)
+  - Path pattern (supports wildcards)
+  - Regex support for complex matching
+- **Batch Import**: Import multiple headers from text
+
+### VulnShop Lab
+- 8 SQL injection vulnerability types
+- 3 WAF difficulty levels (Easy/Medium/Hard)
+- Light/Dark theme support
+- One-click database reset
 
 ## Development Commands
 
@@ -100,12 +151,14 @@ mvn clean package -DskipTests
 - Follow PEP 8 style guidelines
 - Use async/await for I/O operations in FastAPI
 - Models use Pydantic for validation
+- Service classes are singletons
 
 ### TypeScript (Frontend)
 - Strict TypeScript mode enabled
 - Use Composition API with `<script setup>`
 - State management through Pinia stores
 - PrimeVue components for UI consistency
+- Use computed properties for derived data
 
 ### Java (Burp Plugins)
 - Legacy API: Java 11 compatibility
@@ -135,6 +188,19 @@ export const fetchData = async (params: RequestParams): Promise<ResponseType> =>
 }
 ```
 
+### Header Rules API Endpoints
+```
+GET    /commonApi/header/persistent-header-rules     # List all rules
+GET    /commonApi/header/persistent-header-rules/:id # Get single rule
+POST   /commonApi/header/persistent-header-rules     # Create rule
+PUT    /commonApi/header/persistent-header-rules/:id # Update rule
+DELETE /commonApi/header/persistent-header-rules/:id # Delete rule
+POST   /commonApi/header/session-headers             # Set session headers
+GET    /commonApi/header/session-headers             # Get session headers
+DELETE /commonApi/header/session-headers             # Clear session headers
+POST   /commonApi/header/header-processing/preview   # Preview header processing
+```
+
 ## Git Workflow
 
 ### Commit Message Format (Conventional Commits)
@@ -159,6 +225,7 @@ ci: CI/CD changes
 Automatic build and release is triggered when pushing tags matching:
 - `release-v[0-9]+.[0-9]+.[0-9]+*`
 - `v[0-9]+.[0-9]+.[0-9]+-release*`
+- `release/v[0-9]+.[0-9]+.[0-9]+*`
 
 Release artifacts:
 - `sqlmapwebui-{version}.zip` - Backend with integrated frontend
@@ -179,6 +246,12 @@ Release artifacts:
 2. Add route in router configuration
 3. Use PrimeVue components for consistent UI
 4. Add state management in Pinia store if needed
+
+### Adding Header Rule with Scope
+1. Backend: Rule with scope field (optional, null = global)
+2. Frontend: Use ScopeConfigPanel component
+3. Scope supports: protocol, host, port, path patterns
+4. Scope matching uses AND logic for all configured fields
 
 ### Modifying VulnShop Lab
 1. Backend logic in `server.py` route handlers
@@ -204,6 +277,11 @@ Backend allows CORS from:
 - `localhost:5173-5176` (frontend dev)
 - `localhost:8775` (backend)
 
+### Database
+- Task data stored in memory (DataStore singleton)
+- Header rules stored in SQLite (`header_rules.db`)
+- Automatic database migration for schema changes
+
 ## File Dependencies
 
 ### Backend Entry Point
@@ -216,4 +294,25 @@ Backend allows CORS from:
 `src/backEnd/third_lib/sqlmap/` is a git submodule - update with:
 ```bash
 git submodule update --remote
+```
+
+## Testing
+
+### Backend Tests
+```bash
+cd src/backEnd
+python -m pytest tests/
+```
+
+Test files:
+- `test_scope_matcher.py` - Scope matching logic tests
+- `test_header_processor_scope.py` - Header processor tests
+- `test_api_endpoints.py` - API endpoint tests
+
+### Frontend Development
+```bash
+cd src/frontEnd
+pnpm run dev      # Start with hot reload
+pnpm run lint     # Run linter
+pnpm run build    # Build production
 ```

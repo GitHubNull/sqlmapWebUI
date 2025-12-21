@@ -1,11 +1,11 @@
 # SQLMap Web UI
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.10+-blue.svg" alt="Python">
+  <img src="https://img.shields.io/badge/Python-3.13+-blue.svg" alt="Python">
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.5.1-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.6.0-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -21,8 +21,30 @@
 - **实时日志**: 查看任务执行的实时日志输出
 - **扫描结果**: 直观展示注入点和 Payload 信息
 - **HTTP 请求查看**: 完整展示原始 HTTP 请求信息
-- **批量操作**: 支持批量导入和管理扫描任务
-- **请求头规则**: 灵活配置自定义请求头规则，支持作用域匹配
+- **任务列表增强**:
+  - 多维度过滤（URL/报文关键字、状态、日期范围、注入状态）
+  - 多字段排序（任务ID、状态、创建时间）
+  - 汇总统计行（实时显示任务统计数据）
+  - 智能轮询（根据任务状态自动调整刷新频率）
+
+### 批量操作
+- **批量停止**: 一键停止多个运行中的任务
+- **批量删除**: 批量删除已完成或失败的任务
+- **批量导入**: 支持批量导入 HTTP 请求创建扫描任务
+- **全选/反选**: 便捷的任务选择操作
+
+### 请求头规则管理
+- **持久化规则**: 创建长期有效的请求头规则，支持 CRUD 完整操作
+- **会话级规则**: 设置临时请求头，支持 TTL 自动过期
+- **作用域配置**: 灵活的 URL 匹配规则
+  - 协议匹配（http/https）
+  - 主机名匹配（支持通配符 `*.example.com`）
+  - 端口匹配（支持多端口 `80,443,8080`）
+  - 路径匹配（支持通配符 `/api/*`）
+  - 正则表达式匹配
+- **优先级控制**: 支持 0-100 优先级设置
+- **替换策略**: 完全替换、追加、条件替换等多种策略
+- **批量导入**: 支持从文本批量导入请求头
 
 ### 扩展集成
 - **Chrome 扩展**: 从浏览器直接发送请求到扫描平台
@@ -30,6 +52,7 @@
   - 右键菜单快速发送请求
   - 可配置扫描参数（Level、Risk、DBMS、Technique）
   - 支持默认配置和常用配置管理
+  - 活动日志记录
 
 ### VulnShop 漏洞靶场 🎯
 内置模拟电商平台，包含 8 种 SQL 注入漏洞类型：
@@ -55,8 +78,9 @@
 ### 后端
 - **FastAPI** - 高性能异步 Web 框架
 - **SQLMap** - SQL 注入自动化检测工具
-- **Python 3.10+** - 运行环境
-- **SQLite** - 靶场数据库
+- **Python 3.13+** - 运行环境
+- **SQLite** - 数据库存储
+- **uv** - 现代 Python 包管理器
 
 ### 前端
 - **Vue 3** - 渐进式 JavaScript 框架
@@ -66,16 +90,19 @@
 - **Vite** - 下一代前端构建工具
 
 ### 扩展
-- **Burp Suite 插件** - Java (支持 Montoya API 和 Legacy API)
+- **Burp Suite 插件**
+  - Montoya API (Java 17+, Burp 2023.1+)
+  - Legacy API (Java 11+)
 - **Chrome 扩展** - JavaScript
 
 ## 🚀 快速开始
 
 ### 环境要求
 
-- Python 3.10+
-- Node.js 18+
-- pnpm 包管理器
+- Python 3.13+
+- Node.js 20+
+- pnpm 9+
+- Java 17+ (Burp Montoya API) 或 Java 11+ (Legacy API)
 
 ### 后端安装
 
@@ -112,6 +139,9 @@ pnpm run build
 # 进入靶场目录
 cd src/vulnTestServer
 
+# 安装依赖（如未安装）
+pip install flask
+
 # 启动服务
 python server.py
 ```
@@ -133,7 +163,7 @@ sqlmapWebUI/
 │   │   ├── api/                 # API 路由
 │   │   │   ├── chromeExApi/     # Chrome 扩展 API
 │   │   │   ├── burpSuiteExApi/  # Burp Suite API
-│   │   │   └── commonApi/       # 通用 API
+│   │   │   └── commonApi/       # 通用 API (认证/请求头规则/配置)
 │   │   ├── model/               # 数据模型
 │   │   ├── service/             # 业务逻辑
 │   │   ├── utils/               # 工具函数
@@ -183,6 +213,16 @@ sqlmapWebUI/
 3. 配置后端服务器地址
 4. 右键请求选择 "Send to SQLMap WebUI"
 
+### 请求头规则配置
+
+1. 进入「配置」→「Header 规则管理」标签页
+2. 点击「添加规则」
+3. 填写规则信息：
+   - 规则名称、Header 名称、Header 值
+   - 替换策略、优先级
+   - 可选：配置作用域限定生效范围
+4. 保存规则
+
 详细使用说明请参阅 [doc/USAGE_GUIDE.md](doc/USAGE_GUIDE.md)
 
 ## 🔐 安全声明
@@ -196,6 +236,15 @@ sqlmapWebUI/
 请在使用前阅读 [免责声明](DISCLAIMER.md)。
 
 ## 📝 更新日志
+
+### v1.6.0 (2024-12)
+- 新增请求头规则作用域配置功能
+- 新增会话级请求头管理
+- 新增批量请求头导入功能
+- 任务列表新增汇总统计行
+- 任务过滤器增强（日期范围、注入状态）
+- 智能轮询策略优化
+- 更新项目文档
 
 ### v1.5.1 (2024-12)
 - 更新项目文档
