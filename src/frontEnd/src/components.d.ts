@@ -25,6 +25,7 @@ declare module 'vue' {
     GuidedParamEditor: typeof import('./components/GuidedParamEditor.vue')['default']
     GuidedParamEditorDialog: typeof import('./components/GuidedParamEditorDialog.vue')['default']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
+    HttpCodeEditor: typeof import('./components/HttpCodeEditor.vue')['default']
     IconField: typeof import('primevue/iconfield')['default']
     InlineMessage: typeof import('primevue/inlinemessage')['default']
     InputIcon: typeof import('primevue/inputicon')['default']

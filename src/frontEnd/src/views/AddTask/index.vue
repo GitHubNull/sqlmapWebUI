@@ -19,12 +19,12 @@
             </div>
           </template>
           <template #content>
-            <Textarea
+            <HttpCodeEditor
               v-model="inputContent"
               :placeholder="inputPlaceholder"
-              rows="8"
-              class="input-textarea"
-              @input="onInputChange"
+              min-height="180px"
+              max-height="250px"
+              @change="onInputChange"
             />
             <div class="input-actions">
               <Button 
@@ -54,12 +54,11 @@
             </div>
           </template>
           <template #content>
-            <Textarea
+            <HttpCodeEditor
               v-model="rawHttpContent"
               :placeholder="httpPlaceholder"
-              rows="12"
-              class="http-textarea"
-              :class="{ 'has-content': rawHttpContent.trim() }"
+              min-height="280px"
+              max-height="400px"
             />
             <div class="editor-status" v-if="parsedRequest">
               <span class="status-item">
@@ -443,8 +442,8 @@ import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
-import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
+import HttpCodeEditor from '@/components/HttpCodeEditor.vue'
 import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
 import Checkbox from 'primevue/checkbox'
@@ -817,17 +816,7 @@ onMounted(async () => {
   justify-content: space-between;
 }
 
-.input-textarea,
-.http-textarea {
-  width: 100%;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 0.85rem;
-  resize: vertical;
-}
-
-.http-textarea.has-content {
-  background-color: var(--surface-ground);
-}
+/* HttpCodeEditor 组件样式 */
 
 .input-actions {
   display: flex;
