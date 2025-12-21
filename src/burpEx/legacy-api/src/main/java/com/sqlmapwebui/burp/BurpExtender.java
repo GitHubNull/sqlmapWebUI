@@ -22,6 +22,8 @@ import java.util.Map;
  * 5. 提交会话Header
  * 6. 提交Header规则
  * 
+ * 批量选择时自动过滤二进制内容的报文，只有纯文本请求才会被发送
+ * 
  * @author SQLMap WebUI Team
  * @version 1.0.0
  */
@@ -41,6 +43,47 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
     
     private static final String EXTENSION_NAME = "SQLMap WebUI";
     private static final String EXTENSION_VERSION = "1.0.0";
+    
+    /**
+     * 过滤结果类 - 存储过滤后的纯文本请求和过滤统计
+     */
+    private static class FilterResult {
+        final List<IHttpRequestResponse> textMessages;
+        final List<IHttpRequestResponse> binaryMessages;
+        
+        FilterResult(List<IHttpRequestResponse> textMessages, List<IHttpRequestResponse> binaryMessages) {
+            this.textMessages = textMessages;
+            this.binaryMessages = binaryMessages;
+        }
+        
+        int totalCount() {
+            return textMessages.size() + binaryMessages.size();
+        }
+        
+        int textCount() {
+            return textMessages.size();
+        }
+        
+        int binaryCount() {
+            return binaryMessages.size();
+        }
+        
+        boolean hasTextMessages() {
+            return !textMessages.isEmpty();
+        }
+        
+        boolean allBinary() {
+            return textMessages.isEmpty() && !binaryMessages.isEmpty();
+        }
+        
+        String getMenuSuffix() {
+            if (totalCount() == 1) {
+                return binaryMessages.isEmpty() ? "" : " (二进制报文)";
+            } else {
+                return String.format(" [%d/%d 可扫描]", textCount(), totalCount());
+            }
+        }
+    }
     
     @Override
     public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
@@ -118,74 +161,116 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
                 return menuItems;
             }
             
-            // 检测请求是否为二进制内容
-            IHttpRequestResponse firstMessage = selectedMessages[0];
-            BinaryContentDetector.DetectionResult detectionResult = 
-                BinaryContentDetector.detect(firstMessage, helpers);
-            boolean isBinary = detectionResult.isBinary();
-            String binarySuffix = isBinary ? " (二进制报文)" : "";
+            // 过滤二进制请求
+            FilterResult filterResult = filterBinaryRequests(selectedMessages);
+            String menuSuffix = filterResult.getMenuSuffix();
             
             // 使用默认配置发送
-            JMenuItem sendWithDefault = new JMenuItem("Send to SQLMap WebUI" + binarySuffix);
-            if (isBinary) {
+            JMenuItem sendWithDefault = new JMenuItem("Send to SQLMap WebUI" + menuSuffix);
+            if (filterResult.allBinary()) {
                 sendWithDefault.setEnabled(false);
-                sendWithDefault.setToolTipText("二进制报文无法发起扫描任务: " + detectionResult.getReason());
+                sendWithDefault.setToolTipText("所有选中的报文都是二进制格式，无法发起扫描任务");
             } else {
                 sendWithDefault.addActionListener(e -> {
-                    for (IHttpRequestResponse message : selectedMessages) {
-                        sendRequestToBackend(message, configManager.getDefaultConfig());
-                    }
+                    sendFilteredRequests(filterResult, configManager.getDefaultConfig());
                 });
             }
             menuItems.add(sendWithDefault);
             
             // 选择配置发送
-            JMenuItem sendWithOptions = new JMenuItem("Send to SQLMap WebUI (选择配置)..." + binarySuffix);
-            if (isBinary) {
+            JMenuItem sendWithOptions = new JMenuItem("Send to SQLMap WebUI (选择配置)..." + menuSuffix);
+            if (filterResult.allBinary()) {
                 sendWithOptions.setEnabled(false);
-                sendWithOptions.setToolTipText("二进制报文无法发起扫描任务: " + detectionResult.getReason());
+                sendWithOptions.setToolTipText("所有选中的报文都是二进制格式，无法发起扫描任务");
             } else {
                 sendWithOptions.addActionListener(e -> {
-                    ConfigSelectionDialog dialog = new ConfigSelectionDialog(
-                        callbacks, apiClient, configManager, uiTab);
-                    dialog.show(selectedMessages[0]);
+                    if (filterResult.hasTextMessages()) {
+                        ConfigSelectionDialog dialog = new ConfigSelectionDialog(
+                            callbacks, apiClient, configManager, uiTab);
+                        dialog.show(filterResult.textMessages.get(0));
+                    }
                 });
             }
             menuItems.add(sendWithOptions);
             
             // 标记注入点并扫描
-            JMenuItem markInjectionPoints = new JMenuItem("标记注入点并扫描 (*)" + binarySuffix);
-            if (isBinary) {
+            JMenuItem markInjectionPoints = new JMenuItem("标记注入点并扫描 (*)" + 
+                (filterResult.allBinary() ? " (二进制报文)" : ""));
+            if (filterResult.allBinary()) {
                 markInjectionPoints.setEnabled(false);
-                markInjectionPoints.setToolTipText("二进制报文无法发起扫描任务: " + detectionResult.getReason());
+                markInjectionPoints.setToolTipText("所有选中的报文都是二进制格式，无法发起扫描任务");
             } else {
                 markInjectionPoints.addActionListener(e -> {
-                    InjectionPointDialog dialog = new InjectionPointDialog(
-                        callbacks, apiClient, configManager, uiTab);
-                    dialog.show(selectedMessages[0]);
+                    if (filterResult.hasTextMessages()) {
+                        InjectionPointDialog dialog = new InjectionPointDialog(
+                            callbacks, apiClient, configManager, uiTab);
+                        dialog.show(filterResult.textMessages.get(0));
+                    }
                 });
             }
             menuItems.add(markInjectionPoints);
             
             // 提交会话Header 和 Header规则 - 仅在选中单条请求时显示
-            if (selectedMessages.length == 1) {
+            if (selectedMessages.length == 1 && filterResult.hasTextMessages()) {
                 JMenuItem submitSessionHeaders = new JMenuItem("提交会话Header");
                 submitSessionHeaders.addActionListener(e -> {
                     SessionHeaderDialog dialog = new SessionHeaderDialog(callbacks, apiClient, uiTab);
-                    dialog.show(selectedMessages[0]);
+                    dialog.show(filterResult.textMessages.get(0));
                 });
                 menuItems.add(submitSessionHeaders);
                 
                 JMenuItem submitHeaderRule = new JMenuItem("提交Header规则");
                 submitHeaderRule.addActionListener(e -> {
                     HeaderRuleDialog dialog = new HeaderRuleDialog(callbacks, apiClient, uiTab);
-                    dialog.show(selectedMessages[0]);
+                    dialog.show(filterResult.textMessages.get(0));
                 });
                 menuItems.add(submitHeaderRule);
             }
         }
         
         return menuItems;
+    }
+    
+    /**
+     * 过滤二进制请求，返回纯文本请求列表和统计信息
+     */
+    private FilterResult filterBinaryRequests(IHttpRequestResponse[] messages) {
+        List<IHttpRequestResponse> textMessages = new ArrayList<>();
+        List<IHttpRequestResponse> binaryMessages = new ArrayList<>();
+        
+        for (IHttpRequestResponse message : messages) {
+            if (BinaryContentDetector.isTextRequest(message, helpers)) {
+                textMessages.add(message);
+            } else {
+                binaryMessages.add(message);
+            }
+        }
+        
+        return new FilterResult(textMessages, binaryMessages);
+    }
+    
+    /**
+     * 发送过滤后的纯文本请求，并记录被过滤的二进制请求日志
+     */
+    private void sendFilteredRequests(FilterResult filterResult, ScanConfig config) {
+        // 记录过滤统计
+        if (filterResult.binaryCount() > 0) {
+            uiTab.appendLog(String.format("[*] 过滤统计: 共选中 %d 个请求，%d 个纯文本可扫描，%d 个二进制已过滤",
+                filterResult.totalCount(), filterResult.textCount(), filterResult.binaryCount()));
+            
+            // 记录被过滤的二进制请求URL
+            for (IHttpRequestResponse binaryMsg : filterResult.binaryMessages) {
+                IRequestInfo reqInfo = helpers.analyzeRequest(binaryMsg);
+                String url = reqInfo.getUrl().toString();
+                BinaryContentDetector.DetectionResult detection = BinaryContentDetector.detect(binaryMsg, helpers);
+                uiTab.appendLog(String.format("    [跳过] %s (原因: %s)", url, detection.getReason()));
+            }
+        }
+        
+        // 发送纯文本请求
+        for (IHttpRequestResponse message : filterResult.textMessages) {
+            sendRequestToBackend(message, config);
+        }
     }
     
     /**
