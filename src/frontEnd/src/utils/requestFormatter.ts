@@ -37,7 +37,11 @@ export function formatHttpRequest(httpInfo: any, task: any): string {
   }
 
   // 4. 内容长度头（如果有请求体）
-  const body = httpInfo?.body || task?.body
+  // 重要：只使用 httpInfo.body，不回退到 task.body
+  // 因为后端API已经返回了正确的body信息，task.body可能来自其他数据源
+  const body = (httpInfo?.body !== undefined && httpInfo?.body !== null && httpInfo?.body !== '') 
+    ? httpInfo.body 
+    : null  // 不再回退到 task.body
   if (body) {
     const contentLength = new TextEncoder().encode(body).length
     lines.push(`Content-Length: ${contentLength}`)
