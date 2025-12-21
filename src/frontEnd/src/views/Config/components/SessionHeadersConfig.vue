@@ -103,12 +103,6 @@
       </template>
     </Card>
 
-    <!-- 信息提示 -->
-    <Message severity="info" :closable="false" class="mb-3">
-      <i class="pi pi-info-circle mr-2"></i>
-      会话Header仅在当前浏览器会话中有效，关闭浏览器后将自动清除
-    </Message>
-
     <!-- 批量操作工具栏 -->
     <div v-if="selectedSessionHeaders.length > 0" class="batch-actions-toolbar mb-4">
       <Card>
