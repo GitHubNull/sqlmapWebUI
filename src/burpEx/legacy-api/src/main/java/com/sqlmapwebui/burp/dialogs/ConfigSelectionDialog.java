@@ -18,6 +18,7 @@ import java.util.Map;
  */
 public class ConfigSelectionDialog {
     
+    @SuppressWarnings("unused")
     private final IBurpExtenderCallbacks callbacks;
     private final IExtensionHelpers helpers;
     private final SqlmapApiClient apiClient;
@@ -150,6 +151,7 @@ public class ConfigSelectionDialog {
             String host = urlObj.getHost();
             
             byte[] requestBytes = requestResponse.getRequest();
+            @SuppressWarnings("unused")
             String requestText = new String(requestBytes);
             
             // 解析headers和body

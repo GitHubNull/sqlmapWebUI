@@ -21,6 +21,7 @@ import java.util.Map;
  */
 public class BatchInjectionMarkDialog {
     
+    @SuppressWarnings("unused")
     private final IBurpExtenderCallbacks callbacks;
     private final IExtensionHelpers helpers;
     private final SqlmapApiClient apiClient;
@@ -145,6 +146,7 @@ public class BatchInjectionMarkDialog {
     /**
      * 创建顶部面板（信息栏 + 可折叠说明）
      */
+    @SuppressWarnings("unused")
     private JPanel createTopPanel() {
         JPanel panel = new JPanel(new BorderLayout(5, 5));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));

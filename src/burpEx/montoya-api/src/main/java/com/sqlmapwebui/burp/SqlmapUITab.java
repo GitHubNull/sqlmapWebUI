@@ -22,6 +22,7 @@ import java.util.function.Consumer;
  */
 public class SqlmapUITab extends JPanel {
     
+    @SuppressWarnings("unused")
     private final MontoyaApi api;
     private final SqlmapApiClient apiClient;
     private final ConfigManager configManager;

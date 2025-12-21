@@ -13,7 +13,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Context Menu Provider for SQLMap WebUI Extension (Montoya API)

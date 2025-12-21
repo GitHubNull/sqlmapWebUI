@@ -35,6 +35,7 @@ public class ConfigManager {
     public static final int MAX_INJECTION_MARK_COUNT = 15;
     public static final int DEFAULT_INJECTION_MARK_COUNT = 10;
     
+    @SuppressWarnings("unused")
     private final MontoyaApi api;
     private final PersistedObject persistence;
     private final Gson gson;

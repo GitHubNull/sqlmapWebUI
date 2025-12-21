@@ -646,6 +646,7 @@ public class ServerConfigPanel extends BaseConfigPanel {
             if (json.has("success") && json.get("success").getAsBoolean()) {
                 com.google.gson.JsonObject data = json.getAsJsonObject("data");
                 String currentDir = data.get("currentTempDir").getAsString();
+                @SuppressWarnings("unused")
                 String defaultDir = data.get("defaultTempDir").getAsString();
                 boolean isCustom = data.get("isCustom").getAsBoolean();
                 

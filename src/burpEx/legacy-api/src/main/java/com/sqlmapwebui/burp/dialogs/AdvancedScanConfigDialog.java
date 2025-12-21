@@ -24,6 +24,7 @@ import java.util.Map;
  */
 public class AdvancedScanConfigDialog {
     
+    @SuppressWarnings("unused")
     private final IBurpExtenderCallbacks callbacks;
     private final IExtensionHelpers helpers;
     private final SqlmapApiClient apiClient;
@@ -46,8 +47,10 @@ public class AdvancedScanConfigDialog {
     private GuidedParamEditor guidedEditor;
     
     // 注入点标记Tab
+    @SuppressWarnings("unused")
     private JTabbedPane injectionTabPane;
     private List<JTextArea> requestEditors = new ArrayList<>();
+    @SuppressWarnings("unused")
     private List<JLabel> markCountLabels = new ArrayList<>();
     private JTable requestTable;
     private DefaultTableModel requestTableModel;
@@ -1020,6 +1023,7 @@ public class AdvancedScanConfigDialog {
     /**
      * 获取短URL
      */
+    @SuppressWarnings("unused")
     private String getShortUrl(String url, int maxLen) {
         if (url == null) return "";
         if (url.length() <= maxLen) return url;

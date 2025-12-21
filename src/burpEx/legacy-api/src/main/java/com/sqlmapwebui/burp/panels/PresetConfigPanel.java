@@ -422,6 +422,7 @@ public class PresetConfigPanel extends BaseConfigPanel {
     /**
      * 显示保存为预设配置对话框
      */
+    @SuppressWarnings("unused")
     private void showSaveAsPresetDialog(String paramString) {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();

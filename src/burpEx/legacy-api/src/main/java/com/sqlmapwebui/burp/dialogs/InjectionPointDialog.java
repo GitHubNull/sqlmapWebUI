@@ -18,6 +18,7 @@ import java.util.Map;
  */
 public class InjectionPointDialog {
     
+    @SuppressWarnings("unused")
     private final IBurpExtenderCallbacks callbacks;
     private final IExtensionHelpers helpers;
     private final SqlmapApiClient apiClient;

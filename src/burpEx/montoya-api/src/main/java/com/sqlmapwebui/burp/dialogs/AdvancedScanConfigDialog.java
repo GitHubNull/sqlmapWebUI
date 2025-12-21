@@ -7,7 +7,6 @@ import com.sqlmapwebui.burp.*;
 import com.sqlmapwebui.burp.panels.GuidedParamEditor;
 
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
@@ -45,8 +44,10 @@ public class AdvancedScanConfigDialog {
     private GuidedParamEditor guidedEditor;
     
     // 注入点标记Tab（仅当符合条件时显示）
+    @SuppressWarnings("unused")
     private JTabbedPane injectionTabPane;
     private List<JTextArea> requestEditors = new ArrayList<>();
+    @SuppressWarnings("unused")
     private List<JLabel> markCountLabels = new ArrayList<>();
     private JTable requestTable;
     private DefaultTableModel requestTableModel;
@@ -963,6 +964,7 @@ public class AdvancedScanConfigDialog {
             long markCount = markedRequestText.chars().filter(ch -> ch == '*').count();
             
             // 异步发送
+            @SuppressWarnings("unused")
             final String finalHost = host;
             new Thread(() -> {
                 try {
@@ -1025,6 +1027,7 @@ public class AdvancedScanConfigDialog {
     /**
      * 获取短URL
      */
+    @SuppressWarnings("unused")
     private String getShortUrl(String url, int maxLen) {
         if (url == null) return "";
         if (url.length() <= maxLen) return url;

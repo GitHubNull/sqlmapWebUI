@@ -16,6 +16,7 @@ import java.util.List;
  */
 public class SessionHeaderDialog {
     
+    @SuppressWarnings("unused")
     private final IBurpExtenderCallbacks callbacks;
     private final IExtensionHelpers helpers;
     private final SqlmapApiClient apiClient;

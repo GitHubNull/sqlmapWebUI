@@ -6,7 +6,6 @@ import com.sqlmapwebui.burp.ScanConfig;
 import com.sqlmapwebui.burp.ScanConfigParser;
 
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
