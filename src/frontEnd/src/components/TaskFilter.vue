@@ -97,12 +97,21 @@
       <div class="filter-item action-item">
         <Button 
           label="重置" 
-          icon="pi pi-refresh" 
+          icon="pi pi-undo" 
           @click="resetFilters" 
           severity="secondary"
           outlined
           size="small"
           class="reset-btn"
+        />
+        <Button 
+          label="刷新" 
+          icon="pi pi-refresh" 
+          @click="emit('refresh')" 
+          severity="primary"
+          :loading="props.loading"
+          size="small"
+          class="refresh-btn"
         />
       </div>
     </div>
@@ -126,10 +135,12 @@ interface Props {
   filters: TaskFilters
   filteredCount: number
   totalCount: number
+  loading?: boolean
 }
 
 interface Emits {
   (e: 'update:filters', filters: TaskFilters): void
+  (e: 'refresh'): void
 }
 
 const props = defineProps<Props>()
@@ -291,7 +302,9 @@ function resetFilters() {
   .action-item {
     flex: 0 0 auto;
     display: flex;
+    flex-direction: row;
     align-items: flex-end;
+    gap: 8px;
   }
 }
 
@@ -324,6 +337,11 @@ function resetFilters() {
 }
 
 .reset-btn {
+  height: 36px;
+  font-size: 12px;
+}
+
+.refresh-btn {
   height: 36px;
   font-size: 12px;
 }

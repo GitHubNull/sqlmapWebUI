@@ -4,7 +4,6 @@
       <template #title>
         <div class="flex-between">
           <span>任务列表</span>
-          <Button label="刷新" icon="pi pi-refresh" @click="fetchTasks" :loading="taskStore.loading" />
         </div>
       </template>
       <template #content>
@@ -13,7 +12,9 @@
           :filters="taskStore.filters"
           :filteredCount="taskStore.sortedTaskList.length"
           :totalCount="taskStore.taskList.length"
+          :loading="taskStore.loading"
           @update:filters="handleFilterChange"
+          @refresh="fetchTasks"
         />
         
         <!-- 批量操作栏 -->
