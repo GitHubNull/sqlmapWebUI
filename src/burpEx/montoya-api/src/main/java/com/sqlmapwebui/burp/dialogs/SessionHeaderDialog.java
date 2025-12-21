@@ -133,14 +133,14 @@ public class SessionHeaderDialog {
         dialog.add(contentPanel, BorderLayout.CENTER);
         
         // 从scopePanel提取组件引用
-        JCheckBox enableScopeCheck = (JCheckBox) findComponentByName(scopePanel, "enableScopeCheck");
-        JComboBox<String> protocolCombo = (JComboBox<String>) findComponentByName(scopePanel, "protocolCombo");
-        JTextField hostField = (JTextField) findComponentByName(scopePanel, "hostField");
-        JTextField pathField = (JTextField) findComponentByName(scopePanel, "pathField");
-        JCheckBox useRegexCheck = (JCheckBox) findComponentByName(scopePanel, "useRegexCheck");
-        JSpinner ttlSpinner = (JSpinner) findComponentByName(scopePanel, "ttlSpinner");
-        JComboBox<String> strategyCombo = (JComboBox<String>) findComponentByName(scopePanel, "strategyCombo");
-        JSpinner prioritySpinner = (JSpinner) findComponentByName(scopePanel, "prioritySpinner");
+        JCheckBox enableScopeCheck = findComponentByType(scopePanel, "enableScopeCheck", JCheckBox.class);
+        JComboBox<?> protocolCombo = findComponentByType(scopePanel, "protocolCombo", JComboBox.class);
+        JTextField hostField = findComponentByType(scopePanel, "hostField", JTextField.class);
+        JTextField pathField = findComponentByType(scopePanel, "pathField", JTextField.class);
+        JCheckBox useRegexCheck = findComponentByType(scopePanel, "useRegexCheck", JCheckBox.class);
+        JSpinner ttlSpinner = findComponentByType(scopePanel, "ttlSpinner", JSpinner.class);
+        JComboBox<?> strategyCombo = findComponentByType(scopePanel, "strategyCombo", JComboBox.class);
+        JSpinner prioritySpinner = findComponentByType(scopePanel, "prioritySpinner", JSpinner.class);
         
         // 底部按钮
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -164,7 +164,8 @@ public class SessionHeaderDialog {
             
             String scopeJson = "null";
             if (enableScopeCheck.isSelected()) {
-                String protocol = (String) protocolCombo.getSelectedItem();
+                Object protocolObj = protocolCombo.getSelectedItem();
+                String protocol = protocolObj != null ? protocolObj.toString() : "";
                 String host = hostField.getText().trim();
                 String path = pathField.getText().trim();
                 boolean useRegex = useRegexCheck.isSelected();
@@ -176,7 +177,8 @@ public class SessionHeaderDialog {
             }
             
             int ttl = (Integer) ttlSpinner.getValue();
-            String strategy = (String) strategyCombo.getSelectedItem();
+            Object strategyObj = strategyCombo.getSelectedItem();
+            String strategy = strategyObj != null ? strategyObj.toString() : "REPLACE";
             int priority = (Integer) prioritySpinner.getValue();
             
             sendSessionHeadersToBackend(selectedHeaders, scopeJson, ttl, strategy, priority);
@@ -303,6 +305,21 @@ public class SessionHeaderDialog {
                 Component result = findComponentByName((Container) c, name);
                 if (result != null) return result;
             }
+        }
+        return null;
+    }
+    
+    /**
+     * 根据名称和类型安全地查找组件
+     * @param container 容器
+     * @param name 组件名称
+     * @param type 期望的组件类型
+     * @return 找到的组件，如果未找到或类型不匹配则返回null
+     */
+    private <T extends Component> T findComponentByType(Container container, String name, Class<T> type) {
+        Component component = findComponentByName(container, name);
+        if (component != null && type.isInstance(component)) {
+            return type.cast(component);
         }
         return null;
     }

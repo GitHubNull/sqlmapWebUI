@@ -164,6 +164,7 @@ public class HeaderRuleDialog {
             
             // 获取规则配置
             JTextField namePrefixField = (JTextField) findComponentByName(ruleConfigPanel, "namePrefix");
+            @SuppressWarnings("unchecked")
             JComboBox<String> strategyCombo = (JComboBox<String>) findComponentByName(ruleConfigPanel, "strategy");
             JSpinner prioritySpinner = (JSpinner) findComponentByName(ruleConfigPanel, "priority");
             JCheckBox isActiveCheck = (JCheckBox) findComponentByName(ruleConfigPanel, "isActive");
@@ -177,6 +178,7 @@ public class HeaderRuleDialog {
             
             String scopeJson = "null";
             if (enableScopeCheck != null && enableScopeCheck.isSelected()) {
+                @SuppressWarnings("unchecked")
                 JComboBox<String> protocolCombo = (JComboBox<String>) findComponentByName(ruleConfigPanel, "protocol");
                 JTextField hostField = (JTextField) findComponentByName(ruleConfigPanel, "host");
                 JTextField pathField = (JTextField) findComponentByName(ruleConfigPanel, "path");

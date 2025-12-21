@@ -176,12 +176,12 @@ public class SessionHeaderDialog {
             JCheckBox enableScopeCheck = (JCheckBox) findComponentByName(scopePanel, "enableScope");
             String scopeJson = "null";
             if (enableScopeCheck != null && enableScopeCheck.isSelected()) {
-                JComboBox<String> protocolCombo = (JComboBox<String>) findComponentByName(scopePanel, "protocol");
+                JComboBox<?> protocolCombo = (JComboBox<?>) findComponentByName(scopePanel, "protocol");
                 JTextField hostField = (JTextField) findComponentByName(scopePanel, "host");
                 JTextField pathField = (JTextField) findComponentByName(scopePanel, "path");
                 JCheckBox useRegexCheck = (JCheckBox) findComponentByName(scopePanel, "useRegex");
                 
-                String protocol = protocolCombo != null ? (String) protocolCombo.getSelectedItem() : "";
+                String protocol = protocolCombo != null ? String.valueOf(protocolCombo.getSelectedItem()) : "";
                 String host = hostField != null ? hostField.getText().trim() : "";
                 String path = pathField != null ? pathField.getText().trim() : "";
                 boolean useRegex = useRegexCheck != null && useRegexCheck.isSelected();
@@ -193,11 +193,11 @@ public class SessionHeaderDialog {
             }
             
             JSpinner ttlSpinner = (JSpinner) findComponentByName(scopePanel, "ttl");
-            JComboBox<String> strategyCombo = (JComboBox<String>) findComponentByName(scopePanel, "strategy");
+            JComboBox<?> strategyCombo = (JComboBox<?>) findComponentByName(scopePanel, "strategy");
             JSpinner prioritySpinner = (JSpinner) findComponentByName(scopePanel, "priority");
             
             int ttl = ttlSpinner != null ? (Integer) ttlSpinner.getValue() : 3600;
-            String strategy = strategyCombo != null ? (String) strategyCombo.getSelectedItem() : "REPLACE";
+            String strategy = strategyCombo != null ? String.valueOf(strategyCombo.getSelectedItem()) : "REPLACE";
             int priority = prioritySpinner != null ? (Integer) prioritySpinner.getValue() : 50;
             
             sendSessionHeadersToBackend(selectedHeaders, scopeJson, ttl, strategy, priority);

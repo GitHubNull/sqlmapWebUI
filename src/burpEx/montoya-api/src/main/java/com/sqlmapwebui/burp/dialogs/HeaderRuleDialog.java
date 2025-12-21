@@ -123,15 +123,15 @@ public class HeaderRuleDialog {
         dialog.add(contentPanel, BorderLayout.CENTER);
         
         // 从ruleConfigPanel提取组件引用
-        JTextField namePrefixField = (JTextField) findComponentByName(ruleConfigPanel, "namePrefixField");
-        JComboBox<String> strategyCombo = (JComboBox<String>) findComponentByName(ruleConfigPanel, "strategyCombo");
-        JSpinner prioritySpinner = (JSpinner) findComponentByName(ruleConfigPanel, "prioritySpinner");
-        JCheckBox isActiveCheck = (JCheckBox) findComponentByName(ruleConfigPanel, "isActiveCheck");
-        JCheckBox enableScopeCheck = (JCheckBox) findComponentByName(ruleConfigPanel, "enableScopeCheck");
-        JComboBox<String> protocolCombo = (JComboBox<String>) findComponentByName(ruleConfigPanel, "protocolCombo");
-        JTextField hostField = (JTextField) findComponentByName(ruleConfigPanel, "hostField");
-        JTextField pathField = (JTextField) findComponentByName(ruleConfigPanel, "pathField");
-        JCheckBox useRegexCheck = (JCheckBox) findComponentByName(ruleConfigPanel, "useRegexCheck");
+        JTextField namePrefixField = findComponentByName(ruleConfigPanel, "namePrefixField", JTextField.class);
+        JComboBox<?> strategyCombo = findComponentByName(ruleConfigPanel, "strategyCombo", JComboBox.class);
+        JSpinner prioritySpinner = findComponentByName(ruleConfigPanel, "prioritySpinner", JSpinner.class);
+        JCheckBox isActiveCheck = findComponentByName(ruleConfigPanel, "isActiveCheck", JCheckBox.class);
+        JCheckBox enableScopeCheck = findComponentByName(ruleConfigPanel, "enableScopeCheck", JCheckBox.class);
+        JComboBox<?> protocolCombo = findComponentByName(ruleConfigPanel, "protocolCombo", JComboBox.class);
+        JTextField hostField = findComponentByName(ruleConfigPanel, "hostField", JTextField.class);
+        JTextField pathField = findComponentByName(ruleConfigPanel, "pathField", JTextField.class);
+        JCheckBox useRegexCheck = findComponentByName(ruleConfigPanel, "useRegexCheck", JCheckBox.class);
         
         // 底部按钮
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -298,15 +298,19 @@ public class HeaderRuleDialog {
     }
     
     /**
-     * 根据名称查找组件
+     * 根据名称和类型安全地查找组件
+     * @param container 容器
+     * @param name 组件名称
+     * @param type 期望的组件类型
+     * @return 找到的组件，如果未找到或类型不匹配则返回null
      */
-    private Component findComponentByName(Container container, String name) {
+    private <T extends Component> T findComponentByName(Container container, String name, Class<T> type) {
         for (Component c : container.getComponents()) {
-            if (name.equals(c.getName())) {
-                return c;
+            if (name.equals(c.getName()) && type.isInstance(c)) {
+                return type.cast(c);
             }
             if (c instanceof Container) {
-                Component result = findComponentByName((Container) c, name);
+                T result = findComponentByName((Container) c, name, type);
                 if (result != null) return result;
             }
         }
