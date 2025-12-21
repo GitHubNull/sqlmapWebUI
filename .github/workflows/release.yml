@@ -53,7 +53,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
-          path: src/frontEnd/dist
+          path: src/backEnd/static
           retention-days: 1
 
   # ============================================
