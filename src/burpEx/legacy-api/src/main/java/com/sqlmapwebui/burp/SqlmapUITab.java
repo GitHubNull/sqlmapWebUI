@@ -159,4 +159,14 @@ public class SqlmapUITab extends JPanel {
             presetConfigPanel.refreshTable();
         }
     }
+    
+    /**
+     * 获取常用配置数据库
+     */
+    public PresetConfigDatabase getPresetDatabase() {
+        if (presetConfigPanel != null) {
+            return presetConfigPanel.getDatabase();
+        }
+        return null;
+    }
 }

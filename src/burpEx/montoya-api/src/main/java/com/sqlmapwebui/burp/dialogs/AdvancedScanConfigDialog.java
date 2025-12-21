@@ -214,11 +214,9 @@ public class AdvancedScanConfigDialog {
         });
         leftPanel.add(useDefaultCheck, BorderLayout.NORTH);
         
-        // 配置列表
+        // 配置列表 - 从 PresetConfigDatabase 获取常用配置
         configListModel = new DefaultListModel<>();
-        for (ConfigManager.ConfigOption option : configManager.getAllConfigOptions()) {
-            configListModel.addElement(option);
-        }
+        loadConfigOptions();
         
         configList = new JList<>(configListModel);
         configList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -257,6 +255,62 @@ public class AdvancedScanConfigDialog {
         updateConfigPreview(configManager.getDefaultConfig());
         
         return panel;
+    }
+    
+    /**
+     * 加载配置选项（从 PresetConfigDatabase 获取常用配置）
+     */
+    private void loadConfigOptions() {
+        // 默认配置
+        ScanConfig defaultConfig = configManager.getDefaultConfig();
+        configListModel.addElement(new ConfigManager.ConfigOption(
+            "【默认】" + defaultConfig.getName(), defaultConfig, ConfigManager.ConfigType.DEFAULT));
+        
+        // 分隔符
+        configListModel.addElement(ConfigManager.ConfigOption.createSeparator("── 常用配置 ──"));
+        
+        // 从 PresetConfigDatabase 获取常用配置
+        PresetConfigDatabase presetDb = uiTab.getPresetDatabase();
+        if (presetDb != null) {
+            List<PresetConfig> presetConfigs = presetDb.findAll();
+            for (PresetConfig preset : presetConfigs) {
+                // 将 PresetConfig 转换为 ScanConfig
+                ScanConfig scanConfig = convertPresetToScanConfig(preset);
+                configListModel.addElement(new ConfigManager.ConfigOption(
+                    preset.getName(), scanConfig, ConfigManager.ConfigType.PRESET));
+            }
+        }
+        
+        // 历史配置
+        List<ScanConfig> historyConfigs = configManager.getHistoryConfigs();
+        if (!historyConfigs.isEmpty()) {
+            configListModel.addElement(ConfigManager.ConfigOption.createSeparator("── 历史记录 ──"));
+            for (ScanConfig config : historyConfigs) {
+                configListModel.addElement(new ConfigManager.ConfigOption(
+                    config.getName(), config, ConfigManager.ConfigType.HISTORY));
+            }
+        }
+    }
+    
+    /**
+     * 将 PresetConfig 转换为 ScanConfig
+     */
+    private ScanConfig convertPresetToScanConfig(PresetConfig preset) {
+        String paramString = preset.getParameterString();
+        if (paramString != null && !paramString.trim().isEmpty()) {
+            ParseResult result = ScanConfigParser.parse(paramString);
+            if (result.isSuccess() && result.getConfig() != null) {
+                ScanConfig config = result.getConfig();
+                config.setName(preset.getName());
+                config.setDescription(preset.getDescription());
+                return config;
+            }
+        }
+        // 如果解析失败，返回默认配置并设置名称
+        ScanConfig fallback = ScanConfig.createDefault();
+        fallback.setName(preset.getName());
+        fallback.setDescription(preset.getDescription() + " (解析失败)");
+        return fallback;
     }
     
     /**
