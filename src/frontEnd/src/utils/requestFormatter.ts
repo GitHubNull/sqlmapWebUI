@@ -103,8 +103,7 @@ export function highlightHttpRequest(lines: string[], searchKeyword?: string, op
         // GET/HEAD/OPTIONS: 绿色（只读，安全）
         // POST/PUT/PATCH: 橙色（写入，有影响）
         // DELETE: 红色（危险，删除数据）
-        let methodColor = '#10b981' // 默认绿色（安全）
-        let methodBgColor = '#10b981'
+        let methodBgColor = '#10b981' // 默认绿色（安全）
         let methodBorderColor = '#059669'
         
         const upperMethod = method.toUpperCase()

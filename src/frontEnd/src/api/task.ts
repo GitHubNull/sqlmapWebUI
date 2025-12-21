@@ -639,7 +639,7 @@ function generatePayloadMockData(scene: PayloadMockScene): PayloadEntry[] {
       return [
         {
           index: 1,
-          status: 1,
+          status: '1',
           contentType: 'TARGET',
           value: JSON.stringify({
             url: 'http://127.0.0.1:9527/api/user/profile',
@@ -649,7 +649,7 @@ function generatePayloadMockData(scene: PayloadMockScene): PayloadEntry[] {
         },
         {
           index: 2,
-          status: 1,
+          status: '1',
           contentType: 'TECHNIQUES',
           value: JSON.stringify([{
             place: 'GET',
@@ -677,7 +677,7 @@ function generatePayloadMockData(scene: PayloadMockScene): PayloadEntry[] {
       return [
         {
           index: 1,
-          status: 1,
+          status: '1',
           contentType: 'TARGET',
           value: JSON.stringify({
             url: 'http://127.0.0.1:9527/api/user/search',
@@ -687,7 +687,7 @@ function generatePayloadMockData(scene: PayloadMockScene): PayloadEntry[] {
         },
         {
           index: 2,
-          status: 1,
+          status: '1',
           contentType: 'TECHNIQUES',
           value: JSON.stringify([
             {
@@ -742,7 +742,7 @@ function generatePayloadMockData(scene: PayloadMockScene): PayloadEntry[] {
       return [
         {
           index: 1,
-          status: 1,
+          status: '1',
           contentType: 'TARGET',
           value: JSON.stringify({
             url: 'http://example.com/api/products',
@@ -751,7 +751,7 @@ function generatePayloadMockData(scene: PayloadMockScene): PayloadEntry[] {
         },
         {
           index: 2,
-          status: 1,
+          status: '1',
           contentType: 'TECHNIQUES',
           value: JSON.stringify([{
             place: 'GET',
@@ -795,7 +795,7 @@ function generatePayloadMockData(scene: PayloadMockScene): PayloadEntry[] {
       return [
         {
           index: 1,
-          status: 1,
+          status: '1',
           contentType: 'TARGET',
           value: JSON.stringify({
             url: 'http://secure-site.com/api/users',
@@ -804,7 +804,7 @@ function generatePayloadMockData(scene: PayloadMockScene): PayloadEntry[] {
         },
         {
           index: 2,
-          status: 0,
+          status: '0',
           contentType: 'TECHNIQUES',
           value: '[]'  // 空数组
         }
@@ -819,7 +819,7 @@ function generatePayloadMockData(scene: PayloadMockScene): PayloadEntry[] {
       return [
         {
           index: 1,
-          status: 1,
+          status: '1',
           contentType: 'TARGET',
           value: JSON.stringify({
             url: 'http://test.com/api'  // 缺少query和data
@@ -827,7 +827,7 @@ function generatePayloadMockData(scene: PayloadMockScene): PayloadEntry[] {
         },
         {
           index: 2,
-          status: 1,
+          status: '1',
           contentType: 'TECHNIQUES',
           value: JSON.stringify([{
             // 缺少place和dbms
@@ -848,13 +848,13 @@ function generatePayloadMockData(scene: PayloadMockScene): PayloadEntry[] {
       return [
         {
           index: 1,
-          status: 1,
+          status: '1',
           contentType: 'TARGET',
           value: 'invalid json {{{'
         },
         {
           index: 2,
-          status: 1,
+          status: '1',
           contentType: 'TECHNIQUES',
           value: 'not a valid json array'
         }
@@ -865,7 +865,7 @@ function generatePayloadMockData(scene: PayloadMockScene): PayloadEntry[] {
       return [
         {
           index: 1,
-          status: 1,
+          status: '1',
           contentType: 'TARGET',
           value: JSON.stringify({
             url: 'http://target.com/api/data',
@@ -874,43 +874,43 @@ function generatePayloadMockData(scene: PayloadMockScene): PayloadEntry[] {
         },
         {
           index: 2,
-          status: 1,
+          status: '1',
           contentType: 'DBMS_FINGERPRINT',
           value: 'MySQL >= 5.6'
         },
         {
           index: 3,
-          status: 1,
+          status: '1',
           contentType: 'BANNER',
           value: '5.7.32-0ubuntu0.18.04.1'
         },
         {
           index: 4,
-          status: 1,
+          status: '1',
           contentType: 'CURRENT_USER',
           value: 'root@localhost'
         },
         {
           index: 5,
-          status: 1,
+          status: '1',
           contentType: 'CURRENT_DB',
           value: 'test_database'
         },
         {
           index: 6,
-          status: 1,
+          status: '1',
           contentType: 'HOSTNAME',
           value: 'db-server-01'
         },
         {
           index: 7,
-          status: 1,
+          status: '1',
           contentType: 'DBS',
           value: JSON.stringify(['information_schema', 'mysql', 'test_database', 'production_db'])
         },
         {
           index: 8,
-          status: 1,
+          status: '1',
           contentType: 'TABLES',
           value: JSON.stringify(['users', 'orders', 'products', 'sessions', 'logs'])
         }
@@ -922,7 +922,7 @@ function generatePayloadMockData(scene: PayloadMockScene): PayloadEntry[] {
       return [
         {
           index: 1,
-          status: 1,
+          status: '1',
           contentType: 'TARGET',
           value: JSON.stringify({
             url: 'http://vulnerable-app.com/api/users/profile',
@@ -932,7 +932,7 @@ function generatePayloadMockData(scene: PayloadMockScene): PayloadEntry[] {
         },
         {
           index: 2,
-          status: 1,
+          status: '1',
           contentType: 'TECHNIQUES',
           value: JSON.stringify([
             {
@@ -976,49 +976,49 @@ function generatePayloadMockData(scene: PayloadMockScene): PayloadEntry[] {
         },
         {
           index: 3,
-          status: 1,
+          status: '1',
           contentType: 'DBMS_FINGERPRINT',
           value: 'MySQL >= 5.6 and < 8.0'
         },
         {
           index: 4,
-          status: 1,
+          status: '1',
           contentType: 'BANNER',
           value: '5.7.42-log'
         },
         {
           index: 5,
-          status: 1,
+          status: '1',
           contentType: 'CURRENT_USER',
           value: 'webapp@%'
         },
         {
           index: 6,
-          status: 1,
+          status: '1',
           contentType: 'CURRENT_DB',
           value: 'vulnerable_app'
         },
         {
           index: 7,
-          status: 1,
+          status: '1',
           contentType: 'IS_DBA',
           value: 'False'
         },
         {
           index: 8,
-          status: 1,
+          status: '1',
           contentType: 'DBS',
           value: JSON.stringify(['information_schema', 'mysql', 'performance_schema', 'vulnerable_app'])
         },
         {
           index: 9,
-          status: 1,
+          status: '1',
           contentType: 'TABLES',
           value: JSON.stringify(['users', 'user_sessions', 'products', 'orders', 'payments', 'admin_logs'])
         },
         {
           index: 10,
-          status: 1,
+          status: '1',
           contentType: 'COLUMNS',
           value: JSON.stringify({
             'users': ['id', 'username', 'password', 'email', 'created_at', 'role'],

@@ -10,16 +10,18 @@
 - [SqlmapContextMenuProvider.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/SqlmapContextMenuProvider.java)
 - [BurpExtender.java](file://src/burpEx/legacy-api/src/main/java/com/sqlmapwebui/burp/BurpExtender.java)
 - [PresetConfigDatabase.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/PresetConfigDatabase.java)
-- [GuidedParamEditor.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/GuidedParamEditor.java)
-- [PresetConfigPanel.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/PresetConfigPanel.java)
-- [SqlmapUITab.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/SqlmapUITab.java)
+- [AdvancedScanConfigDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/dialogs/AdvancedScanConfigDialog.java)
+- [BatchInjectionMarkDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/dialogs/BatchInjectionMarkDialog.java)
+- [ConfigSelectionDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/dialogs/ConfigSelectionDialog.java)
+- [DefaultConfigPanel.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/DefaultConfigPanel.java)
 </cite>
 
 ## 更新摘要
 **变更内容**   
-- 新增了UI重构、预设配置数据库和引导式参数编辑器功能的详细说明
+- 新增了高级扫描配置对话框和批量注入点标记功能的详细说明
 - 更新了架构概述中的组件交互流程以反映新功能
-- 新增了预设配置数据库和引导式参数编辑器的详细分析
+- 新增了高级扫描配置与预设配置数据库集成的分析
+- 新增了批量注入点标记功能与上下文菜单的集成说明
 - 更新了故障排除指南中的新功能相关问题
 
 ## 目录
@@ -34,7 +36,7 @@
 9. [结论](#结论)
 
 ## 引言
-本文档全面阐述了Burp Suite插件与后端服务的集成架构。重点分析了Burp Suite如何捕获HTTP流量、序列化请求数据并通过API发送到WebUI系统。深入解析了后端API端点的处理逻辑，包括请求验证、解析机制以及对复杂请求体和自定义头的处理方式。同时提供了完整的API规范、实际工作流示例以及插件开发调试指南，旨在为安全测试人员提供跨Burp Suite和sqlmapWebUI的高效工作流建议。特别介绍了新增的UI重构、预设配置数据库和引导式参数编辑器功能，这些功能显著提升了用户配置管理的效率和准确性。
+本文档全面阐述了Burp Suite插件与后端服务的集成架构。重点分析了Burp Suite如何捕获HTTP流量、序列化请求数据并通过API发送到WebUI系统。深入解析了后端API端点的处理逻辑，包括请求验证、解析机制以及对复杂请求体和自定义头的处理方式。同时提供了完整的API规范、实际工作流示例以及插件开发调试指南，旨在为安全测试人员提供跨Burp Suite和sqlmapWebUI的高效工作流建议。特别介绍了新增的高级扫描配置对话框和批量注入点标记功能，这些功能显著提升了用户配置灵活性和注入点标记效率。
 
 ## 项目结构
 本项目采用分层架构设计，主要分为API接口层、业务服务层、数据模型层和工具类层。API接口位于`api/burpSuiteExApi`目录下，负责接收来自Burp Suite插件的请求；业务逻辑由`service`目录下的服务类实现；数据结构定义在`model`目录中；通用工具函数则封装在`utils`目录下。
@@ -77,20 +79,20 @@ D --> G
 
 ## 核心组件
 
-本文档的核心组件包括Burp Suite API接口、任务服务、请求数据模型和请求头处理器。这些组件协同工作，实现了从Burp Suite捕获请求到在WebUI中创建扫描任务的完整流程。API接口负责接收和初步验证请求，任务服务处理核心业务逻辑，数据模型确保数据结构的一致性，而请求头处理器则专门负责处理复杂的HTTP头信息。新增的预设配置数据库功能通过SQLite存储常用扫描配置，支持增删改查和高级搜索；引导式参数编辑器提供可视化界面，帮助用户更直观地配置扫描参数。
+本文档的核心组件包括Burp Suite API接口、任务服务、请求数据模型和请求头处理器。这些组件协同工作，实现了从Burp Suite捕获请求到在WebUI中创建扫描任务的完整流程。API接口负责接收和初步验证请求，任务服务处理核心业务逻辑，数据模型确保数据结构的一致性，而请求头处理器则专门负责处理复杂的HTTP头信息。新增的高级扫描配置对话框提供多标签页界面，支持预设配置选择、引导式参数编辑和注入点标记；批量注入点标记功能允许用户在多个请求中手动标记注入点，提升扫描准确性。
 
 **本节来源**  
 - [admin.py](file://src/backEnd/api/burpSuiteExApi/admin.py#L1-L36)
 - [taskService.py](file://src/backEnd/service/taskService.py#L1-L531)
 - [TaskRequest.py](file://src/backEnd/model/requestModel/TaskRequest.py#L1-L56)
 - [header_processor.py](file://src/backEnd/utils/header_processor.py#L1-L241)
-- [PresetConfigDatabase.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/PresetConfigDatabase.java#L9-L460)
-- [GuidedParamEditor.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/GuidedParamEditor.java#L30-L800)
-- [PresetConfigPanel.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/PresetConfigPanel.java#L28-L1217)
+- [AdvancedScanConfigDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/dialogs/AdvancedScanConfigDialog.java#L40-L75)
+- [BatchInjectionMarkDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/dialogs/BatchInjectionMarkDialog.java#L39-L80)
+- [SqlmapContextMenuProvider.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/SqlmapContextMenuProvider.java#L1-L77)
 
 ## 架构概述
 
-系统采用前后端分离架构，Burp Suite插件作为前端数据采集工具，通过HTTP API与后端服务通信。后端基于FastAPI框架构建，接收来自插件的请求数据，经过验证和处理后，创建扫描任务并返回任务ID。整个流程实现了安全测试的自动化集成。新增的预设配置数据库和引导式参数编辑器功能扩展了原有架构，提供了更强大的配置管理和参数设置能力。
+系统采用前后端分离架构，Burp Suite插件作为前端数据采集工具，通过HTTP API与后端服务通信。后端基于FastAPI框架构建，接收来自插件的请求数据，经过验证和处理后，创建扫描任务并返回任务ID。整个流程实现了安全测试的自动化集成。新增的高级扫描配置对话框和批量注入点标记功能扩展了原有架构，提供了更灵活的配置管理和更精确的注入点标记能力。
 
 ```mermaid
 sequenceDiagram
@@ -112,34 +114,36 @@ API-->>Burp : 返回任务ID和引擎ID
 - [taskService.py](file://src/backEnd/service/taskService.py#L30-L55)
 - [app.py](file://src/backEnd/app.py#L15-L25)
 
-### 预设配置数据库和引导式参数编辑器工作流
+### 高级扫描配置与批量注入点标记工作流
 
 ```mermaid
 sequenceDiagram
 participant Tester as 安全测试人员
 participant Burp as Burp Suite插件
-participant UI as 预设配置界面
+participant ContextMenu as 上下文菜单
+participant AdvancedDialog as 高级扫描配置对话框
+participant BatchDialog as 批量注入点标记对话框
 participant API as FastAPI后端
-Tester->>Burp : 打开常用配置管理
-Burp->>UI : 显示预设配置面板
-UI->>Tester : 显示配置列表和搜索功能
-Tester->>UI : 添加/编辑/删除配置
-UI->>API : 同步配置到SQLite数据库
-API-->>UI : 返回操作结果
-UI-->>Tester : 显示操作成功信息
-Tester->>UI : 使用引导式参数编辑器
-UI->>Tester : 显示可视化参数配置界面
-Tester->>UI : 选择参数并设置值
-UI->>UI : 实时生成命令行预览
-UI->>API : 保存配置到数据库
-API-->>UI : 返回保存结果
-UI-->>Tester : 显示配置保存成功
+Tester->>Burp : 右键点击请求
+Burp->>ContextMenu : 显示上下文菜单
+ContextMenu->>Tester : 显示"标记注入点并扫描"选项
+Tester->>ContextMenu : 选择"标记注入点并扫描"
+ContextMenu->>BatchDialog : 启动批量注入点标记对话框
+BatchDialog->>Tester : 显示请求编辑器和标记界面
+Tester->>BatchDialog : 手动标记注入点
+BatchDialog->>AdvancedDialog : 转到高级扫描配置
+AdvancedDialog->>Tester : 显示预设配置、引导式参数和注入点
+Tester->>AdvancedDialog : 选择配置并确认
+AdvancedDialog->>API : 发送扫描请求
+API-->>AdvancedDialog : 返回任务ID
+AdvancedDialog-->>Tester : 显示扫描成功信息
 ```
 
 **图示来源**  
-- [PresetConfigDatabase.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/PresetConfigDatabase.java#L9-L460)
-- [PresetConfigPanel.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/PresetConfigPanel.java#L28-L1217)
-- [GuidedParamEditor.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/GuidedParamEditor.java#L30-L800)
+- [SqlmapContextMenuProvider.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/SqlmapContextMenuProvider.java#L30-L77)
+- [BatchInjectionMarkDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/dialogs/BatchInjectionMarkDialog.java#L45-L75)
+- [AdvancedScanConfigDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/dialogs/AdvancedScanConfigDialog.java#L48-L57)
+- [admin.py](file://src/backEnd/api/burpSuiteExApi/admin.py#L15-L36)
 
 ## 详细组件分析
 
@@ -212,129 +216,127 @@ end
 **本节来源**  
 - [header_processor.py](file://src/backEnd/utils/header_processor.py#L1-L241)
 
-### 预设配置数据库功能分析
-新增的预设配置数据库功能使用SQLite存储常用扫描配置，支持增删改查和高级搜索，显著提升了配置管理的效率。
+### 高级扫描配置对话框功能分析
+新增的高级扫描配置对话框提供多标签页界面，整合了预设配置选择、引导式参数编辑和注入点标记功能，为用户提供全面的扫描配置能力。
 
-#### 预设配置数据库设计
+#### 高级扫描配置对话框设计
 ```mermaid
 classDiagram
-class PresetConfigDatabase {
-+insert(config)
-+update(config)
-+delete(id)
-+findAll()
-+findById(id)
-+search(keyword)
+class AdvancedScanConfigDialog {
++configListModel : DefaultListModel
++configPreviewArea : JTextArea
++useDefaultCheck : JCheckBox
++guidedEditor : GuidedParamEditor
++injectionTabPane : JTabbedPane
++requestTable : JTable
++currentConfig : ScanConfig
 }
-class PresetConfig {
-+id : long
-+name : String
-+description : String
-+parameterString : String
-+createdTime : LocalDateTime
-+modifiedTime : LocalDateTime
+class ConfigSelectionDialog {
++configList : JList
++previewArea : JTextArea
++sendButton : JButton
 }
-class PresetConfigPanel {
-+refreshTable()
-+showAddDialog()
-+showEditDialog()
-+deleteSelected()
+class DefaultConfigPanel {
++usePresetConfigRadio : JRadioButton
++useLastHistoryRadio : JRadioButton
++useDefaultConfigRadio : JRadioButton
++presetConfigCombo : JComboBox
 }
-PresetConfigDatabase --> PresetConfig : "存储"
-PresetConfigPanel --> PresetConfigDatabase : "调用"
+AdvancedScanConfigDialog --> ConfigSelectionDialog : "包含"
+AdvancedScanConfigDialog --> DefaultConfigPanel : "使用"
 ```
 
 **图示来源**  
-- [PresetConfigDatabase.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/PresetConfigDatabase.java#L9-L460)
-- [PresetConfigPanel.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/PresetConfigPanel.java#L28-L1217)
+- [AdvancedScanConfigDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/dialogs/AdvancedScanConfigDialog.java#L40-L75)
+- [ConfigSelectionDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/dialogs/ConfigSelectionDialog.java#L67-L94)
+- [DefaultConfigPanel.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/DefaultConfigPanel.java#L486-L518)
 
 **本节来源**  
-- [PresetConfigDatabase.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/PresetConfigDatabase.java#L9-L460)
-- [PresetConfigPanel.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/PresetConfigPanel.java#L28-L1217)
+- [AdvancedScanConfigDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/dialogs/AdvancedScanConfigDialog.java#L40-L75)
+- [ConfigSelectionDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/dialogs/ConfigSelectionDialog.java#L67-L94)
+- [DefaultConfigPanel.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/DefaultConfigPanel.java#L486-L518)
 
-#### 预设配置数据库功能流程
+#### 高级扫描配置对话框功能流程
 ```mermaid
 flowchart TD
-Start([开始]) --> ShowPanel["显示预设配置面板"]
-ShowPanel --> LoadData["从SQLite数据库加载配置"]
-LoadData --> DisplayTable["显示配置表格"]
-DisplayTable --> UserAction{"用户操作?"}
-UserAction -- 添加 --> ShowAddDialog["显示添加对话框"]
-UserAction -- 编辑 --> ShowEditDialog["显示编辑对话框"]
-UserAction -- 删除 --> ConfirmDelete["确认删除操作"]
-UserAction -- 搜索 --> ApplyFilter["应用搜索过滤器"]
-ShowAddDialog --> ValidateInput["验证输入数据"]
-ValidateInput --> CheckDuplicate["检查名称重复"]
-CheckDuplicate --> InsertDB["插入到数据库"]
-InsertDB --> RefreshTable["刷新表格显示"]
-ShowEditDialog --> ValidateInput
-ConfirmDelete --> ExecuteDelete["执行删除操作"]
-ExecuteDelete --> RefreshTable
-ApplyFilter --> UpdateTable["更新表格显示"]
-RefreshTable --> LogResult["记录操作日志"]
-LogResult --> End([结束])
+Start([开始]) --> ShowDialog["显示高级扫描配置对话框"]
+ShowDialog --> LoadPresets["从预设配置数据库加载配置"]
+LoadPresets --> DisplayTabs["显示多标签页界面"]
+DisplayTabs --> UserAction{"用户操作?"}
+UserAction -- 选择预设配置 --> ShowPreview["显示配置预览"]
+UserAction -- 编辑参数 --> ShowGuidedEditor["显示引导式参数编辑器"]
+UserAction -- 标记注入点 --> ShowInjectionTab["显示注入点标记标签页"]
+ShowPreview --> UpdateConfig["更新当前扫描配置"]
+ShowGuidedEditor --> UpdateConfig
+ShowInjectionTab --> UpdateConfig
+UpdateConfig --> ConfirmSend["用户确认发送扫描"]
+ConfirmSend --> SendRequest["发送扫描请求到后端"]
+SendRequest --> End([结束])
 ```
 
 **图示来源**  
-- [PresetConfigDatabase.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/PresetConfigDatabase.java#L9-L460)
-- [PresetConfigPanel.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/PresetConfigPanel.java#L28-L1217)
+- [AdvancedScanConfigDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/dialogs/AdvancedScanConfigDialog.java#L40-L75)
+- [ConfigSelectionDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/dialogs/ConfigSelectionDialog.java#L67-L94)
+- [PresetConfigDatabase.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/PresetConfigDatabase.java#L89-L119)
 
-### 引导式参数编辑器功能分析
-新增的引导式参数编辑器功能提供可视化界面，帮助用户更直观地配置扫描参数，支持参数搜索、分类浏览和实时命令行预览。
+### 批量注入点标记功能分析
+新增的批量注入点标记功能允许用户在多个请求中手动标记注入点，通过上下文菜单触发，支持纯文本和二进制内容的过滤处理。
 
-#### 引导式参数编辑器设计
+#### 批量注入点标记功能设计
 ```mermaid
 classDiagram
-class GuidedParamEditor {
-+loadFromParamString(paramString)
-+getCommandLine()
-+setOnChangeCallback(callback)
+class BatchInjectionMarkDialog {
++textMessages : List<HttpRequestResponse>
++binaryMessages : List<HttpRequestResponse>
++requestEditors : List<JTextArea>
++currentSelectedIndex : int
 }
-class GuidedParamEditorDialog {
-+showNewParamDialog()
-+showEditParamDialog()
+class SqlmapContextMenuProvider {
++createMenuItems(invocation)
++show(contextMenuEvent)
 }
-class ParamMeta {
-+name : String
-+description : String
-+type : Type
-+defaultValue : Object
+class FilterResult {
++textMessages : List<HttpRequestResponse>
++binaryMessages : List<HttpRequestResponse>
 }
-GuidedParamEditor --> ParamMeta : "使用"
-GuidedParamEditorDialog --> GuidedParamEditor : "包含"
+BatchInjectionMarkDialog --> FilterResult : "使用"
+SqlmapContextMenuProvider --> BatchInjectionMarkDialog : "创建"
 ```
 
 **图示来源**  
-- [GuidedParamEditor.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/GuidedParamEditor.java#L30-L800)
-- [GuidedParamEditorDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/GuidedParamEditorDialog.java#L133-L191)
+- [BatchInjectionMarkDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/dialogs/BatchInjectionMarkDialog.java#L39-L80)
+- [SqlmapContextMenuProvider.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/SqlmapContextMenuProvider.java#L48-L77)
 
 **本节来源**  
-- [GuidedParamEditor.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/GuidedParamEditor.java#L30-L800)
-- [GuidedParamEditorDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/GuidedParamEditorDialog.java#L133-L191)
+- [BatchInjectionMarkDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/dialogs/BatchInjectionMarkDialog.java#L39-L80)
+- [SqlmapContextMenuProvider.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/SqlmapContextMenuProvider.java#L48-L77)
 
-#### 引导式参数编辑器功能流程
+#### 批量注入点标记功能流程
 ```mermaid
 flowchart TD
-Start([开始]) --> ShowEditor["显示引导式参数编辑器"]
-ShowEditor --> LoadParams["加载参数元数据"]
-LoadParams --> DisplayUI["显示参数选择界面"]
-DisplayUI --> UserSearch{"用户搜索?"}
-UserSearch -- 是 --> ApplySearch["应用搜索过滤"]
-UserSearch -- 否 --> SelectParam["选择参数"]
-ApplySearch --> SelectParam
-SelectParam --> ShowInput["显示参数输入控件"]
-ShowInput --> UserInput["用户输入参数值"]
-UserInput --> AddParam["添加/更新参数"]
-AddParam --> UpdatePreview["更新命令行预览"]
-UpdatePreview --> UserAction{"继续操作?"}
-UserAction -- 是 --> DisplayUI
-UserAction -- 否 --> GetResult["获取最终参数字符串"]
-GetResult --> End([结束])
+Start([开始]) --> RightClick["用户右键点击请求"]
+RightClick --> ShowMenu["显示上下文菜单"]
+ShowMenu --> SelectOption["选择'标记注入点并扫描'"]
+SelectOption --> FilterRequests["过滤纯文本和二进制请求"]
+FilterRequests --> CheckBinary["检查二进制报文"]
+CheckBinary -- 存在二进制报文 --> ShowWarning["显示二进制警告"]
+CheckBinary -- 无二进制报文 --> CreateDialog["创建批量注入点标记对话框"]
+ShowWarning --> CreateDialog
+CreateDialog --> DisplayEditors["显示请求编辑器"]
+DisplayEditors --> UserMark["用户手动标记注入点"]
+UserMark --> CheckLimit["检查标记上限"]
+CheckLimit -- 超过上限 --> ShowLimitWarning["显示上限警告"]
+CheckLimit -- 未超上限 --> ContinueMark["继续标记"]
+ShowLimitWarning --> ContinueMark
+ContinueMark --> ConfirmMark["用户确认标记完成"]
+ConfirmMark --> TransferToAdvanced["转到高级扫描配置对话框"]
+TransferToAdvanced --> End([结束])
 ```
 
 **图示来源**  
-- [GuidedParamEditor.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/GuidedParamEditor.java#L30-L800)
-- [GuidedParamEditorDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/GuidedParamEditorDialog.java#L133-L191)
+- [BatchInjectionMarkDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/dialogs/BatchInjectionMarkDialog.java#L65-L75)
+- [SqlmapContextMenuProvider.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/SqlmapContextMenuProvider.java#L30-L77)
+- [AdvancedScanConfigDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/dialogs/AdvancedScanConfigDialog.java#L67-L75)
 
 ## 依赖分析
 
@@ -370,7 +372,7 @@ style C fill:#ffc,stroke:#333
 - [src/backEnd/utils/header_processor.py](file://src/backEnd/utils/header_processor.py)
 
 ## 性能考虑
-系统在设计时考虑了多方面的性能因素。通过使用异步处理（async/await）提高并发能力，利用锁机制（tasks_lock）保证线程安全，同时对数据库查询进行了优化。建议在高并发场景下监控任务队列长度，避免资源耗尽。对于大型请求体的处理，应考虑流式处理以降低内存占用。新增的预设配置数据库功能使用SQLite存储，具有轻量级、零配置的特点，适合本地存储常用配置。引导式参数编辑器在客户端进行处理，不会增加服务器端的计算负担，仅在发送请求时增加少量的标记计数和JSON转义处理开销。
+系统在设计时考虑了多方面的性能因素。通过使用异步处理（async/await）提高并发能力，利用锁机制（tasks_lock）保证线程安全，同时对数据库查询进行了优化。建议在高并发场景下监控任务队列长度，避免资源耗尽。对于大型请求体的处理，应考虑流式处理以降低内存占用。新增的高级扫描配置对话框在客户端进行处理，不会增加服务器端的计算负担，仅在发送请求时增加少量的标记计数和JSON转义处理开销。批量注入点标记功能对选中的请求进行过滤处理，避免将二进制内容发送到后端，减少网络传输和服务器处理开销。
 
 ## 故障排除指南
 常见问题及解决方案：
@@ -393,15 +395,23 @@ style C fill:#ffc,stroke:#333
 
 9. **配置搜索功能异常**：检查正则表达式语法是否正确，避免使用无效的正则表达式导致搜索功能失效。
 
-10. **参数重复检查误报**：系统会检查新配置的参数是否与现有配置等效，如果确认需要保存重复配置，可勾选"无视参数重复"选项。
+10. **批量注入点标记功能不显示**：确保在上下文菜单中选择了纯文本请求，二进制内容的请求不会触发此功能。
+
+11. **高级扫描配置对话框无法加载预设配置**：检查预设配置数据库文件是否存在且可读，数据库路径通常位于插件工作目录下的`presets.db`。
+
+12. **注入点标记超过上限**：系统默认限制可标记的请求数量，超过上限的请求将无法标记，可在插件设置中调整此限制。
+
+13. **上下文菜单选项缺失**：确保插件已正确加载且与后端服务器连接成功，连接失败时将不显示扫描相关菜单。
+
+14. **标记的注入点未生效**：确认在高级扫描配置对话框中已正确传递标记信息，标记数据会作为特殊标记包含在请求体中发送。
 
 **本节来源**  
 - [admin.py](file://src/backEnd/api/burpSuiteExApi/admin.py#L20-L30)
 - [app.py](file://src/backEnd/app.py#L10-L20)
 - [taskService.py](file://src/backEnd/service/taskService.py#L10-L25)
-- [PresetConfigDatabase.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/PresetConfigDatabase.java#L9-L460)
-- [GuidedParamEditor.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/GuidedParamEditor.java#L30-L800)
-- [PresetConfigPanel.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/panels/PresetConfigPanel.java#L28-L1217)
+- [AdvancedScanConfigDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/dialogs/AdvancedScanConfigDialog.java#L40-L75)
+- [BatchInjectionMarkDialog.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/dialogs/BatchInjectionMarkDialog.java#L39-L80)
+- [SqlmapContextMenuProvider.java](file://src/burpEx/montoya-api/src/main/java/com/sqlmapwebui/burp/SqlmapContextMenuProvider.java#L30-L77)
 
 ## 结论
-本文档详细介绍了Burp Suite插件与sqlmapWebUI的集成方案。通过标准化的API接口和清晰的组件划分，实现了安全测试工具的无缝集成。系统具备良好的扩展性和稳定性，能够有效提升安全测试效率。新增的预设配置数据库和引导式参数编辑器功能为安全测试人员提供了更强大的配置管理能力，支持常用配置的持久化存储、高级搜索和可视化参数配置。这些功能显著提升了用户的工作效率和配置准确性。建议用户按照文档中的工作流进行操作，并参考故障排除指南解决常见问题。
+本文档详细介绍了Burp Suite插件与sqlmapWebUI的集成方案。通过标准化的API接口和清晰的组件划分，实现了安全测试工具的无缝集成。系统具备良好的扩展性和稳定性，能够有效提升安全测试效率。新增的高级扫描配置对话框和批量注入点标记功能为安全测试人员提供了更强大的配置管理能力和更精确的注入点标记方式。高级扫描配置对话框整合了预设配置、引导式参数编辑和注入点标记功能，提供了一站式的扫描配置体验。批量注入点标记功能通过上下文菜单集成，允许用户在多个请求中手动标记注入点，显著提升了扫描的准确性和灵活性。这些建议用户按照文档中的工作流进行操作，并参考故障排除指南解决常见问题。
