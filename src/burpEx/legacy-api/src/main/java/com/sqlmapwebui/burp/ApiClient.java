@@ -1,6 +1,5 @@
 package com.sqlmapwebui.burp;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import okhttp3.*;
@@ -17,7 +16,6 @@ public class ApiClient {
     
     private final String baseUrl;
     private final OkHttpClient httpClient;
-    private final Gson gson;
     
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static final int CONNECT_TIMEOUT = 10;
@@ -26,7 +24,6 @@ public class ApiClient {
     
     public ApiClient(String baseUrl) {
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-        this.gson = new Gson();
         this.httpClient = new OkHttpClient.Builder()
             .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
             .readTimeout(READ_TIMEOUT, TimeUnit.SECONDS)
