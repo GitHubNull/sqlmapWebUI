@@ -99,9 +99,33 @@ export function highlightHttpRequest(lines: string[], searchKeyword?: string, op
         const url = parts.slice(1, -1).join(' ') || ''
         const version = parts[parts.length - 1] || ''
 
-        highlightedLine = `<span style="background-color:#8b5cf6 !important; color:#ffffff !important; font-weight:bold !important; padding:2px 6px !important; border-radius:4px !important; font-size:12px !important; display:inline-block !important; margin-right:8px !important; border:1px solid #7c3aed !important;">${escapeHtml(method)}</span>` +
-          `<span style="color:#34d399 !important; text-decoration:underline !important; font-weight:600 !important;">${escapeHtml(url)}</span>` +
-          ` <span style="color:#06b6d4 !important; font-weight:600 !important;">${escapeHtml(version)}</span>`
+        // 根据HTTP方法的安全性/危险程度标记颜色
+        // GET/HEAD/OPTIONS: 绿色（只读，安全）
+        // POST/PUT/PATCH: 橙色（写入，有影响）
+        // DELETE: 红色（危险，删除数据）
+        let methodColor = '#10b981' // 默认绿色（安全）
+        let methodBgColor = '#10b981'
+        let methodBorderColor = '#059669'
+        
+        const upperMethod = method.toUpperCase()
+        if (['POST', 'PUT', 'PATCH'].includes(upperMethod)) {
+          // 写入方法 - 橙色
+          methodBgColor = '#f59e0b'
+          methodBorderColor = '#d97706'
+        } else if (upperMethod === 'DELETE') {
+          // 删除方法 - 红色
+          methodBgColor = '#ef4444'
+          methodBorderColor = '#dc2626'
+        } else {
+          // GET/HEAD/OPTIONS等只读方法 - 绿色
+          methodBgColor = '#10b981'
+          methodBorderColor = '#059669'
+        }
+        
+        // 请求方法、PATH、版本字体大小一致，都使用 inherit 继承父元素的22px
+        highlightedLine = `<span style="background-color:${methodBgColor} !important; color:#ffffff !important; font-weight:bold !important; padding:4px 10px !important; border-radius:6px !important; font-size:inherit !important; display:inline-block !important; margin-right:10px !important; border:1px solid ${methodBorderColor} !important; vertical-align:middle !important;">${escapeHtml(method)}</span>` +
+          `<span style="color:#34d399 !important; text-decoration:underline !important; font-weight:600 !important; font-size:inherit !important;">${escapeHtml(url)}</span>` +
+          ` <span style="color:#06b6d4 !important; font-weight:600 !important; font-size:inherit !important;">${escapeHtml(version)}</span>`
       }
     } else if (!isBody) {
       // 2. HTTP头高亮

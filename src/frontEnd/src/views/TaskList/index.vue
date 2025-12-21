@@ -85,7 +85,11 @@
           </Column>
           <Column field="scanUrl" header="扫描URL" :style="{ minWidth: '250px', maxWidth: '600px' }" sortable>
             <template #body="{ data }">
-              <div class="url-cell" :title="data.scanUrl">
+              <div 
+                class="url-cell clickable-url" 
+                :title="'点击查看HTTP请求信息'" 
+                @click="goToTaskHttpInfo(data)"
+              >
                 {{ data.scanUrl }}
               </div>
             </template>
@@ -98,6 +102,9 @@
                 :value="data.injected ? '存在注入' : '无注入'"
                 :severity="data.injected ? 'danger' : 'success'"
                 :icon="data.injected ? 'pi pi-exclamation-triangle' : 'pi pi-check-circle'"
+                :class="{ 'clickable-tag': data.injected }"
+                @click="data.injected && goToTaskResults(data)"
+                v-tooltip.top="data.injected ? '点击查看扫描结果' : ''"
               />
               <Tag v-else value="未知" severity="secondary" icon="pi pi-question-circle" />
             </template>
@@ -428,6 +435,16 @@ function goToTaskLogs(task: any) {
   router.push({ path: `/tasks/${task.taskid}`, query: { tab: '4' } })
 }
 
+function goToTaskResults(task: any) {
+  // 跳转到任务详情页的扫描结果标签页（value="3"）
+  router.push({ path: `/tasks/${task.taskid}`, query: { tab: '3' } })
+}
+
+function goToTaskHttpInfo(task: any) {
+  // 跳转到任务详情页的HTTP请求信息标签页（value="1"）
+  router.push({ path: `/tasks/${task.taskid}`, query: { tab: '1' } })
+}
+
 async function stopTask(taskId: string) {
   await taskStore.stopTask(taskId)
 }
@@ -742,6 +759,27 @@ function confirmDeleteAll() {
 
   &:hover {
     background: rgba(99, 102, 241, 0.05);
+  }
+}
+
+// 可点击URL样式
+.clickable-url {
+  cursor: pointer;
+  color: #6366f1;
+  text-decoration: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #4f46e5;
+    background: rgba(99, 102, 241, 0.1);
+    text-decoration: underline;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+    border-radius: 4px;
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
 
