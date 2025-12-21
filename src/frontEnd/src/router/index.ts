@@ -38,6 +38,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/Config/index.vue'),
         meta: { requiresAuth: true, title: '配置管理' },
       },
+      {
+        path: '/add-task',
+        name: 'addTask',
+        component: () => import('@/views/AddTask/index.vue'),
+        meta: { requiresAuth: true, title: '添加任务' },
+      },
     ],
   },
   {

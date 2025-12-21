@@ -11,10 +11,14 @@
               <span>系统配置</span>
             </Tab>
             <Tab value="1">
+              <i class="pi pi-sliders-h"></i>
+              <span>扫描配置</span>
+            </Tab>
+            <Tab value="2">
               <i class="pi pi-list"></i>
               <span>Header规则管理</span>
             </Tab>
-            <Tab value="2">
+            <Tab value="3">
               <i class="pi pi-clock"></i>
               <span>会话Header管理</span>
             </Tab>
@@ -65,13 +69,18 @@
             </div>
             </TabPanel>
 
-            <!-- Header规则管理 -->
+            <!-- 扫描配置 -->
             <TabPanel value="1">
+              <ScanPresetConfig />
+            </TabPanel>
+
+            <!-- Header规则管理 -->
+            <TabPanel value="2">
               <HeaderRulesConfig />
             </TabPanel>
 
             <!-- 会话Header管理 -->
-            <TabPanel value="2">
+            <TabPanel value="3">
               <SessionHeadersConfig />
             </TabPanel>
           </TabPanels>
@@ -91,6 +100,7 @@ import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
 import HeaderRulesConfig from './components/HeaderRulesConfig.vue'
 import SessionHeadersConfig from './components/SessionHeadersConfig.vue'
+import ScanPresetConfig from './components/ScanPresetConfig.vue'
 
 const configStore = useConfigStore()
 const activeTab = ref('0')

@@ -97,6 +97,7 @@ except ImportError:
 from model.Database import Database
 from model.DataStore import DataStore
 from model.HeaderDatabase import HeaderDatabase
+from model.ScanPresetDatabase import get_scan_preset_db
 # from model.DataStore import data_store
 
 FORMATTER = logging.Formatter("[%(asctime)s] [%(levelname)s] [%(module)s] [%(filename)s] [Line: %(lineno)d] %(message)s", "%Y-%m-%d %H:%M:%S")
@@ -147,6 +148,10 @@ def main(username, password):
         DataStore.header_db.connect()
         DataStore.header_db.init()
         logger.info("[*] Header database initialized")
+        
+        # Initialize Scan Preset database
+        DataStore.scan_preset_db = get_scan_preset_db()
+        logger.info("[*] Scan preset database initialized")
 
         scheduler = BackgroundScheduler()
         scheduler.add_job(monitor, 'interval', seconds=3)  # 每10秒执行一次

@@ -13,3 +13,8 @@ class BaseResponseMsg(JSONResponse):
             },
             status_code=status.HTTP_200_OK
         )
+        # 保存属性以便在代码中访问
+        self.success = success
+        self.msg = msg
+        self.data = data
+        self.code = code

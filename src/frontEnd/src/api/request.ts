@@ -124,8 +124,9 @@ instance.interceptors.response.use(
   (response: AxiosResponse<BaseResponse>) => {
     const { data } = response
     
-    // 检查业务状态码
-    if (data.code === 200 && data.success) {
+    // 检查业务状态码（200-299 范围内的都认为成功，或者 success 字段为 true）
+    const isSuccessCode = data.code >= 200 && data.code < 300
+    if (isSuccessCode && data.success) {
       // 成功,返回data字段
       return data.data
     } else {

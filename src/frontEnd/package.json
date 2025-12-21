@@ -10,10 +10,12 @@
   },
   "dependencies": {
     "@primevue/themes": "^4.4.1",
+    "@scrape-do/curl-parser": "^0.3.0",
     "axios": "^1.12.2",
     "dayjs": "^1.11.18",
     "highlight.js": "^11.11.1",
     "lodash-es": "^4.17.21",
+    "mri": "^1.2.0",
     "pinia": "^3.0.3",
     "primeicons": "^7.0.0",
     "primevue": "^4.4.1",

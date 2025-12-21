@@ -1,8 +1,11 @@
 import threading
 from collections import OrderedDict
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from model.Database import Database
 from model.HeaderDatabase import HeaderDatabase
+
+if TYPE_CHECKING:
+    from model.ScanPresetDatabase import ScanPresetDatabase
 
 
 # Global data storage
@@ -10,6 +13,7 @@ class DataStore(object):
     admin_token: str = ""
     current_db: Optional[Database] = None
     header_db: Optional[HeaderDatabase] = None
+    scan_preset_db: Optional["ScanPresetDatabase"] = None
     tasks_lock = threading.Lock()
     tasks = OrderedDict()
     username: str = ""

@@ -525,7 +525,8 @@ public class PresetConfigPanel extends BaseConfigPanel {
             return;
         }
         
-        String newParamString = GuidedParamEditorDialog.showEditParamDialog(this, config.getParameterString());
+        String newParamString = GuidedParamEditorDialog.showEditParamDialog(
+            this, config.getParameterString(), config.getName(), config.getDescription());
         
         if (newParamString != null) {
             config.setParameterString(newParamString);

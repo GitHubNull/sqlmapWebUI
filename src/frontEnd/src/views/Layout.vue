@@ -133,6 +133,12 @@ const dockItems = computed<DockItem[]>(() => [
     route: '/tasks',
   },
   {
+    id: 'addTask',
+    label: '添加任务',
+    icon: 'pi pi-plus-circle',
+    route: '/add-task',
+  },
+  {
     id: 'config',
     label: '配置',
     icon: 'pi pi-cog',
@@ -179,7 +185,8 @@ function handleKeyboardShortcut(event: KeyboardEvent): void {
     const keyMap: Record<string, string> = {
       '1': '/home',
       '2': '/tasks',
-      '3': '/config',
+      '3': '/add-task',
+      '4': '/config',
     }
     
     if (keyMap[key]) {

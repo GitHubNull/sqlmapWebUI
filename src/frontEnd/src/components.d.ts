@@ -22,6 +22,8 @@ declare module 'vue' {
     Divider: typeof import('primevue/divider')['default']
     Fieldset: typeof import('primevue/fieldset')['default']
     FileUpload: typeof import('primevue/fileupload')['default']
+    GuidedParamEditor: typeof import('./components/GuidedParamEditor.vue')['default']
+    GuidedParamEditorDialog: typeof import('./components/GuidedParamEditorDialog.vue')['default']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
     IconField: typeof import('primevue/iconfield')['default']
     InlineMessage: typeof import('primevue/inlinemessage')['default']

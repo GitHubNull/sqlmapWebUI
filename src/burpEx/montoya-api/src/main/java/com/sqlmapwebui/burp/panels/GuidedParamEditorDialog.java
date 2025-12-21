@@ -23,6 +23,12 @@ public class GuidedParamEditorDialog extends JDialog {
     /** 结果参数字符串 */
     private String resultParamString = "";
     
+    /** 配置名称（编辑模式显示） */
+    private String presetName;
+    
+    /** 配置描述（编辑模式显示） */
+    private String presetDescription;
+    
     /**
      * 构造函数
      * 
@@ -41,9 +47,25 @@ public class GuidedParamEditorDialog extends JDialog {
      * @param initialParams 初始参数字符串
      */
     public GuidedParamEditorDialog(Window owner, String title, String initialParams) {
+        this(owner, title, initialParams, null, null);
+    }
+    
+    /**
+     * 构造函数（带配置信息，用于编辑模式）
+     * 
+     * @param owner 父窗口
+     * @param title 对话框标题
+     * @param initialParams 初始参数字符串
+     * @param presetName 配置名称（可为null）
+     * @param presetDescription 配置描述（可为null）
+     */
+    public GuidedParamEditorDialog(Window owner, String title, String initialParams, 
+                                   String presetName, String presetDescription) {
         super(owner, title, ModalityType.APPLICATION_MODAL);
         
         this.editor = new GuidedParamEditor(initialParams);
+        this.presetName = presetName;
+        this.presetDescription = presetDescription;
         
         initializeDialog();
     }
@@ -53,6 +75,12 @@ public class GuidedParamEditorDialog extends JDialog {
      */
     private void initializeDialog() {
         setLayout(new BorderLayout(10, 10));
+        
+        // 顶部配置信息面板（编辑模式下显示）
+        if (presetName != null && !presetName.isEmpty()) {
+            JPanel infoPanel = createPresetInfoPanel();
+            add(infoPanel, BorderLayout.NORTH);
+        }
         
         // 主编辑器面板
         add(editor, BorderLayout.CENTER);
@@ -82,8 +110,8 @@ public class GuidedParamEditorDialog extends JDialog {
         
         // 对话框设置
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(800, 650);
-        setMinimumSize(new Dimension(700, 500));
+        setSize(900, 750);
+        setMinimumSize(new Dimension(800, 600));
         setLocationRelativeTo(getOwner());
         
         // 窗口关闭事件
@@ -139,6 +167,74 @@ public class GuidedParamEditorDialog extends JDialog {
         return editor;
     }
     
+    /**
+     * 创建配置信息面板
+     */
+    private JPanel createPresetInfoPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createEmptyBorder(10, 10, 5, 10),
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(99, 102, 241, 80), 1),
+                BorderFactory.createEmptyBorder(10, 12, 10, 12)
+            )
+        ));
+        panel.setBackground(new Color(99, 102, 241, 20));
+        
+        // 配置名称行
+        JPanel nameRow = new JPanel(new BorderLayout(5, 0));
+        nameRow.setOpaque(false);
+        
+        JPanel nameLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        nameLabelPanel.setOpaque(false);
+        JLabel nameIcon = new JLabel("● ");
+        nameIcon.setForeground(new Color(99, 102, 241));
+        nameLabelPanel.add(nameIcon);
+        JLabel nameLabel = new JLabel("配置名称：");
+        nameLabel.setForeground(Color.GRAY);
+        nameLabelPanel.add(nameLabel);
+        nameRow.add(nameLabelPanel, BorderLayout.WEST);
+        
+        JLabel nameValue = new JLabel(presetName);
+        nameValue.setForeground(new Color(99, 102, 241));
+        nameValue.setFont(nameValue.getFont().deriveFont(Font.BOLD));
+        nameRow.add(nameValue, BorderLayout.CENTER);
+        
+        panel.add(nameRow);
+        
+        // 配置描述行（始终显示，无描述时显示占位文本）
+        panel.add(Box.createVerticalStrut(4));
+        
+        JPanel descRow = new JPanel(new BorderLayout(5, 0));
+        descRow.setOpaque(false);
+        
+        JPanel descLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        descLabelPanel.setOpaque(false);
+        JLabel descIcon = new JLabel("○ ");
+        descIcon.setForeground(new Color(99, 102, 241));
+        descLabelPanel.add(descIcon);
+        JLabel descLabel = new JLabel("描    述：");
+        descLabel.setForeground(Color.GRAY);
+        descLabelPanel.add(descLabel);
+        descRow.add(descLabelPanel, BorderLayout.WEST);
+        
+        String descText = (presetDescription != null && !presetDescription.isEmpty()) 
+            ? presetDescription : "(无描述)";
+        JLabel descValue = new JLabel(descText);
+        if (presetDescription == null || presetDescription.isEmpty()) {
+            descValue.setForeground(Color.GRAY);
+        } else {
+            descValue.setForeground(Color.DARK_GRAY);
+        }
+        descValue.setFont(descValue.getFont().deriveFont(Font.ITALIC));
+        descRow.add(descValue, BorderLayout.CENTER);
+        
+        panel.add(descRow);
+        
+        return panel;
+    }
+    
     // ==================== 静态便捷方法 ====================
     
     /**
@@ -161,10 +257,26 @@ public class GuidedParamEditorDialog extends JDialog {
      * @return 参数字符串，如果取消则返回 null
      */
     public static String showEditor(Component owner, String title, String initialParams) {
+        return showEditor(owner, title, initialParams, null, null);
+    }
+    
+    /**
+     * 显示引导式参数编辑对话框（带配置信息）
+     * 
+     * @param owner 父组件
+     * @param title 对话框标题
+     * @param initialParams 初始参数字符串
+     * @param presetName 配置名称（可为null）
+     * @param presetDescription 配置描述（可为null）
+     * @return 参数字符串，如果取消则返回 null
+     */
+    public static String showEditor(Component owner, String title, String initialParams,
+                                    String presetName, String presetDescription) {
         Window window = owner instanceof Window ? (Window) owner : 
                         SwingUtilities.getWindowAncestor(owner);
         
-        GuidedParamEditorDialog dialog = new GuidedParamEditorDialog(window, title, initialParams);
+        GuidedParamEditorDialog dialog = new GuidedParamEditorDialog(
+            window, title, initialParams, presetName, presetDescription);
         return dialog.showDialog();
     }
     
@@ -187,5 +299,20 @@ public class GuidedParamEditorDialog extends JDialog {
      */
     public static String showEditParamDialog(Component owner, String existingParams) {
         return showEditor(owner, "引导式参数配置 - 编辑", existingParams);
+    }
+    
+    /**
+     * 显示编辑参数配置对话框（带配置信息）
+     * 
+     * @param owner 父组件
+     * @param existingParams 现有参数字符串
+     * @param presetName 配置名称
+     * @param presetDescription 配置描述
+     * @return 参数字符串，如果取消则返回 null
+     */
+    public static String showEditParamDialog(Component owner, String existingParams,
+                                             String presetName, String presetDescription) {
+        return showEditor(owner, "引导式参数配置 - 编辑", existingParams, 
+                         presetName, presetDescription);
     }
 }
