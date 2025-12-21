@@ -22,8 +22,9 @@
             <HttpCodeEditor
               v-model="inputContent"
               :placeholder="inputPlaceholder"
-              min-height="180px"
-              max-height="250px"
+              min-height="100px"
+              max-height="none"
+              class="flex-editor"
               @change="onInputChange"
             />
             <div class="input-actions">
@@ -57,8 +58,9 @@
             <HttpCodeEditor
               v-model="rawHttpContent"
               :placeholder="httpPlaceholder"
-              min-height="280px"
-              max-height="400px"
+              min-height="100px"
+              max-height="none"
+              class="flex-editor"
             />
             <div class="editor-status" v-if="parsedRequest">
               <span class="status-item">
@@ -773,41 +775,86 @@ onMounted(async () => {
 
 <style scoped>
 .add-task-container {
-  padding: 1.5rem;
-  max-width: 1600px;
-  margin: 0 auto;
+  width: 100%;
+  height: 100%;
+  padding: 0.75rem 1rem;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .page-header {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .page-header h2 {
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.25rem 0;
   color: var(--text-color);
+  font-size: 1.25rem;
 }
 
 .page-header .subtitle {
   margin: 0;
   color: var(--text-color-secondary);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .content-wrapper {
   display: grid;
-  grid-template-columns: 1fr 480px;
-  gap: 1.5rem;
+  grid-template-columns: 1fr 520px;
+  gap: 1rem;
+  height: calc(100vh - 180px);
+  max-height: 800px;
 }
 
 .left-panel {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
+  min-height: 0;
+  overflow: visible;
 }
 
 .right-panel {
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* 两个编辑器卡片高度相等 */
+.input-card,
+.editor-card {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+.input-card :deep(.p-card-body),
+.editor-card :deep(.p-card-body) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: visible;
+}
+
+.input-card :deep(.p-card-content),
+.editor-card :deep(.p-card-content) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* 修复Card标题被遮挡问题 */
+.input-card :deep(.p-card-title),
+.editor-card :deep(.p-card-title) {
+  position: relative;
+  z-index: 1;
+  background: var(--surface-card);
+  padding-right: 1rem;
 }
 
 .card-title-row {
@@ -817,11 +864,28 @@ onMounted(async () => {
 }
 
 /* HttpCodeEditor 组件样式 */
+.input-card :deep(.http-code-editor),
+.editor-card :deep(.http-code-editor) {
+  flex: 1;
+  min-height: 120px;
+  max-height: none;
+}
 
+.flex-editor {
+  flex: 1;
+  min-height: 0;
+}
+
+/* 按钮区域确保可见 */
 .input-actions {
   display: flex;
   gap: 0.5rem;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+  background: var(--surface-card);
 }
 
 .editor-status {
@@ -841,9 +905,17 @@ onMounted(async () => {
 }
 
 /* 配置卡片 */
+.config-card {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .config-card :deep(.p-card-body) {
-  max-height: calc(100vh - 200px);
+  flex: 1;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .config-group {
@@ -978,17 +1050,32 @@ onMounted(async () => {
 }
 
 /* 响应式布局 */
+@media (max-width: 1400px) {
+  .content-wrapper {
+    grid-template-columns: 1fr 480px;
+  }
+}
+
 @media (max-width: 1200px) {
   .content-wrapper {
     grid-template-columns: 1fr;
+    height: auto;
+  }
+  
+  .left-panel, .right-panel {
+    overflow: visible;
   }
   
   .config-card :deep(.p-card-body) {
-    max-height: none;
+    max-height: 600px;
   }
 }
 
 @media (max-width: 768px) {
+  .add-task-container {
+    padding: 0.5rem;
+  }
+  
   .config-grid {
     grid-template-columns: 1fr;
   }

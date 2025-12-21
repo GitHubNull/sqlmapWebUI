@@ -549,6 +549,8 @@ defineExpose({
   border-radius: 6px;
   overflow: hidden;
   background: var(--surface-card);
+  min-height: 0;
+  height: 100%;
   
   &.show-search {
     .search-toolbar {
@@ -610,13 +612,26 @@ defineExpose({
 .editor-wrapper {
   position: relative;
   flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .editor-container {
   width: 100%;
+  flex: 1;
+  min-height: 0;
   
   :deep(.cm-editor) {
     height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  :deep(.cm-scroller) {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
   }
 }
 
