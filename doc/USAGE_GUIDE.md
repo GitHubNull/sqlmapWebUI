@@ -33,7 +33,7 @@ SQLMap Web UI 是一个完整的 SQL 注入测试平台，包含三个主要组�
 ### 系统要求
 
 - **操作系统**: Windows / Linux / macOS
-- **Python**: 3.13+
+- **Python**: 3.10+
 - **Node.js**: 20+ (前端开发)
 - **Java**: 11+ (Burp Suite Legacy API) 或 17+ (Montoya API)
 - **浏览器**: Chrome (推荐)
@@ -45,6 +45,25 @@ SQLMap Web UI 是一个完整的 SQL 注入测试平台，包含三个主要组�
 
 ### 2.1 后端服务
 
+#### 方式一：使用启动脚本（推荐）
+
+启动脚本会自动创建虚拟环境、安装依赖并启动服务。
+
+**Windows:**
+```batch
+cd src\backEnd
+start.bat
+```
+
+**Linux/macOS:**
+```bash
+cd src/backEnd
+chmod +x start.sh
+./start.sh
+```
+
+#### 方式二：手动启动
+
 ```bash
 # 进入后端目录
 cd src/backEnd
@@ -55,6 +74,33 @@ uv sync --extra thirdparty
 # 启动服务
 uv run python main.py
 ```
+
+#### 启动配置
+
+启动脚本支持通过 `startup.conf` 文件进行配置：
+
+| 配置项 | 说明 | 默认值 |
+|--------|------|--------|
+| NETWORK_MODE | 网络模式 (online/intranet/offline) | online |
+| PYPI_MIRROR | 公网镜像 (tsinghua/aliyun/ustc等) | tsinghua |
+| PRIVATE_MIRROR_URL | 私域镜像地址 | - |
+| SKIP_DEPS_CHECK | 跳过依赖检查 | false |
+| HOST | 服务绑定地址 | 127.0.0.1 |
+| PORT | 服务端口 | 8775 |
+
+#### 内网/离线环境部署
+
+**内网有私域镜像：**
+```ini
+# startup.conf
+NETWORK_MODE=intranet
+PRIVATE_MIRROR_URL=http://nexus.company.com/repository/pypi/simple/
+```
+
+**完全离线环境：**
+1. 在有网络环境运行 `prepare_offline.bat`（或 `.sh`）准备离线包
+2. 复制 backEnd 目录到离线机器
+3. 设置 `NETWORK_MODE=offline` 后运行启动脚本
 
 服务启动后访问: http://localhost:8775
 

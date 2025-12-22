@@ -7,7 +7,7 @@
 | 类别 | 技术 | 版本 |
 |------|------|------|
 | 框架 | FastAPI | 0.100+ |
-| 运行时 | Python | 3.13+ |
+| 运行时 | Python | 3.10+ |
 | 包管理器 | uv | latest |
 | 数据库 | SQLite | 3+ |
 | SQL注入引擎 | SQLMap | latest |
@@ -52,19 +52,31 @@
 
 ### 环境要求
 
-- Python 3.13+
-- uv 包管理器
+- Python 3.10+
+- uv 包管理器（可选，但推荐）
 
-### 安装依赖
+### 方式一：使用启动脚本（推荐）
+
+启动脚本会自动创建虚拟环境、安装依赖并启动服务。
+
+**Windows:**
+```batch
+cd src\backEnd
+start.bat
+```
+
+**Linux/macOS:**
+```bash
+cd src/backEnd
+chmod +x start.sh
+./start.sh
+```
+
+### 方式二：手动启动
 
 ```bash
 cd src/backEnd
 uv sync --extra thirdparty
-```
-
-### 启动服务
-
-```bash
 uv run python main.py
 ```
 
@@ -74,6 +86,69 @@ uv run python main.py
 
 - Swagger UI: http://localhost:8775/docs
 - ReDoc: http://localhost:8775/redoc
+
+## 配置说明
+
+### 启动配置文件 (startup.conf)
+
+启动脚本支持通过 `startup.conf` 文件进行配置：
+
+```ini
+# 网络模式：online(联网), intranet(内网私域镜像), offline(离线)
+NETWORK_MODE=online
+
+# PyPI 镜像：tsinghua, aliyun, ustc, douban, huawei, tencent, pypi
+PYPI_MIRROR=tsinghua
+
+# 私域镜像配置（内网模式使用）
+PRIVATE_MIRROR_URL=http://nexus.company.com/repository/pypi/simple/
+PRIVATE_MIRROR_TRUSTED_HOSTS=nexus.company.com
+
+# Python 路径（留空使用系统默认）
+PYTHON_PATH=
+
+# 服务配置
+HOST=127.0.0.1
+PORT=8775
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin
+
+# 编码配置（解决乱码问题）
+FORCE_UTF8=true
+```
+
+### 内网环境部署
+
+**场景 1：有私域镜像服务器**
+
+```ini
+# startup.conf
+NETWORK_MODE=intranet
+PRIVATE_MIRROR_URL=http://nexus.company.com/repository/pypi/simple/
+PRIVATE_MIRROR_TRUSTED_HOSTS=nexus.company.com
+```
+
+**场景 2：完全离线环境**
+
+1. 在有网络的环境中准备离线包：
+   ```batch
+   # Windows
+   prepare_offline.bat
+   
+   # Linux/macOS
+   ./prepare_offline.sh
+   ```
+
+2. 将整个 backEnd 目录复制到离线机器
+
+3. 修改配置并启动：
+   ```ini
+   # startup.conf
+   NETWORK_MODE=offline
+   ```
+   ```batch
+   start.bat   # 或 ./start.sh
+   ```
 
 ## 项目结构
 
@@ -187,7 +262,7 @@ src/backEnd/
 | GET | `/api/version` | 获取版本信息 |
 | GET | `/api/health` | 健康检查 |
 
-## 配置说明
+## 应用配置
 
 ### config.py
 

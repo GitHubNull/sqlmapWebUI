@@ -69,7 +69,7 @@
                   <Tag value="TypeScript" severity="info" />
                   <Tag value="PrimeVue" severity="warn" />
                   <Tag value="FastAPI" severity="danger" />
-                  <Tag value="Python 3.13+" severity="secondary" />
+                  <Tag value="Python 3.10+" severity="secondary" />
                   <Tag value="SQLMap" />
                 </div>
               </div>

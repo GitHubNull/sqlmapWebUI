@@ -14,7 +14,7 @@ SQLMap Web UI is a comprehensive SQL injection testing platform that includes:
 ```
 sqlmapWebUI/
 ├── src/
-│   ├── backEnd/           # FastAPI backend service (Python 3.13+)
+│   ├── backEnd/           # FastAPI backend service (Python 3.10+)
 │   │   ├── api/           # API routes
 │   │   │   ├── chromeExApi/      # Chrome browser page API
 │   │   │   ├── burpSuiteExApi/   # Burp Suite plugin API
@@ -76,7 +76,7 @@ sqlmapWebUI/
 
 | Component | Technologies |
 |-----------|-------------|
-| Backend | Python 3.13+, FastAPI, SQLMap, SQLite, uv |
+| Backend | Python 3.10+, FastAPI, SQLMap, SQLite, uv |
 | Frontend | Vue 3, TypeScript, PrimeVue, Pinia, Vite |
 | Burp Plugins | Java 11 (Legacy), Java 17 (Montoya) |
 | Package Managers | uv (Python), pnpm (Node.js), Maven (Java) |

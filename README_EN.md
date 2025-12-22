@@ -97,7 +97,7 @@ Built-in e-commerce platform simulation with 8 types of SQL injection vulnerabil
 ### Backend
 - **FastAPI** - High-performance asynchronous web framework
 - **SQLMap** - Automatic SQL injection detection tool
-- **Python 3.13+** - Runtime environment
+- **Python 3.10+** - Runtime environment
 - **SQLite** - Database storage
 - **uv** - Modern Python package manager
 
@@ -117,12 +117,27 @@ Built-in e-commerce platform simulation with 8 types of SQL injection vulnerabil
 
 ### Requirements
 
-- Python 3.13+
+- Python 3.10+
 - Node.js 20+
 - pnpm 9+
 - Java 17+ (Burp Montoya API) or Java 11+ (Legacy API)
 
 ### Backend Installation
+
+#### Option 1: Using Startup Script (Recommended)
+
+```batch
+# Windows
+cd src\backEnd
+start.bat
+
+# Linux/macOS
+cd src/backEnd && chmod +x start.sh && ./start.sh
+```
+
+The startup script supports configuring mirror sources, intranet environments, offline mode, etc. See `startup.conf` for details.
+
+#### Option 2: Manual Start
 
 ```bash
 # Enter backend directory
@@ -261,6 +276,18 @@ For detailed usage, please refer to [doc/USAGE_GUIDE.md](doc/USAGE_GUIDE.md)
 Please read the [Disclaimer](DISCLAIMER.md) before use.
 
 ## Changelog
+
+### v1.8.0 (2025-12)
+- Added backend service startup scripts (Windows/Linux/macOS)
+- Support for auto-creating and reusing virtual environments
+- Support for PyPI mirror configuration (Tsinghua/Aliyun/USTC, etc.)
+- Support for intranet private mirror configuration
+- Support for fully offline environment deployment
+- Fixed Windows/Linux command line encoding issues
+- Lowered Python minimum version requirement to 3.10+
+- Added backend service disclaimer document
+- Improved scan configuration preset selection UI
+- Enhanced submit button disable logic and hints
 
 ### v1.7.9 (2025-12)
 - Added project Logo design (shield + injection syringe concept)

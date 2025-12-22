@@ -97,7 +97,7 @@
 ### 后端
 - **FastAPI** - 高性能异步 Web 框架
 - **SQLMap** - SQL 注入自动化检测工具
-- **Python 3.13+** - 运行环境
+- **Python 3.10+** - 运行环境
 - **SQLite** - 数据库存储
 - **uv** - 现代 Python 包管理器
 
@@ -117,12 +117,27 @@
 
 ### 环境要求
 
-- Python 3.13+
+- Python 3.10+
 - Node.js 20+
 - pnpm 9+
 - Java 17+ (Burp Montoya API) 或 Java 11+ (Legacy API)
 
 ### 后端安装
+
+#### 方式一：使用启动脚本（推荐）
+
+```batch
+# Windows
+cd src\backEnd
+start.bat
+
+# Linux/macOS
+cd src/backEnd && chmod +x start.sh && ./start.sh
+```
+
+启动脚本支持配置镜像源、内网环境、离线模式等，详见 `startup.conf`。
+
+#### 方式二：手动启动
 
 ```bash
 # 进入后端目录
@@ -254,6 +269,18 @@ sqlmapWebUI/
 请在使用前阅读 [免责声明](DISCLAIMER.md)。
 
 ## 📝 更新日志
+
+### v1.8.0 (2025-12)
+- 新增后端服务启动脚本（Windows/Linux/macOS）
+- 支持自动创建和复用虚拟环境
+- 支持配置 PyPI 镜像（清华/阿里/中科大等）
+- 支持内网私域镜像配置
+- 支持完全离线环境部署
+- 解决 Windows/Linux 命令行中文乱码问题
+- Python 最低版本要求调整为 3.10+
+- 新增后端服务免责声明文档
+- 优化扫描配置预设选择UI
+- 完善提交按钮禁用逻辑和提示信息
 
 ### v1.7.9 (2025-12)
 - 新增项目 Logo 设计（盾牌+注入针头概念）
