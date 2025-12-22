@@ -1,5 +1,6 @@
 import logging
 import time
+import os
 from typing import Union
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
@@ -21,8 +22,14 @@ app = FastAPI()
 
 # 记录服务启动时间
 START_TIME = time.time()
+
+# 静态文件目录
+STATIC_DIR = "static"
+
 # 将编译好的 Vue 项目静态文件夹（如dist）放置在FastAPI项目中的static文件夹下
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+# 挂载 /assets 路径到 static/assets 目录（前端构建后资源的访问路径）
+app.mount("/assets", StaticFiles(directory=os.path.join(STATIC_DIR, "assets")), name="assets")
 # 允许所有来源的跨域请求
 app.add_middleware(
     CORSMiddleware,
@@ -40,11 +47,6 @@ app.include_router(auth_router, prefix="/api", tags=["auth"])
 app.include_router(config_router, prefix="/api", tags=["config"])
 app.include_router(scan_preset_router, prefix="/api", tags=["scan-preset"])
 app.include_router(web_task_router, prefix="/api", tags=["web-task"])
-
-# 返回 index.html 文件
-@app.get("/")
-async def read_root():
-    return FileResponse("static/index.html")
 
 @app.get("/api/version")
 def get_version():
@@ -78,3 +80,24 @@ def health_check():
             "uptime": uptime  # 运行时长（秒）
         }
     }
+
+# 返回 index.html 文件
+@app.get("/")
+async def read_root():
+    return FileResponse(os.path.join(STATIC_DIR, "index.html"))
+
+# 处理根路径的静态文件请求和 SPA 前端路由（通配符路由放在最后）
+@app.get("/{filename:path}")
+async def serve_static_file(filename: str):
+    """处理 SPA 前端路由和根路径静态文件
+    
+    1. 如果请求的是存在于 static 目录中的文件，返回该文件
+    2. 否则返回 index.html（用于 SPA 前端路由）
+    """
+    # 检查是否是静态文件请求（带有文件扩展名）
+    file_path = os.path.join(STATIC_DIR, filename)
+    if os.path.isfile(file_path):
+        return FileResponse(file_path)
+    
+    # 对于 SPA 前端路由，返回 index.html
+    return FileResponse(os.path.join(STATIC_DIR, "index.html"))
