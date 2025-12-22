@@ -562,6 +562,9 @@ function highlightMatch(text: string): string {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  height: 100%;
+  min-height: 400px;
+  max-height: calc(100vh - 280px);
 }
 
 // 视图切换区域 - 突出显示
@@ -714,9 +717,10 @@ function highlightMatch(text: string): string {
   padding: 0;
   border: 1px solid var(--p-content-border-color);
   overflow-x: auto;
-  // 自适应父容器高度，减去工具栏高度
-  height: calc(100% - 80px);
-  min-height: 200px;
+  // 自适应父容器高度
+  flex: 1;
+  min-height: 250px;
+  max-height: 500px;
   overflow-y: auto;
 
   &::-webkit-scrollbar {
