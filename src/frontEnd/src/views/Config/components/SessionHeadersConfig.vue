@@ -167,6 +167,19 @@
       :resizableColumns="true"
       columnResizeMode="fit"
     >
+      <template #empty>
+        <div class="empty-table-message">
+          <i class="pi pi-inbox"></i>
+          <p>暂无会话Header</p>
+          <small>点击上方「单条添加」按钮创建新Header</small>
+        </div>
+      </template>
+      <template #loading>
+        <div class="loading-table-message">
+          <i class="pi pi-spin pi-spinner"></i>
+          <p>加载中...</p>
+        </div>
+      </template>
       <Column selectionMode="multiple" headerStyle="width: 50px; text-align: center;" bodyStyle="text-align: center;"></Column>
       <Column field="id" header="ID" sortable style="width: 80px"></Column>
       <Column field="header_name" header="Header名称" sortable></Column>
@@ -1903,34 +1916,50 @@ async function batchToggleActiveHeaders(isActive: boolean) {
       gap: 1rem;
       flex-wrap: wrap;
 
+      // 统一工具栏元素高度
+      $toolbar-height: 38px;
+
       .search-area {
-        flex: 0 0 280px;
-        max-width: 280px;
+        flex: 0 0 320px;
+        max-width: 320px;
 
         :deep(.p-iconfield) {
           display: flex;
           align-items: center;
           position: relative;
+          width: 100%;
+          height: $toolbar-height;
 
           .p-inputicon {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
             left: 0.75rem;
-            color: var(--text-color-secondary);
+            color: var(--p-text-muted-color, #64748b);
+            z-index: 1;
+            font-size: 14px;
           }
-        }
 
-        .search-input {
-          width: 100%;
-          border-radius: 8px;
-          border: 2px solid var(--surface-border);
-          transition: all 0.2s ease;
-          padding-left: 2.5rem;
+          .p-inputtext {
+            width: 100%;
+            height: $toolbar-height !important;
+            border-radius: 6px !important;
+            border: 1px solid var(--p-surface-300, #cbd5e1) !important;
+            padding-left: 2.5rem !important;
+            padding-right: 0.75rem !important;
+            font-size: 14px !important;
+            background: #ffffff !important;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
 
-          &:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+            &:focus {
+              border-color: var(--p-primary-color, #6366f1) !important;
+              box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1) !important;
+            }
+
+            &::placeholder {
+              color: var(--p-text-muted-color, #94a3b8);
+            }
           }
         }
       }
@@ -1944,15 +1973,50 @@ async function batchToggleActiveHeaders(isActive: boolean) {
           display: flex;
           align-items: center;
           gap: 0.5rem;
+          height: $toolbar-height;
 
           .filter-label {
             font-weight: 500;
-            color: var(--text-color-secondary);
+            color: var(--p-text-muted-color, #64748b);
             white-space: nowrap;
+            font-size: 14px;
+            line-height: $toolbar-height;
           }
 
-          .filter-dropdown {
-            min-width: 120px;
+          // filter-dropdown 类直接应用在 p-select 元素上
+          :deep(.p-select.filter-dropdown) {
+            height: $toolbar-height !important;
+            min-height: $toolbar-height !important;
+            min-width: 120px !important;
+            border-radius: 6px !important;
+            border: 1px solid var(--p-surface-300, #cbd5e1) !important;
+            background: #ffffff !important;
+
+            &:hover:not(.p-disabled) {
+              border-color: var(--p-primary-color, #6366f1) !important;
+            }
+
+            &.p-focus {
+              border-color: var(--p-primary-color, #6366f1) !important;
+              box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1) !important;
+            }
+
+            .p-select-label {
+              padding: 0 0.75rem !important;
+              font-size: 14px !important;
+              display: flex !important;
+              align-items: center !important;
+              height: 100% !important;
+              line-height: 1.2 !important;
+              color: var(--p-text-color, #1e293b) !important;
+            }
+
+            .p-select-dropdown {
+              width: 2rem;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
           }
         }
       }
@@ -1963,20 +2027,88 @@ async function batchToggleActiveHeaders(isActive: boolean) {
         align-items: center;
         margin-left: auto;
         flex-wrap: wrap;
+
+        :deep(button) {
+          height: $toolbar-height !important;
+          min-height: $toolbar-height !important;
+          font-size: 14px !important;
+          padding: 0 1rem !important;
+          border-radius: 6px !important;
+
+          &.p-button-icon-only {
+            width: $toolbar-height !important;
+            padding: 0 !important;
+          }
+        }
       }
     }
   }
 
   .session-table {
+    :deep(.p-datatable-wrapper) {
+      border-radius: 8px;
+      border: 1px solid var(--surface-border);
+    }
+
     .header-value {
-      font-family: monospace;
-      font-size: 0.9em;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.875rem;
+      color: var(--text-color-secondary);
     }
 
     .expire-time,
     .create-time {
       font-size: 0.9em;
       color: var(--text-color-secondary);
+    }
+
+    // 空数据提示
+    .empty-table-message {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 2rem;
+      color: var(--text-color-secondary);
+
+      i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: var(--surface-400);
+      }
+
+      p {
+        font-size: 1.25rem;
+        font-weight: 500;
+        margin: 0 0 0.5rem 0;
+        color: var(--text-color);
+      }
+
+      small {
+        font-size: 0.875rem;
+        color: var(--text-color-secondary);
+      }
+    }
+
+    // 加载中提示
+    .loading-table-message {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 2rem;
+      color: var(--text-color-secondary);
+
+      i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+      }
+
+      p {
+        font-size: 1rem;
+        margin: 0;
+      }
     }
 
     // 选择列checkbox居中

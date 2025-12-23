@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.chromeExApi.admin import router as chrome_admin_router
 from api.burpSuiteExApi.admin import router as burp_admin_router
 from api.commonApi.headerController import router as header_router
+from api.commonApi.bodyFieldController import router as body_field_router
 from api.commonApi.authController import router as auth_router
 from api.commonApi.configController import router as config_router
 from api.commonApi.scanPreset import router as scan_preset_router
@@ -63,6 +64,7 @@ app.add_middleware(
 app.include_router(chrome_admin_router, prefix="/api", tags=["chrome"])
 app.include_router(burp_admin_router, prefix="/api", tags=["burp"])
 app.include_router(header_router, prefix="/api", tags=["header"])
+app.include_router(body_field_router, prefix="/api/commonApi/body-field", tags=["body-field"])
 app.include_router(auth_router, prefix="/api", tags=["auth"])
 app.include_router(config_router, prefix="/api", tags=["config"])
 app.include_router(scan_preset_router, prefix="/api", tags=["scan-preset"])

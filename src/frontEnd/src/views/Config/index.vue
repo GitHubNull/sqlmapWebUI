@@ -22,6 +22,10 @@
               <i class="pi pi-clock"></i>
               <span>会话Header管理</span>
             </Tab>
+            <Tab value="4">
+              <i class="pi pi-code"></i>
+              <span>会话Body字段</span>
+            </Tab>
           </TabList>
 
           <TabPanels>
@@ -84,6 +88,11 @@
             <TabPanel value="3">
               <SessionHeadersConfig />
             </TabPanel>
+
+            <!-- 会话Body字段 -->
+            <TabPanel value="4">
+              <SessionBodyFieldsConfig />
+            </TabPanel>
           </TabPanels>
         </Tabs>
       </template>
@@ -101,6 +110,7 @@ import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
 import HeaderRulesConfig from './components/HeaderRulesConfig.vue'
 import SessionHeadersConfig from './components/SessionHeadersConfig.vue'
+import SessionBodyFieldsConfig from './components/SessionBodyFieldsConfig.vue'
 import ScanPresetConfig from './components/ScanPresetConfig.vue'
 
 const configStore = useConfigStore()

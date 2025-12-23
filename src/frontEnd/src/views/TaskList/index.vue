@@ -74,6 +74,19 @@
           resizableColumns
           columnResizeMode="fit"
         >
+          <template #empty>
+            <div class="empty-table-message">
+              <i class="pi pi-inbox"></i>
+              <p>暂无扫描任务</p>
+              <small>点击左下角「添加任务」按钮创建新任务</small>
+            </div>
+          </template>
+          <template #loading>
+            <div class="loading-table-message">
+              <i class="pi pi-spin pi-spinner"></i>
+              <p>加载中...</p>
+            </div>
+          </template>
           <!-- 选择列 -->
           <Column selectionMode="multiple" headerStyle="width: 3rem; text-align: center;" bodyStyle="text-align: center;" :exportable="false" frozen />
           <Column field="engineid" header="任务ID" :style="{ minWidth: '80px', maxWidth: '120px' }" sortable>
@@ -972,6 +985,55 @@ function confirmDeleteAll() {
     flex: 1;
     overflow-y: auto;
     overflow-x: auto;
+  }
+
+  // 空数据提示
+  .empty-table-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    color: var(--text-color-secondary);
+
+    i {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      color: var(--surface-400);
+    }
+
+    p {
+      font-size: 1.25rem;
+      font-weight: 500;
+      margin: 0 0 0.5rem 0;
+      color: var(--text-color);
+    }
+
+    small {
+      font-size: 0.875rem;
+      color: var(--text-color-secondary);
+    }
+  }
+
+  // 加载中提示
+  .loading-table-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    color: var(--text-color-secondary);
+
+    i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: var(--primary-color);
+    }
+
+    p {
+      font-size: 1rem;
+      margin: 0;
+    }
   }
 
   .p-paginator {

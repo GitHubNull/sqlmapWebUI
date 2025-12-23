@@ -31,6 +31,7 @@ declare module 'vue' {
     InputNumber: typeof import('primevue/inputnumber')['default']
     InputText: typeof import('primevue/inputtext')['default']
     Message: typeof import('primevue/message')['default']
+    MultiSelect: typeof import('primevue/multiselect')['default']
     OfflineBanner: typeof import('./components/OfflineBanner.vue')['default']
     Password: typeof import('primevue/password')['default']
     ProgressSpinner: typeof import('primevue/progressspinner')['default']

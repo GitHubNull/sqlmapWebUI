@@ -91,12 +91,43 @@ class HeaderDatabase(Database):
             'TEXT DEFAULT NULL'
         )
         
+        # 创建会话Body字段表
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS session_body_fields(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                client_ip TEXT NOT NULL,
+                field_name TEXT NOT NULL,
+                field_value TEXT NOT NULL,
+                match_strategy TEXT NOT NULL DEFAULT 'KEYWORD',
+                match_pattern TEXT DEFAULT NULL,
+                replace_strategy TEXT NOT NULL DEFAULT 'REPLACE',
+                content_types TEXT DEFAULT NULL,
+                priority INTEGER DEFAULT 0,
+                is_active INTEGER DEFAULT 1,
+                scope_config TEXT DEFAULT NULL,
+                expires_at TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT DEFAULT NULL,
+                UNIQUE(client_ip, field_name)
+            )
+        """)
+        
+        # 检查并添加scope_config列（如果表已存在但没有该列）
+        self._add_column_if_not_exists(
+            'session_body_fields',
+            'scope_config',
+            'TEXT DEFAULT NULL'
+        )
+        
         # 创建索引以提高查询性能
         self.execute("CREATE INDEX IF NOT EXISTS idx_header_rules_active ON persistent_header_rules(is_active)")
         self.execute("CREATE INDEX IF NOT EXISTS idx_header_rules_priority ON persistent_header_rules(priority)")
         self.execute("CREATE INDEX IF NOT EXISTS idx_header_rules_name ON persistent_header_rules(header_name)")
         self.execute("CREATE INDEX IF NOT EXISTS idx_session_headers_client_ip ON session_headers(client_ip)")
         self.execute("CREATE INDEX IF NOT EXISTS idx_session_headers_expires ON session_headers(expires_at)")
+        self.execute("CREATE INDEX IF NOT EXISTS idx_body_fields_client_ip ON session_body_fields(client_ip)")
+        self.execute("CREATE INDEX IF NOT EXISTS idx_body_fields_expires ON session_body_fields(expires_at)")
+        self.execute("CREATE INDEX IF NOT EXISTS idx_body_fields_active ON session_body_fields(is_active)")
         
         logger.info(f"Header database initialized at {self.database_path}")
     

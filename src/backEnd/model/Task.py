@@ -62,6 +62,7 @@ class Task(object):
         self.options = None
         self._original_options = None
         self._header_rules_applied = False  # 标记是否已应用请求头规则
+        self._body_field_rules_applied = False  # 标记是否已应用Body字段规则
         self._request_file_path = None  # HTTP原始报文文件路径
         self.initialize_options(taskid)
         
@@ -168,6 +169,80 @@ class Task(object):
             logger.error(f"[{self.taskid}] Failed to apply header rules: {e}")
             # 如果应用规则失败，保持原始请求头不变
 
+    def apply_body_field_rules(self):
+        """在SQLMap扫描启动前应用Body字段规则"""
+        # 检查是否已经应用过Body字段规则，避免重复处理
+        if self._body_field_rules_applied:
+            logger.debug(f"[{self.taskid}] Body field rules already applied, skipping")
+            return
+            
+        try:
+            logger.debug(f"[{self.taskid}] Starting body field rules application")
+            
+            # 检查是否有Body内容
+            if not self.body:
+                logger.debug(f"[{self.taskid}] No body to process")
+                self._body_field_rules_applied = True
+                return
+            
+            # 动态导入避免循环引用
+            from utils.body_field_processor import BodyFieldProcessor
+            from model.DataStore import DataStore
+            
+            logger.debug(f"[{self.taskid}] Importing body field processor")
+            
+            # 获取会话Body字段管理器
+            body_field_manager = DataStore.get_session_body_field_manager()
+            if not body_field_manager:
+                logger.debug(f"[{self.taskid}] Body field manager not available")
+                self._body_field_rules_applied = True
+                return
+            
+            # 获取会话Body字段
+            logger.debug(f"[{self.taskid}] Getting body fields for {self.remote_addr}")
+            session_fields = body_field_manager.get_session_body_fields(self.remote_addr, active_only=True)
+            logger.debug(f"[{self.taskid}] Got {len(session_fields)} session body fields")
+            
+            if not session_fields:
+                logger.debug(f"[{self.taskid}] No active body fields to apply")
+                self._body_field_rules_applied = True
+                return
+            
+            # 从headers中提取Content-Type
+            content_type = None
+            if self.headers:
+                for header in self.headers:
+                    if header and ":" in header:
+                        name, value = header.split(":", 1)
+                        if name.strip().lower() == "content-type":
+                            content_type = value.strip()
+                            break
+            
+            logger.debug(f"[{self.taskid}] Content-Type: {content_type}")
+            logger.debug(f"[{self.taskid}] Processing body with {len(session_fields)} fields")
+            
+            # 处理Body
+            processed_body, applied_rules = BodyFieldProcessor.process_body(
+                self.body, content_type, session_fields, self.scanUrl
+            )
+            
+            logger.debug(f"[{self.taskid}] Processed body, Applied rules: {len(applied_rules)}")
+            
+            # 更新Body
+            if processed_body != self.body:
+                self.body = processed_body
+                logger.info(f"[{self.taskid}] Applied {len(applied_rules)} body field rules: {', '.join(applied_rules)}")
+                logger.debug(f"[{self.taskid}] Updated body content")
+            else:
+                logger.debug(f"[{self.taskid}] No body changes applied")
+            
+            # 标记Body字段规则已应用
+            self._body_field_rules_applied = True
+            
+        except Exception as e:
+            logger.error(f"[{self.taskid}] Failed to apply body field rules: {e}")
+            # 如果应用规则失败，保持原始Body不变
+
     def _generate_request_file_name(self):
         """生成HTTP请求文件名: 日期时间 + 随机6位数字"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -259,6 +334,9 @@ class Task(object):
         logger.debug(f"[{self.taskid}] Starting engine with headers: {self.headers}")
         # 在SQLMap真正启动前应用请求头规则
         self.apply_header_rules()
+        
+        # 在SQLMap真正启动前应用Body字段规则
+        self.apply_body_field_rules()
         
         logger.debug(f"[{self.taskid}] Headers option for SQLMap: {getattr(self.options, 'headers', 'Not set')}")
         
