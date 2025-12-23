@@ -1,5 +1,6 @@
 # Web端扫描任务提交接口
 # 与BurpSuite插件端共用相同的业务逻辑，但日志来源区分
+import asyncio
 import logging
 
 from fastapi import HTTPException
@@ -74,9 +75,10 @@ async def add_task_from_web(
             
             if res.success:
                 logger.info(f"[Web] Task created successfully: {res.data}")
-                # 通知前端刷新数据
+                # 通知前端刷新数据（使用 fire-and-forget 模式，避免阻塞响应）
                 task_id = res.data.get('taskid') if isinstance(res.data, dict) else None
-                await ws_manager.notify_task_created(task_id)
+                # 创建异步任务发送通知，不阻塞当前请求
+                asyncio.create_task(ws_manager.notify_task_created(task_id))
             else:
                 logger.warning(f"[Web] Task creation failed: {res.msg}")
             
