@@ -157,8 +157,8 @@
             <template #body="{ data }">
               <div class="action-buttons">
                 <Button icon="pi pi-eye" @click="viewTask(data)" text rounded size="small" v-tooltip.top="'查看详情'" />
-                <Button icon="pi pi-stop" @click="stopTask(data.taskid)" text rounded size="small" severity="warning" v-if="data.status === 1" v-tooltip.top="'停止任务'" />
-                <Button icon="pi pi-trash" @click="deleteTask(data.taskid)" text rounded size="small" severity="danger" v-tooltip.top="'删除任务'" />
+                <Button icon="pi pi-stop" @click="confirmStopTask(data.taskid)" text rounded size="small" severity="warning" v-if="data.status === 1" v-tooltip.top="'停止任务'" />
+                <Button icon="pi pi-trash" @click="confirmDeleteTask(data.taskid)" text rounded size="small" severity="danger" v-tooltip.top="'删除任务'" />
               </div>
             </template>
           </Column>
@@ -379,12 +379,64 @@ function goToTaskHttpInfo(task: any) {
   router.push({ path: `/tasks/${task.taskid}`, query: { tab: '1' } })
 }
 
-async function stopTask(taskId: string) {
-  await taskStore.stopTask(taskId)
+// 确认停止单个任务
+function confirmStopTask(taskId: string) {
+  confirm.require({
+    message: '确定要停止这个任务吗？',
+    header: '确认停止',
+    icon: 'pi pi-exclamation-triangle',
+    acceptLabel: '停止',
+    rejectLabel: '取消',
+    acceptClass: 'p-button-warning',
+    accept: async () => {
+      try {
+        await taskStore.stopTask(taskId)
+        toast.add({
+          severity: 'success',
+          summary: '成功',
+          detail: '任务已停止',
+          life: 3000,
+        })
+      } catch (error) {
+        toast.add({
+          severity: 'error',
+          summary: '错误',
+          detail: '停止任务失败，请重试',
+          life: 3000,
+        })
+      }
+    },
+  })
 }
 
-async function deleteTask(taskId: string) {
-  await taskStore.deleteTask(taskId)
+// 确认删除单个任务
+function confirmDeleteTask(taskId: string) {
+  confirm.require({
+    message: '确定要删除这个任务吗？此操作不可恢复。',
+    header: '确认删除',
+    icon: 'pi pi-exclamation-triangle',
+    acceptLabel: '删除',
+    rejectLabel: '取消',
+    acceptClass: 'p-button-danger',
+    accept: async () => {
+      try {
+        await taskStore.deleteTask(taskId)
+        toast.add({
+          severity: 'success',
+          summary: '成功',
+          detail: '任务已删除',
+          life: 3000,
+        })
+      } catch (error) {
+        toast.add({
+          severity: 'error',
+          summary: '错误',
+          detail: '删除任务失败，请重试',
+          life: 3000,
+        })
+      }
+    },
+  })
 }
 
 function handleFilterChange(filters: TaskFilters) {
