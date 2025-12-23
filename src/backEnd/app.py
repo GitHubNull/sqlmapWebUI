@@ -1,8 +1,10 @@
 import logging
 import time
 import os
+import asyncio
 from typing import Union
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -16,9 +18,27 @@ from api.commonApi.configController import router as config_router
 from api.commonApi.scanPreset import router as scan_preset_router
 from api.commonApi.webTaskController import router as web_task_router
 from config import VERSION
+from utils.websocket_manager import ws_manager
+from api.commonApi.configController import get_refresh_interval
 
 logger = logging.getLogger(__name__)
-app = FastAPI()
+
+# 生命周期管理
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """FastAPI 生命周期管理"""
+    # 启动时，从配置加载刷新间隔
+    initial_interval = get_refresh_interval()
+    print(f"[WebSocket] 启动 WebSocket 管理器，刷新间隔: {initial_interval} 分钟")
+    ws_manager.start(initial_interval)
+    logger.info(f"WebSocket 管理器已启动，刷新间隔: {initial_interval} 分钟")
+    yield
+    # 关闭时
+    await ws_manager.stop()
+    print("[WebSocket] WebSocket 管理器已停止")
+    logger.info("WebSocket 管理器已停止")
+
+app = FastAPI(lifespan=lifespan)
 
 # 记录服务启动时间
 START_TIME = time.time()
@@ -78,6 +98,52 @@ def health_check():
             "timestamp": int(current_time * 1000),  # 毫秒时间戳
             "version": VERSION,
             "uptime": uptime  # 运行时长（秒）
+        }
+    }
+
+# WebSocket 端点
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    """
+    WebSocket 连接端点
+    
+    用于实时通信，后端定时推送刷新通知给前端
+    """
+    await ws_manager.connect(websocket)
+    try:
+        while True:
+            # 接收客户端消息
+            data = await websocket.receive_json()
+            await ws_manager.handle_message(websocket, data)
+    except WebSocketDisconnect:
+        await ws_manager.disconnect(websocket)
+    except Exception as e:
+        logger.error(f"WebSocket 错误: {e}")
+        await ws_manager.disconnect(websocket)
+
+@app.get("/api/ws/status")
+def get_ws_status():
+    """获取 WebSocket 状态"""
+    return {
+        "code": 200,
+        "success": True,
+        "message": "success",
+        "data": {
+            "connectionCount": ws_manager.connection_count,
+            "refreshInterval": ws_manager.refresh_interval
+        }
+    }
+
+@app.post("/api/ws/refresh-interval")
+def set_refresh_interval(interval: int):
+    """设置刷新间隔"""
+    ws_manager.update_refresh_interval(interval)
+    return {
+        "code": 200,
+        "success": True,
+        "message": "success",
+        "data": {
+            "refreshInterval": ws_manager.refresh_interval
         }
     }
 

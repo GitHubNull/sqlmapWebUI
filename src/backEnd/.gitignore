@@ -225,3 +225,4 @@ gunicorn.pid
 # 会话文件
 sessions/
 *.session
+data/

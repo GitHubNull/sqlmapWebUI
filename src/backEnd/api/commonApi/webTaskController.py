@@ -10,6 +10,7 @@ from model.BaseResponseMsg import BaseResponseMsg
 from model.requestModel.TaskRequest import TaskAddRequest
 from service.taskService import taskService
 from utils.auth import get_current_user
+from utils.websocket_manager import ws_manager
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +74,9 @@ async def add_task_from_web(
             
             if res.success:
                 logger.info(f"[Web] Task created successfully: {res.data}")
+                # 通知前端刷新数据
+                task_id = res.data.get('taskid') if isinstance(res.data, dict) else None
+                await ws_manager.notify_task_created(task_id)
             else:
                 logger.warning(f"[Web] Task creation failed: {res.msg}")
             

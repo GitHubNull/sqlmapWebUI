@@ -241,12 +241,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { useTaskStore } from '@/stores/task'
-import { useConfigStore } from '@/stores/config'
 import { TaskStatus } from '@/types/task'
 import type { Task, TaskFilters } from '@/types/task'
 import { formatDateTime } from '@/utils/format'
@@ -258,7 +257,6 @@ import Popover from 'primevue/popover'
 const router = useRouter()
 const route = useRoute()
 const taskStore = useTaskStore()
-const configStore = useConfigStore()
 const confirm = useConfirm()
 const toast = useToast()
 
@@ -277,19 +275,14 @@ function toggleStatusPopover(event: Event) {
 // 选中的任务
 const selectedTasks = ref<Task[]>([])
 
-// 轮询定时器
-let pollingTimer: number | null = null
-// 从配置读取轮询间隔（毫秒）
-const getPollingInterval = () => configStore.autoRefreshInterval * 60 * 1000
-
 onMounted(() => {
   // 从URL参数读取过滤条件
   applyFiltersFromUrl()
   
+  // 初始加载任务列表（后续刷新由 WebSocket 通知触发）
   fetchTasks()
-  startPolling()
   
-  // 监听页面可见性
+  // 监听页面可见性，页面重新可见时刷新一次
   document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 
@@ -319,77 +312,18 @@ function applyFiltersFromUrl() {
 }
 
 onUnmounted(() => {
-  stopPolling()
   document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
-
-// 监听任务列表变化，根据是否有运行中的任务决定是否轮询
-watch(
-  () => taskStore.taskList,
-  (newList) => {
-    const hasRunningTasks = newList.some(t => t.status === TaskStatus.RUNNING)
-    if (hasRunningTasks && !pollingTimer && !document.hidden) {
-      startPolling()
-    } else if (!hasRunningTasks && pollingTimer) {
-      stopPolling()
-    }
-  },
-  { deep: true }
-)
-
-// 监听刷新间隔配置变化，重启轮询
-watch(
-  () => configStore.autoRefreshInterval,
-  () => {
-    if (pollingTimer) {
-      stopPolling()
-      const hasRunningTasks = taskStore.taskList.some(t => t.status === TaskStatus.RUNNING)
-      if (hasRunningTasks && !document.hidden) {
-        startPolling()
-      }
-    }
-  }
-)
 
 async function fetchTasks() {
   await taskStore.fetchTaskList()
 }
 
-// 开始轮询
-function startPolling() {
-  if (pollingTimer) return
-  
-  pollingTimer = window.setInterval(async () => {
-    // 静默刷新，不显示加载状态
-    try {
-      await taskStore.fetchTaskList()
-    } catch (error) {
-      console.error('Polling error:', error)
-    }
-  }, getPollingInterval())
-}
-
-// 停止轮询
-function stopPolling() {
-  if (pollingTimer) {
-    clearInterval(pollingTimer)
-    pollingTimer = null
-  }
-}
-
 // 处理页面可见性变化
 function handleVisibilityChange() {
-  if (document.hidden) {
-    // 页面隐藏，停止轮询
-    stopPolling()
-  } else {
-    // 页面显示，检查是否需要启动轮询
-    const hasRunningTasks = taskStore.taskList.some(t => t.status === TaskStatus.RUNNING)
-    if (hasRunningTasks) {
-      // 立即刷新一次
-      fetchTasks()
-      startPolling()
-    }
+  if (!document.hidden) {
+    // 页面重新可见，立即刷新一次
+    fetchTasks()
   }
 }
 

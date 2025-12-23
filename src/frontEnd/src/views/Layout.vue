@@ -101,7 +101,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useTaskStore } from '@/stores/task'
 import { useConfigStore } from '@/stores/config'
 import { useRouter, useRoute } from 'vue-router'
-import { useSmartPolling } from '@/utils/useSmartPolling'
+import { wsService } from '@/utils/useWebSocket'
 import ToggleSwitch from 'primevue/toggleswitch'
 
 // Stores
@@ -216,24 +216,23 @@ watch(
   { immediate: true }
 )
 
-// 获取用户配置的轮询间隔（分钟转毫秒）
-const getRefreshInterval = () => configStore.autoRefreshInterval * 60 * 1000
-// 后台轮询间隔（配置值的2倍，最大60分钟）
-const getBackgroundInterval = () => Math.min(configStore.autoRefreshInterval * 2, 60) * 60 * 1000
-
 // 组件挂载时初始化
-onMounted(() => {
+onMounted(async () => {
   currentRoute.value = route.path
   
-  // 使用智能轮询加载任务列表，使用用户配置的刷新间隔
-  useSmartPolling({
-    callback: async () => {
-      await taskStore.fetchTaskList()
-    },
-    interval: getRefreshInterval,              // 传递函数引用，动态获取配置值
-    backgroundInterval: getBackgroundInterval,  // 传递函数引用，动态获取配置值
-    pauseOnUnhealthy: true,                     // 后端不健康时暂停轮询
-    immediate: true,                            // 立即执行一次
+  // 从后端加载刷新间隔配置
+  await configStore.loadRefreshIntervalFromBackend()
+  
+  // 初始加载任务列表
+  taskStore.fetchTaskList()
+  
+  // 建立 WebSocket 连接
+  wsService.connect()
+  
+  // 注册刷新回调：收到后端通知时刷新任务列表
+  wsService.onRefresh(() => {
+    console.info('收到后端刷新通知，正在刷新任务列表...')
+    taskStore.fetchTaskList()
   })
   
   // 注册全局键盘快捷键
@@ -243,6 +242,7 @@ onMounted(() => {
 // 组件销毁时清理
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyboardShortcut)
+  // 注意：WebSocket 服务是全局单例，不在这里断开
 })
 </script>
 

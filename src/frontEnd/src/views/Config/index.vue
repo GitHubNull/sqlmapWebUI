@@ -34,11 +34,12 @@
                 <div class="slider-container" :style="{ '--handle-color': handleColor }">
                   <Slider 
                     v-model="sliderDisplayValue" 
-                    :min="5" 
+                    :min="1" 
                     :max="60" 
                     :step="1"
                     @slideend="handleSliderEnd"
                     class="refresh-slider"
+                    :disabled="isSaving"
                   />
                   <!-- 刻度尺标记 -->
                   <div class="slider-ruler">
@@ -63,7 +64,7 @@
                   </div>
                 </div>
                 <small class="field-help">
-                  设置任务列表页面的自动刷新间隔，范围为5-60分钟，每5分钟一个间隔
+                  设置任务列表页面的自动刷新间隔，范围为 1-60 分钟（配置存储在服务端）
                 </small>
               </div>
             </div>
@@ -104,6 +105,7 @@ import ScanPresetConfig from './components/ScanPresetConfig.vue'
 
 const configStore = useConfigStore()
 const activeTab = ref('0')
+const isSaving = ref(false)
 
 // 用于显示的临时滑块值（平滑拖动）
 const sliderDisplayValue = ref(configStore.autoRefreshInterval)
@@ -118,26 +120,29 @@ watch(() => configStore.autoRefreshInterval, (newVal) => {
 })
 
 // 滑块释放时吸附到最近的刻度
-function handleSliderEnd() {
+async function handleSliderEnd() {
   const currentValue = sliderDisplayValue.value
-  // 计算最近的刻度值（5的倍数）
-  const snappedValue = Math.round(currentValue / 5) * 5
-  // 确保在范围内
-  const finalValue = Math.max(5, Math.min(60, snappedValue))
+  // 计算最近的刻度值（整数）
+  const finalValue = Math.max(1, Math.min(60, Math.round(currentValue)))
   
   // 平滑吸附动画
   sliderDisplayValue.value = finalValue
   
-  // 更新store
+  // 更新store（保存到后端）
   if (finalValue !== configStore.autoRefreshInterval) {
-    configStore.updateAutoRefreshInterval(finalValue)
+    isSaving.value = true
+    try {
+      await configStore.updateAutoRefreshInterval(finalValue)
+    } finally {
+      isSaving.value = false
+    }
   }
 }
 
 // 根据滑块位置计算游标颜色（红-黄-绿渐变）
 const handleColor = computed(() => {
   const value = sliderDisplayValue.value
-  const min = 5
+  const min = 1
   const max = 60
   const percent = (value - min) / (max - min) // 0-1
   
