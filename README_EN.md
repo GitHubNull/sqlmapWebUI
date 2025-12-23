@@ -5,11 +5,11 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.13+-blue.svg" alt="Python">
+  <img src="https://img.shields.io/badge/Python-3.10+-blue.svg" alt="Python">
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.7.9-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.0-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -278,16 +278,26 @@ Please read the [Disclaimer](DISCLAIMER.md) before use.
 ## Changelog
 
 ### v1.8.0 (2025-12)
+
+**New Features**
 - Added backend service startup scripts (Windows/Linux/macOS)
 - Support for auto-creating and reusing virtual environments
 - Support for PyPI mirror configuration (Tsinghua/Aliyun/USTC, etc.)
 - Support for intranet private mirror configuration
 - Support for fully offline environment deployment
-- Fixed Windows/Linux command line encoding issues
-- Lowered Python minimum version requirement to 3.10+
-- Added backend service disclaimer document
+- Added WebSocket real-time notification mechanism, backend can actively push task status changes
+- Added confirmation dialogs for delete and stop operations on task list page
+
+**Improvements**
+- Optimized task operation thread safety, moved sync lock operations to thread pool to avoid blocking event loop
 - Improved scan configuration preset selection UI
 - Enhanced submit button disable logic and hints
+- Lowered Python minimum version requirement to 3.10+
+
+**Fixes**
+- Fixed Windows/Linux command line encoding issues
+- Fixed refresh interval API response data structure handling error
+- Added backend service disclaimer document
 
 ### v1.7.9 (2025-12)
 - Added project Logo design (shield + injection syringe concept)

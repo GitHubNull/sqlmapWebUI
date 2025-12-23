@@ -91,6 +91,8 @@ sqlmapWebUI/
 - Sorting by multiple fields
 - Summary statistics row in task list
 - Smart polling (adjusts refresh rate based on task status)
+- WebSocket real-time notifications for task status changes
+- Confirmation dialogs for delete/stop operations
 
 ### Scan Configuration Management
 - **Default Configuration**: Global default scan parameters
@@ -315,6 +317,12 @@ Backend allows CORS from:
 - Task data stored in memory (DataStore singleton)
 - Header rules stored in SQLite (`header_rules.db`)
 - Automatic database migration for schema changes
+
+### Thread Safety (Important)
+- `DataStore.tasks_lock` is a `threading.Lock` (synchronous)
+- In async functions, use `run_in_executor` with `ThreadPoolExecutor` to avoid blocking event loop
+- Never use `with tasks_lock:` directly in async functions
+- Task operations use thread pool pattern for safe concurrent access
 
 ## File Dependencies
 

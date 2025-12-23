@@ -5,11 +5,11 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.13+-blue.svg" alt="Python">
+  <img src="https://img.shields.io/badge/Python-3.10+-blue.svg" alt="Python">
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.7.9-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.0-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -271,16 +271,26 @@ sqlmapWebUI/
 ## 📝 更新日志
 
 ### v1.8.0 (2025-12)
+
+**新功能**
 - 新增后端服务启动脚本（Windows/Linux/macOS）
 - 支持自动创建和复用虚拟环境
 - 支持配置 PyPI 镜像（清华/阿里/中科大等）
 - 支持内网私域镜像配置
 - 支持完全离线环境部署
-- 解决 Windows/Linux 命令行中文乱码问题
-- Python 最低版本要求调整为 3.10+
-- 新增后端服务免责声明文档
+- 新增 WebSocket 实时通知机制，后端可主动推送任务状态变更
+- 任务列表页删除和停止操作添加确认对话框
+
+**优化**
+- 优化任务操作线程安全，将同步锁操作移至线程池避免阻塞事件循环
 - 优化扫描配置预设选择UI
 - 完善提交按钮禁用逻辑和提示信息
+- Python 最低版本要求调整为 3.10+
+
+**修复**
+- 解决 Windows/Linux 命令行中文乱码问题
+- 修复刷新间隔 API 响应数据结构处理错误
+- 新增后端服务免责声明文档
 
 ### v1.7.9 (2025-12)
 - 新增项目 Logo 设计（盾牌+注入针头概念）
