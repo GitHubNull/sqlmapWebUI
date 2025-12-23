@@ -13,14 +13,14 @@ export interface RefreshIntervalConfig {
  * 获取刷新间隔配置
  */
 export async function getRefreshIntervalConfig(): Promise<RefreshIntervalConfig> {
-  const response = await request.get('/config/refresh-interval')
-  return response.data.data
+  // request 已在拦截器中返回 data.data，这里直接返回即可
+  return request.get('/config/refresh-interval')
 }
 
 /**
  * 设置刷新间隔配置
  */
 export async function setRefreshIntervalConfig(interval: number): Promise<RefreshIntervalConfig> {
-  const response = await request.post('/config/refresh-interval', { interval })
-  return response.data.data
+  // request 已在拦截器中返回 data.data，这里直接返回即可
+  return request.post('/config/refresh-interval', { interval })
 }
