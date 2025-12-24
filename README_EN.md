@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.8.0-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.12-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -276,6 +276,52 @@ For detailed usage, please refer to [doc/USAGE_GUIDE.md](doc/USAGE_GUIDE.md)
 Please read the [Disclaimer](DISCLAIMER.md) before use.
 
 ## Changelog
+
+### v1.8.12 (2025-12-24)
+
+**Fixes**
+- Fixed cURL (Windows CMD) parsing not removing `^` escape character before Chinese characters
+- Fixed HTTP request editor long line content stretching container, added soft wrap support
+
+### v1.8.11 (2025-12-24)
+
+**Fixes**
+- Fixed Burp plugin (Legacy/Montoya) Chinese character encoding issue, enforced UTF-8 encoding for HTTP requests
+
+### v1.8.10 (2025-12-24)
+
+**Fixes**
+- Fixed task log area unable to scroll to show all logs
+
+### v1.8.9 (2025-12-23)
+
+**Fixes**
+- Fixed Burp plugin right-click menu scan config source selection not working
+
+### v1.8.8 (2025-12-23)
+
+**Fixes**
+- Fixed session Header and Body field configuration not taking effect
+
+### v1.8.7 (2025-12-22)
+
+**Fixes**
+- URL parsing host field now excludes port for cross-platform consistency
+
+**Improvements**
+- Optimized homepage statistics card size
+
+### v1.8.1-v1.8.6 (2025-12)
+
+**New Features**
+- Added session Body field dynamic replacement feature
+- VulnShop lab added logging system
+- VulnShop lab modular refactoring with enhanced security
+
+**Improvements**
+- Improved VulnShop lab robustness, prevent crashes during SQLMap scanning
+- Adjusted task list empty data area height
+- API prefix renamed (/chrome/admin → /web/admin)
 
 ### v1.8.0 (2025-12)
 

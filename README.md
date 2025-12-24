@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.8.0-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.12-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -269,6 +269,52 @@ sqlmapWebUI/
 请在使用前阅读 [免责声明](DISCLAIMER.md)。
 
 ## 📝 更新日志
+
+### v1.8.12 (2025-12-24)
+
+**修复**
+- 修复 cURL (Windows CMD) 解析时中文字符前的转义符 `^` 未移除的问题
+- 修复 HTTP 报文编辑器长行内容撑开容器的问题，添加软换行支持
+
+### v1.8.11 (2025-12-24)
+
+**修复**
+- 修复 Burp 插件 (Legacy/Montoya) 中文乱码问题，强制使用 UTF-8 编码处理 HTTP 请求
+
+### v1.8.10 (2025-12-24)
+
+**修复**
+- 修复任务日志区域无法滚动显示全部日志的问题
+
+### v1.8.9 (2025-12-23)
+
+**修复**
+- 修复 Burp 插件右键菜单扫描配置来源选择不生效的问题
+
+### v1.8.8 (2025-12-23)
+
+**修复**
+- 修复会话 Header 和 Body 字段配置不生效的问题
+
+### v1.8.7 (2025-12-22)
+
+**修复**
+- URL 解析时 host 字段排除端口，保持跨平台一致性
+
+**优化**
+- 优化首页统计卡片尺寸
+
+### v1.8.1-v1.8.6 (2025-12)
+
+**新功能**
+- 新增会话 Body 字段动态替换功能
+- VulnShop 靶场添加日志系统
+- VulnShop 靶场模块化重构并增强安全性
+
+**优化**
+- 提高 VulnShop 靶场鲁棒性，防止 SQLMap 扫描时崩溃
+- 调整任务列表空数据区域高度
+- API 前缀重命名 (/chrome/admin → /web/admin)
 
 ### v1.8.0 (2025-12)
 
