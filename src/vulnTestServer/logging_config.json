@@ -1,0 +1,82 @@
+{
+    "version": 1,
+    "disable_existing_loggers": false,
+    "formatters": {
+        "standard": {
+            "format": "[%(asctime)s] %(levelname)-8s %(name)s - %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S"
+        },
+        "detailed": {
+            "format": "[%(asctime)s] %(levelname)-8s [%(name)s:%(funcName)s:%(lineno)d] - %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S"
+        },
+        "simple": {
+            "format": "%(levelname)s - %(message)s"
+        },
+        "access": {
+            "format": "[%(asctime)s] %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S"
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "level": "DEBUG",
+            "formatter": "standard",
+            "stream": "ext://sys.stdout"
+        },
+        "file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "level": "DEBUG",
+            "formatter": "detailed",
+            "filename": "logs/vulnshop.log",
+            "maxBytes": 10485760,
+            "backupCount": 5,
+            "encoding": "utf-8"
+        },
+        "access_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "level": "INFO",
+            "formatter": "access",
+            "filename": "logs/access.log",
+            "maxBytes": 10485760,
+            "backupCount": 5,
+            "encoding": "utf-8"
+        },
+        "error_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "level": "ERROR",
+            "formatter": "detailed",
+            "filename": "logs/error.log",
+            "maxBytes": 5242880,
+            "backupCount": 3,
+            "encoding": "utf-8"
+        }
+    },
+    "loggers": {
+        "vulnshop": {
+            "level": "DEBUG",
+            "handlers": ["console", "file"],
+            "propagate": false
+        },
+        "vulnshop.access": {
+            "level": "INFO",
+            "handlers": ["console", "access_file"],
+            "propagate": false
+        },
+        "vulnshop.sql": {
+            "level": "DEBUG",
+            "handlers": ["console", "file"],
+            "propagate": false
+        },
+        "vulnshop.error": {
+            "level": "ERROR",
+            "handlers": ["console", "error_file"],
+            "propagate": false
+        }
+    },
+    "root": {
+        "level": "INFO",
+        "handlers": ["console", "file"]
+    }
+}

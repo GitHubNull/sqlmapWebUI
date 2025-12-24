@@ -34,6 +34,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import HOST, PORT, DEBUG, DIFFICULTY, VERSION
 from database import init_database
 from waf import WAFBlockedException
+from logger import logger, access_logger, error_logger
 
 # 导入处理器模块
 from handlers.base import BaseHandlerMixin
@@ -58,6 +59,10 @@ class VulnShopHandler(
     
     使用Mixin模式组合各个功能模块，实现模块化设计
     """
+    
+    def log_message(self, format, *args):
+        """重写日志方法，使用自定义日志器"""
+        access_logger.info("%s - %s", self.client_address[0], format % args)
     
     def do_OPTIONS(self):
         """处理CORS预检请求"""
@@ -103,10 +108,10 @@ class VulnShopHandler(
             else:
                 self.send_error(404, 'Not Found')
         except WAFBlockedException as e:
+            access_logger.warning("%s - WAF Blocked: %s", self.client_address[0], e.reason)
             self.send_error_response(f'WAF Blocked: {e.reason}', 403)
         except Exception as e:
-            if DEBUG:
-                traceback.print_exc()
+            error_logger.exception("Error processing GET %s: %s", path, str(e))
             self.send_error_response(str(e), 500, sql_error=e)
     
     def do_POST(self):
@@ -139,10 +144,10 @@ class VulnShopHandler(
             else:
                 self.send_error(404, 'Not Found')
         except WAFBlockedException as e:
+            access_logger.warning("%s - WAF Blocked: %s", self.client_address[0], e.reason)
             self.send_error_response(f'WAF Blocked: {e.reason}', 403)
         except Exception as e:
-            if DEBUG:
-                traceback.print_exc()
+            error_logger.exception("Error processing POST %s: %s", path, str(e))
             self.send_error_response(str(e), 500, sql_error=e)
 
 
@@ -150,9 +155,11 @@ def run_server():
     """启动服务器"""
     # 初始化数据库
     init_database()
+    logger.info("Database initialized")
     
     # 创建服务器
     server = HTTPServer((HOST, PORT), VulnShopHandler)
+    logger.info("Server created on %s:%d", HOST, PORT)
     
     print(f"""
 ╔═══════════════════════════════════════════════════════════════════════════════════════╗
@@ -203,9 +210,10 @@ def run_server():
     """)
     
     try:
+        logger.info("Server starting...")
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\n[*] Server stopped")
+        logger.info("Server stopped by user")
         server.shutdown()
 
 

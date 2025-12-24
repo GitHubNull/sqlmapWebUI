@@ -15,6 +15,7 @@ import uuid
 from config import DEBUG, VERSION, DIFFICULTY, APP_NAME
 from database import get_db_connection
 from waf import get_waf, set_difficulty
+from logger import logger
 
 
 class SystemHandlerMixin:
@@ -127,7 +128,7 @@ class SystemHandlerMixin:
             return
         
         if DEBUG:
-            print(f"[Feedback] session_id={session_id}, token={token}, timestamp={timestamp}")
+            logger.debug("[Feedback] session_id=%s, token=%s, timestamp=%s", session_id, token, timestamp)
         
         conn = get_db_connection()
         cursor = conn.cursor()

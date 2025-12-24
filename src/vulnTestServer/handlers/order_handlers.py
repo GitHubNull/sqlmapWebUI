@@ -17,6 +17,7 @@ from datetime import datetime
 from config import DEBUG
 from database import get_db_connection
 from waf import get_waf
+from logger import sql_logger, logger
 
 
 class OrderHandlerMixin:
@@ -62,7 +63,7 @@ class OrderHandlerMixin:
             return
         
         if DEBUG:
-            print(f"[OrderCreate] session_id={session_id}, token={token}, user_agent={user_agent}")
+            logger.debug("[OrderCreate] session_id=%s, token=%s, user_agent=%s", session_id, token, user_agent)
         
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -130,7 +131,7 @@ class OrderHandlerMixin:
             return
             
         if DEBUG:
-            print(f"[SQL] {sql}")
+            sql_logger.debug("[SQL] %s", sql)
             
         try:
             # 不使用executescript，避免堆叠查询修改数据
@@ -191,7 +192,7 @@ class OrderHandlerMixin:
             return
         
         if DEBUG:
-            print(f"[OrderCancel] session_id={session_id}, auth_token={auth_token}")
+            logger.debug("[OrderCancel] session_id=%s, auth_token=%s", session_id, auth_token)
         
         conn = get_db_connection()
         cursor = conn.cursor()

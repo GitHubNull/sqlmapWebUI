@@ -11,7 +11,11 @@ import os
 import time
 import xml.etree.ElementTree as ET
 from urllib.parse import unquote
-from datetime import datetime
+
+# 导入日志模块
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from logger import logger, sql_logger, error_logger
 
 
 class BaseHandlerMixin:
@@ -30,20 +34,6 @@ class BaseHandlerMixin:
         '.ico': 'image/x-icon',
         '.svg': 'image/svg+xml',
     }
-    
-    def log_message(self, format, *args):
-        """自定义日志格式"""
-        from config import LOG_REQUESTS, LOG_FILE
-        if LOG_REQUESTS:
-            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            message = f"[{timestamp}] {self.address_string()} - {format % args}"
-            print(message)
-            try:
-                os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
-                with open(LOG_FILE, 'a', encoding='utf-8') as f:
-                    f.write(message + '\n')
-            except:
-                pass
     
     def send_json_response(self, data, status=200):
         """发送JSON响应"""
@@ -131,6 +121,7 @@ class BaseHandlerMixin:
             self.end_headers()
             self.wfile.write(content)
         except Exception as e:
+            error_logger.exception("Error serving static file: %s", filepath)
             self.send_error(500, str(e))
     
     def get_post_data(self):

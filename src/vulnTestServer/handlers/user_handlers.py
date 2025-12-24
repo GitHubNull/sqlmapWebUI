@@ -12,6 +12,7 @@ import uuid
 from config import DEBUG
 from database import get_db_connection, hash_password
 from waf import get_waf
+from logger import sql_logger, logger
 
 
 class UserHandlerMixin:
@@ -44,8 +45,8 @@ class UserHandlerMixin:
         sql = f"SELECT * FROM users WHERE username = '{username}' AND password = '{hash_password(password)}'"
         
         if DEBUG:
-            print(f"[SQL] {sql}")
-            print(f"[Session] session_id={session_id}, device_id={device_id}")
+            sql_logger.debug("[SQL] %s", sql)
+            logger.debug("[Session] session_id=%s, device_id=%s", session_id, device_id)
         
         try:
             cursor.execute(sql)
@@ -101,7 +102,7 @@ class UserHandlerMixin:
             return
         
         if DEBUG:
-            print(f"[Register] session_id={session_id}, captcha_token={captcha_token}")
+            logger.debug("[Register] session_id=%s, captcha_token=%s", session_id, captcha_token)
         
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -147,7 +148,7 @@ class UserHandlerMixin:
         sql = f"SELECT id, username, email, phone, address, balance FROM users WHERE id = {user_id}"
         
         if DEBUG:
-            print(f"[SQL] {sql}")
+            sql_logger.debug("[SQL] %s", sql)
         
         try:
             cursor.execute(sql)
@@ -214,7 +215,7 @@ class UserHandlerMixin:
             return
         
         if DEBUG:
-            print(f"[UserUpdate] session_id={session_id}, token={token}, device_id={device_id}")
+            logger.debug("[UserUpdate] session_id=%s, token=%s, device_id=%s", session_id, token, device_id)
         
         conn = get_db_connection()
         cursor = conn.cursor()

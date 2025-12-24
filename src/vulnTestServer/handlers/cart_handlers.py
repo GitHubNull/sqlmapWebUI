@@ -12,6 +12,7 @@ import sqlite3
 
 from config import DEBUG
 from database import get_db_connection
+from logger import logger
 
 
 class CartHandlerMixin:
@@ -47,7 +48,7 @@ class CartHandlerMixin:
             return
         
         if DEBUG:
-            print(f"[CartAdd] session_id={session_id}, csrf_token={csrf_token}")
+            logger.debug("[CartAdd] session_id=%s, csrf_token=%s", session_id, csrf_token)
         
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -102,7 +103,7 @@ class CartHandlerMixin:
             return
         
         if DEBUG:
-            print(f"[CartUpdate] session_id={session_id}, csrf_token={csrf_token}")
+            logger.debug("[CartUpdate] session_id=%s, csrf_token=%s", session_id, csrf_token)
         
         conn = get_db_connection()
         cursor = conn.cursor()

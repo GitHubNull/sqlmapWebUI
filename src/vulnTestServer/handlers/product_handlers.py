@@ -12,6 +12,7 @@ import time
 from config import DEBUG
 from database import get_db_connection
 from waf import get_waf
+from logger import sql_logger
 
 
 class ProductHandlerMixin:
@@ -66,7 +67,7 @@ class ProductHandlerMixin:
         sql += " AND is_active = 1"
         
         if DEBUG:
-            print(f"[SQL] {sql}")
+            sql_logger.debug("[SQL] %s", sql)
         
         try:
             cursor.execute(sql)
@@ -123,7 +124,7 @@ class ProductHandlerMixin:
         sql = f"SELECT * FROM products WHERE id = {product_id}"
         
         if DEBUG:
-            print(f"[SQL] {sql}")
+            sql_logger.debug("[SQL] %s", sql)
         
         try:
             start_time = time.time()
