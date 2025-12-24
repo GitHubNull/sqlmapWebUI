@@ -24,8 +24,9 @@ VulnShop - SQL Injection Test Lab
 
 import os
 import sys
-import traceback
+import socket
 from http.server import HTTPServer, BaseHTTPRequestHandler
+from socketserver import ThreadingMixIn
 from urllib.parse import urlparse, parse_qs
 
 # 添加当前目录到路径
@@ -60,9 +61,42 @@ class VulnShopHandler(
     使用Mixin模式组合各个功能模块，实现模块化设计
     """
     
+    # 设置请求超时（秒）
+    timeout = 30
+    
     def log_message(self, format, *args):
         """重写日志方法，使用自定义日志器"""
-        access_logger.info("%s - %s", self.client_address[0], format % args)
+        try:
+            access_logger.info("%s - %s", self.client_address[0], format % args)
+        except Exception:
+            pass
+    
+    def handle_one_request(self):
+        """重写请求处理，增加异常保护"""
+        try:
+            super().handle_one_request()
+        except socket.timeout:
+            # 超时不是错误
+            self.close_connection = True
+        except ConnectionResetError:
+            # 客户端重置连接
+            self.close_connection = True
+        except BrokenPipeError:
+            # 管道破裂，客户端断开
+            self.close_connection = True
+        except ConnectionAbortedError:
+            # 连接被中止
+            self.close_connection = True
+        except Exception as e:
+            error_logger.debug("Request handling error: %s", str(e))
+            self.close_connection = True
+    
+    def finish(self):
+        """重写finish方法，处理连接关闭时的异常"""
+        try:
+            super().finish()
+        except Exception:
+            pass
     
     def do_OPTIONS(self):
         """处理CORS预检请求"""
@@ -109,10 +143,22 @@ class VulnShopHandler(
                 self.send_error(404, 'Not Found')
         except WAFBlockedException as e:
             access_logger.warning("%s - WAF Blocked: %s", self.client_address[0], e.reason)
-            self.send_error_response(f'WAF Blocked: {e.reason}', 403)
+            self._safe_send_error('WAF Blocked: ' + e.reason, 403)
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            # 客户端断开连接，无需处理
+            pass
         except Exception as e:
             error_logger.exception("Error processing GET %s: %s", path, str(e))
-            self.send_error_response(str(e), 500, sql_error=e)
+            self._safe_send_error(str(e), 500, sql_error=e)
+    
+    def _safe_send_error(self, message, status=400, sql_error=None):
+        """安全发送错误响应，处理连接断开的情况"""
+        try:
+            self.send_error_response(message, status, sql_error)
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            pass
+        except Exception:
+            pass
     
     def do_POST(self):
         """处理POST请求"""
@@ -145,10 +191,19 @@ class VulnShopHandler(
                 self.send_error(404, 'Not Found')
         except WAFBlockedException as e:
             access_logger.warning("%s - WAF Blocked: %s", self.client_address[0], e.reason)
-            self.send_error_response(f'WAF Blocked: {e.reason}', 403)
+            self._safe_send_error('WAF Blocked: ' + e.reason, 403)
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            # 客户端断开连接，无需处理
+            pass
         except Exception as e:
             error_logger.exception("Error processing POST %s: %s", path, str(e))
-            self.send_error_response(str(e), 500, sql_error=e)
+            self._safe_send_error(str(e), 500, sql_error=e)
+
+
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    """支持多线程的HTTP服务器"""
+    daemon_threads = True  # 守护线程，主线程退出时自动结束
+    allow_reuse_address = True  # 允许端口复用
 
 
 def run_server():
@@ -157,9 +212,10 @@ def run_server():
     init_database()
     logger.info("Database initialized")
     
-    # 创建服务器
-    server = HTTPServer((HOST, PORT), VulnShopHandler)
-    logger.info("Server created on %s:%d", HOST, PORT)
+    # 创建多线程服务器
+    server = ThreadedHTTPServer((HOST, PORT), VulnShopHandler)
+    server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    logger.info("Threaded server created on %s:%d", HOST, PORT)
     
     print(f"""
 ╔═══════════════════════════════════════════════════════════════════════════════════════╗

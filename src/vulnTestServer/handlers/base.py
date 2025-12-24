@@ -37,14 +37,20 @@ class BaseHandlerMixin:
     
     def send_json_response(self, data, status=200):
         """发送JSON响应"""
-        self.send_response(status)
-        self.send_header('Content-Type', 'application/json; charset=utf-8')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-        self.end_headers()
-        response = json.dumps(data, ensure_ascii=False)
-        self.wfile.write(response.encode('utf-8'))
+        try:
+            self.send_response(status)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+            self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+            self.end_headers()
+            response = json.dumps(data, ensure_ascii=False)
+            self.wfile.write(response.encode('utf-8'))
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            # 客户端断开连接，静默处理
+            pass
+        except Exception as e:
+            error_logger.debug("Error sending JSON response: %s", str(e))
     
     def send_error_response(self, message, status=400, sql_error=None):
         """发送错误响应（可能包含SQL错误信息用于演示）"""
@@ -63,37 +69,43 @@ class BaseHandlerMixin:
     
     def send_xml_response(self, data, status=200):
         """发送XML响应"""
-        self.send_response(status)
-        self.send_header('Content-Type', 'application/xml; charset=utf-8')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id, X-Token')
-        self.end_headers()
-        
-        # 将dict转换为XML
-        def dict_to_xml(d, root_name='response'):
-            root = ET.Element(root_name)
-            for key, value in d.items():
-                child = ET.SubElement(root, key)
-                if isinstance(value, dict):
-                    for k, v in value.items():
-                        sub = ET.SubElement(child, k)
-                        sub.text = str(v) if v is not None else ''
-                elif isinstance(value, list):
-                    for item in value:
-                        item_el = ET.SubElement(child, 'item')
-                        if isinstance(item, dict):
-                            for k, v in item.items():
-                                sub = ET.SubElement(item_el, k)
-                                sub.text = str(v) if v is not None else ''
-                        else:
-                            item_el.text = str(item)
-                else:
-                    child.text = str(value) if value is not None else ''
-            return ET.tostring(root, encoding='unicode')
-        
-        xml_str = '<?xml version="1.0" encoding="UTF-8"?>\n' + dict_to_xml(data)
-        self.wfile.write(xml_str.encode('utf-8'))
+        try:
+            self.send_response(status)
+            self.send_header('Content-Type', 'application/xml; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+            self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id, X-Token')
+            self.end_headers()
+            
+            # 将dict转换为XML
+            def dict_to_xml(d, root_name='response'):
+                root = ET.Element(root_name)
+                for key, value in d.items():
+                    child = ET.SubElement(root, key)
+                    if isinstance(value, dict):
+                        for k, v in value.items():
+                            sub = ET.SubElement(child, k)
+                            sub.text = str(v) if v is not None else ''
+                    elif isinstance(value, list):
+                        for item in value:
+                            item_el = ET.SubElement(child, 'item')
+                            if isinstance(item, dict):
+                                for k, v in item.items():
+                                    sub = ET.SubElement(item_el, k)
+                                    sub.text = str(v) if v is not None else ''
+                            else:
+                                item_el.text = str(item)
+                    else:
+                        child.text = str(value) if value is not None else ''
+                return ET.tostring(root, encoding='unicode')
+            
+            xml_str = '<?xml version="1.0" encoding="UTF-8"?>\n' + dict_to_xml(data)
+            self.wfile.write(xml_str.encode('utf-8'))
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            # 客户端断开连接，静默处理
+            pass
+        except Exception as e:
+            error_logger.debug("Error sending XML response: %s", str(e))
     
     def send_static_file(self, filepath):
         """发送静态文件"""
@@ -120,42 +132,78 @@ class BaseHandlerMixin:
             self.send_header('Content-Length', len(content))
             self.end_headers()
             self.wfile.write(content)
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            # 客户端断开连接，静默处理
+            pass
+        except FileNotFoundError:
+            self.send_error(404, 'File Not Found')
         except Exception as e:
-            error_logger.exception("Error serving static file: %s", filepath)
-            self.send_error(500, str(e))
+            error_logger.debug("Error serving static file %s: %s", filepath, str(e))
+            try:
+                self.send_error(500, 'Internal Server Error')
+            except:
+                pass
     
     def get_post_data(self):
         """获取POST请求数据，支持JSON、URL-encoded和XML格式"""
-        content_length = int(self.headers.get('Content-Length', 0))
-        if content_length == 0:
-            return {}
-        
-        post_data = self.rfile.read(content_length).decode('utf-8')
-        content_type = self.headers.get('Content-Type', '')
-        
-        if 'application/json' in content_type:
+        try:
+            content_length_str = self.headers.get('Content-Length', '0')
             try:
-                return json.loads(post_data)
-            except:
+                content_length = int(content_length_str)
+            except (ValueError, TypeError):
+                content_length = 0
+            
+            if content_length <= 0:
                 return {}
-        elif 'application/xml' in content_type or 'text/xml' in content_type:
-            # XML解析
+            
+            # 限制最大读取长度，防止内存攻击
+            max_length = 10 * 1024 * 1024  # 10MB
+            if content_length > max_length:
+                content_length = max_length
+            
+            raw_data = self.rfile.read(content_length)
             try:
-                root = ET.fromstring(post_data)
+                post_data = raw_data.decode('utf-8')
+            except UnicodeDecodeError:
+                # 尝试其他编码
+                try:
+                    post_data = raw_data.decode('latin-1')
+                except:
+                    return {}
+            
+            content_type = self.headers.get('Content-Type', '')
+            
+            if 'application/json' in content_type:
+                try:
+                    return json.loads(post_data)
+                except:
+                    return {}
+            elif 'application/xml' in content_type or 'text/xml' in content_type:
+                # XML解析
+                try:
+                    root = ET.fromstring(post_data)
+                    result = {}
+                    for child in root:
+                        result[child.tag] = child.text or ''
+                    return result
+                except:
+                    return {}
+            else:
+                # application/x-www-form-urlencoded
                 result = {}
-                for child in root:
-                    result[child.tag] = child.text or ''
+                for pair in post_data.split('&'):
+                    if '=' in pair:
+                        key, value = pair.split('=', 1)
+                        try:
+                            result[unquote(key)] = unquote(value)
+                        except:
+                            pass
                 return result
-            except:
-                return {}
-        else:
-            # application/x-www-form-urlencoded
-            result = {}
-            for pair in post_data.split('&'):
-                if '=' in pair:
-                    key, value = pair.split('=', 1)
-                    result[unquote(key)] = unquote(value)
-            return result
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            return {}
+        except Exception as e:
+            error_logger.debug("Error reading POST data: %s", str(e))
+            return {}
     
     def get_content_type(self):
         """获取请求的Content-Type类型"""
