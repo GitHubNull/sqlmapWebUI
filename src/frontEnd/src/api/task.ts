@@ -132,7 +132,7 @@ export async function getTaskList(): Promise<Task[]> {
   }
   
   // 真实API调用
-  const result = await request.get<{ tasks: BackendTask[]; tasks_num: number }>('/chrome/admin/task/list')
+  const result = await request.get<{ tasks: BackendTask[]; tasks_num: number }>('/web/admin/task/list')
   // 转换后端字段名为前端字段名
   return (result.tasks || []).map(transformBackendTask)
 }
@@ -141,14 +141,14 @@ export async function getTaskList(): Promise<Task[]> {
  * 添加任务
  */
 export function addTask(taskData: Partial<Task>): Promise<{ engineid: number; taskid: string }> {
-  return request.post('/chrome/admin/task/add', taskData)
+  return request.post('/web/admin/task/add', taskData)
 }
 
 /**
  * 删除任务
  */
 export function deleteTask(taskId: string): Promise<void> {
-  return request.delete(`/chrome/admin/task/delete`, {
+  return request.delete(`/web/admin/task/delete`, {
     params: { taskid: taskId },
   })
 }
@@ -157,14 +157,14 @@ export function deleteTask(taskId: string): Promise<void> {
  * 停止任务
  */
 export function stopTask(taskId: string): Promise<void> {
-  return request.put(`/chrome/admin/task/stop`, { taskid: taskId })
+  return request.put(`/web/admin/task/stop`, { taskid: taskId })
 }
 
 /**
  * 根据URL查找任务
  */
 export function findTaskByUrl(urlPath: string): Promise<Task[]> {
-  return request.post('/chrome/admin/task/findByUrlPath', { urlPath })
+  return request.post('/web/admin/task/findByUrlPath', { urlPath })
 }
 
 /**
@@ -373,7 +373,7 @@ export async function getTaskLogs(taskId: string): Promise<string[]> {
   }
 
   // 真实API调用，后端返回对象数组，需要转换为字符串数组
-  const response = await request.get<BackendLogEntry[]>('/chrome/admin/task/logs/getLogsByTaskId', {
+  const response = await request.get<BackendLogEntry[]>('/web/admin/task/logs/getLogsByTaskId', {
     params: { taskId },
   })
   
@@ -410,14 +410,14 @@ export async function batchStopTasks(taskIds: string[]): Promise<void> {
  * 清空所有任务
  */
 export function flushTasks(): Promise<void> {
-  return request.patch('/chrome/admin/task/flush')
+  return request.patch('/web/admin/task/flush')
 }
 
 /**
  * 获取扫描配置
  */
 export function getScanOptions(taskId: string): Promise<any> {
-  return request.get('/chrome/admin/task/getTaskScanOptionsByTaskId', {
+  return request.get('/web/admin/task/getTaskScanOptionsByTaskId', {
     params: { taskId },
   })
 }
@@ -581,7 +581,7 @@ export async function getHttpRequestInfo(taskId: string): Promise<any> {
     url: string
     headers: string[]
     body: string
-  }>('/chrome/admin/task/getTaskHttpRequestInfoByTaskId', {
+  }>('/web/admin/task/getTaskHttpRequestInfoByTaskId', {
     params: { taskId },
   })
   
@@ -613,7 +613,7 @@ export async function getPayloadDetail(taskId: string): Promise<PayloadEntry[]> 
   }
 
   // 真实API调用，后端使用content_type，需要转换为contentType
-  const response = await request.get<BackendPayloadEntry[]>('/chrome/admin/task/getPayloadDetailByTaskId', {
+  const response = await request.get<BackendPayloadEntry[]>('/web/admin/task/getPayloadDetailByTaskId', {
     params: { taskId },
   })
   
@@ -1047,7 +1047,7 @@ export async function getErrors(taskId: string): Promise<ErrorEntry[]> {
   }
 
   // 真实API调用，后端返回 {taskId, errors: [...], errors_cnt}
-  const response = await request.get<BackendErrorsResponse>('/chrome/admin/task/getTaskErrorsByTaskId', {
+  const response = await request.get<BackendErrorsResponse>('/web/admin/task/getTaskErrorsByTaskId', {
     params: { taskId },
   })
   

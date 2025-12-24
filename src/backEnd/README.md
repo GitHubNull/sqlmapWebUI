@@ -155,7 +155,7 @@ PRIVATE_MIRROR_TRUSTED_HOSTS=nexus.company.com
 ```
 src/backEnd/
 ├── api/                      # API 路由模块
-│   ├── chromeExApi/          # Chrome 浏览器页面 API
+│   ├── webApi/               # Web 浏览器页面 API
 │   │   └── admin.py          # 任务管理接口
 │   ├── burpSuiteExApi/       # Burp Suite 插件 API
 │   │   └── admin.py          # 扫描提交接口
@@ -212,14 +212,14 @@ src/backEnd/
 
 | 方法 | 端点 | 说明 |
 |------|------|------|
-| GET | `/chrome/admin/task/list` | 获取任务列表 |
-| POST | `/chrome/admin/task/add` | 创建任务 |
-| PUT | `/chrome/admin/task/stop` | 停止任务 |
-| DELETE | `/chrome/admin/task/delete` | 删除任务 |
-| PATCH | `/chrome/admin/task/flush` | 清空所有任务 |
-| GET | `/chrome/admin/task/logs/getLogsByTaskId` | 获取任务日志 |
-| GET | `/chrome/admin/task/getTaskScanOptionsByTaskId` | 获取扫描配置 |
-| GET | `/chrome/admin/task/getScanDataByTaskId` | 获取扫描结果 |
+| GET | `/web/admin/task/list` | 获取任务列表 |
+| POST | `/web/admin/task/add` | 创建任务 |
+| PUT | `/web/admin/task/stop` | 停止任务 |
+| DELETE | `/web/admin/task/delete` | 删除任务 |
+| PATCH | `/web/admin/task/flush` | 清空所有任务 |
+| GET | `/web/admin/task/logs/getLogsByTaskId` | 获取任务日志 |
+| GET | `/web/admin/task/getTaskScanOptionsByTaskId` | 获取扫描配置 |
+| GET | `/web/admin/task/getScanDataByTaskId` | 获取扫描结果 |
 
 ### 请求头规则 API
 

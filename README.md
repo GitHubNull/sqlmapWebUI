@@ -194,7 +194,7 @@ sqlmapWebUI/
 ├── src/
 │   ├── backEnd/                 # 后端代码
 │   │   ├── api/                 # API 路由
-│   │   │   ├── chromeExApi/     # Chrome 浏览器页面 API
+│   │   │   ├── webApi/          # Web 浏览器页面 API
 │   │   │   ├── burpSuiteExApi/  # Burp Suite API
 │   │   │   └── commonApi/       # 通用 API (认证/请求头规则/配置)
 │   │   ├── model/               # 数据模型

@@ -16,7 +16,7 @@ sqlmapWebUI/
 ├── src/
 │   ├── backEnd/           # FastAPI backend service (Python 3.10+)
 │   │   ├── api/           # API routes
-│   │   │   ├── chromeExApi/      # Chrome browser page API
+│   │   │   ├── webApi/           # Web browser page API
 │   │   │   ├── burpSuiteExApi/   # Burp Suite plugin API
 │   │   │   └── commonApi/        # Common APIs (auth, headers, config)
 │   │   ├── model/         # Data models

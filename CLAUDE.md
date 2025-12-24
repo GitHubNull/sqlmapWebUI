@@ -27,7 +27,7 @@ sqlmapWebUI/
 - `app.py` - FastAPI 应用核心，包含 CORS 配置、路由挂载
 - `config.py` - 版本号和全局配置
 - `api/` - API 路由模块
-  - `chromeExApi/` - Chrome 浏览器页面 API
+  - `webApi/` - Web 浏览器页面 API
   - `burpSuiteExApi/` - Burp Suite 扩展相关 API
   - `commonApi/` - 通用 API
     - `headerController.py` - 请求头规则管理 API

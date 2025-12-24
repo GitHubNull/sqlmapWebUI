@@ -194,7 +194,7 @@ sqlmapWebUI/
 ├── src/
 │   ├── backEnd/                 # Backend code
 │   │   ├── api/                 # API routes
-│   │   │   ├── chromeExApi/     # Chrome browser page API
+│   │   │   ├── webApi/          # Web browser page API
 │   │   │   ├── burpSuiteExApi/  # Burp Suite API
 │   │   │   └── commonApi/       # Common API (auth/headers/config)
 │   │   ├── model/               # Data models

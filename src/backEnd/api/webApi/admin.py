@@ -11,7 +11,7 @@ from utils.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/chrome/admin")
+router = APIRouter(prefix="/web/admin")
 
 
 @router.post('/task/add')
