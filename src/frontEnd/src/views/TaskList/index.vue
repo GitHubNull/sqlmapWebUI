@@ -979,12 +979,14 @@ function confirmDeleteAll() {
 :deep(.fixed-paginator-table) {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 580px);
+  height: calc(100vh - 480px);
+  min-height: 260px;
 
   .p-datatable-wrapper {
     flex: 1;
     overflow-y: auto;
     overflow-x: auto;
+    min-height: 160px;
   }
 
   // 空数据提示
@@ -993,7 +995,8 @@ function confirmDeleteAll() {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 4rem 2rem;
+    padding: 2rem 1.5rem;
+    min-height: 150px;
     color: var(--text-color-secondary);
 
     i {
