@@ -5,7 +5,7 @@
  */
 
 export interface UrlParseResult {
-  /** 主机名（包含端口） */
+  /** 主机名（不含端口） */
   host: string
   /** 请求路径 */
   path: string
@@ -21,7 +21,7 @@ export interface UrlParseResult {
  * 
  * @example
  * parseUrl('https://example.com:8080/api/users?id=1')
- * // => { host: 'example.com:8080', path: '/api/users?id=1', protocol: 'https' }
+ * // => { host: 'example.com', path: '/api/users?id=1', protocol: 'https' }
  */
 export function parseUrl(urlStr: string): UrlParseResult {
   // 默认返回值
@@ -37,7 +37,7 @@ export function parseUrl(urlStr: string): UrlParseResult {
     const path = url.pathname + url.search + url.hash
     
     return {
-      host: url.host,
+      host: url.hostname,  // 使用 hostname 而不是 host，不包含端口
       path: path || '/',
       protocol: url.protocol.replace(':', '')
     }
@@ -51,7 +51,7 @@ export function parseUrl(urlStr: string): UrlParseResult {
  * 手动解析URL（当原生URL API失败时的备选方案）
  */
 function parseUrlManually(urlStr: string): UrlParseResult | null {
-  const match = urlStr.match(/^(https?):\/\/([^\/]+)(\/.*)?$/)
+  const match = urlStr.match(/^(https?):\/\/([^\/:]+)(?::\d+)?(\/.*)?$/)
   
   if (!match) {
     return null
@@ -59,7 +59,7 @@ function parseUrlManually(urlStr: string): UrlParseResult | null {
   
   return {
     protocol: match[1] || 'http',
-    host: match[2] || '',
+    host: match[2] || '',  // 只取主机名，不含端口
     path: match[3] || '/'
   }
 }

@@ -12,7 +12,7 @@ export interface ParsedHttpRequest {
   method: string
   /** 完整URL */
   url: string
-  /** 主机名（包含端口） */
+  /** 主机名（不含端口） */
   host: string
   /** 请求路径（包含查询字符串和hash） */
   path: string

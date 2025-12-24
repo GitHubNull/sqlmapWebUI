@@ -240,7 +240,7 @@ function navigateToTasks(filterType: FilterType) {
 .home-page {
   width: 100%;  // 占满主内容区域，不限制最大宽度
   margin: 0;
-  padding: 32px 0;  // 只保留上下内边距
+  padding: 20px 0;  // 只保留上下内边距
   position: relative;
 
   &::before {
@@ -272,13 +272,13 @@ function navigateToTasks(filterType: FilterType) {
 }
 
 .intro-text {
-  margin-bottom: 40px;
+  margin-bottom: 24px;
   color: $text-color-secondary;
-  font-size: 16px;
-  line-height: 1.7;
+  font-size: 14px;
+  line-height: 1.6;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(248, 250, 252, 0.4) 100%);
-  padding: 20px 24px;
+  padding: 14px 18px;
   border-radius: $border-radius-lg;
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: $shadow-raised;
@@ -292,7 +292,7 @@ function navigateToTasks(filterType: FilterType) {
 }
 
 .stats-section {
-  margin-bottom: 48px;
+  margin-bottom: 28px;
 
   &:last-child {
     margin-bottom: 0;
@@ -300,9 +300,9 @@ function navigateToTasks(filterType: FilterType) {
 }
 
 .section-title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: $font-weight-bold;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   color: $text-color;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   background: $gradient-primary;
@@ -326,10 +326,10 @@ function navigateToTasks(filterType: FilterType) {
 
 .stats-grid {
   display: grid;
-  gap: 24px;
+  gap: 16px;
 
   &.status-stats {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 
     @media (min-width: 1400px) {
       grid-template-columns: repeat(4, 1fr);
@@ -345,7 +345,7 @@ function navigateToTasks(filterType: FilterType) {
 
     @media (max-width: 767px) {
       grid-template-columns: 1fr;
-      gap: 20px;
+      gap: 12px;
     }
   }
 
@@ -358,7 +358,7 @@ function navigateToTasks(filterType: FilterType) {
 
     @media (max-width: 767px) {
       grid-template-columns: 1fr;
-      gap: 20px;
+      gap: 12px;
     }
   }
 }
@@ -417,20 +417,20 @@ function navigateToTasks(filterType: FilterType) {
 .stat-content {
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 32px;
+  gap: 14px;
+  padding: 18px 20px;
   position: relative;
   z-index: 2;
 }
 
 .stat-icon {
-  width: 72px;
-  height: 72px;
-  border-radius: $border-radius-lg;
+  width: 48px;
+  height: 48px;
+  border-radius: $border-radius;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
+  font-size: 22px;
   flex-shrink: 0;
   position: relative;
   transition: $transition-base;
@@ -472,10 +472,10 @@ function navigateToTasks(filterType: FilterType) {
 }
 
 .stat-value {
-  font-size: 36px;
+  font-size: 26px;
   font-weight: $font-weight-bold;
   line-height: 1.2;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: relative;
   transition: $transition-base;
@@ -487,10 +487,10 @@ function navigateToTasks(filterType: FilterType) {
 }
 
 .stat-label {
-  font-size: 16px;
+  font-size: 13px;
   color: $text-color-secondary;
   font-weight: $font-weight-medium;
-  line-height: 1.4;
+  line-height: 1.3;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   transition: $transition-base;
 
