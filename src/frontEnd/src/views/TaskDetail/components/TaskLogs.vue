@@ -372,9 +372,12 @@ function copyLogsToClipboard() {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  height: 100%;  // 填满父容器高度
+  overflow: hidden;  // 防止溢出
 }
 
 .log-search-toolbar {
+  flex-shrink: 0;  // 不允许工具栏被压缩
   background: var(--p-content-background);
   border-radius: 8px;
   border: 1px solid var(--p-content-border-color);
@@ -499,8 +502,8 @@ function copyLogsToClipboard() {
 }
 
 .logs-container {
-  // 自适应父容器高度，减去工具栏高度
-  height: calc(100% - 160px);
+  // 使用flex: 1填充剩余空间，不再使用calc百分比
+  flex: 1;
   min-height: 200px;
   overflow-y: auto;
   overflow-x: auto;
