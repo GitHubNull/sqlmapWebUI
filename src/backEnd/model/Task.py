@@ -147,7 +147,7 @@ class Task(object):
             # 处理请求头
             logger.debug(f"[{self.taskid}] Processing headers with {len(self.headers)} original headers")
             processed_headers, applied_rules = HeaderProcessor.process_headers(
-                self.headers, persistent_rules, session_headers
+                self.headers, persistent_rules, session_headers, self.scanUrl
             )
             logger.debug(f"[{self.taskid}] Processed headers: {len(processed_headers)}, Applied rules: {len(applied_rules)}")
             

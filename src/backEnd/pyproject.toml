@@ -10,6 +10,7 @@ thirdparty = [
     "fastapi[standard]",
     "apscheduler",
     "psutil",
+    "jsonpath-ng",
 ]
 
 [[tool.uv.index]]

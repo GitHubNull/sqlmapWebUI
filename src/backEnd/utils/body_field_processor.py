@@ -7,6 +7,7 @@ BodyFieldProcessor - Body字段处理器
 
 import re
 import json
+import copy
 import urllib.parse
 from typing import List, Dict, Optional, Tuple, Any
 
@@ -193,7 +194,7 @@ class BodyFieldProcessor:
         applicable_fields.sort(key=lambda x: x.priority, reverse=True)
         
         # 应用规则
-        modified_obj = json_obj.copy()
+        modified_obj = copy.deepcopy(json_obj)  # 使用深拷贝避免嵌套对象修改问题
         applied_rules = []
         
         for field in applicable_fields:
@@ -204,6 +205,8 @@ class BodyFieldProcessor:
                     continue
             
             try:
+                logger.debug(f"Processing field '{field.field_name}' with strategy {field.match_strategy}, pattern '{field.match_pattern}'")
+                
                 # 根据匹配策略定位字段
                 if field.match_strategy == MatchStrategy.JSONPATH and field.match_pattern:
                     if JSONPATH_AVAILABLE:
@@ -217,7 +220,21 @@ class BodyFieldProcessor:
                                     existing_value, field.field_value, field.replace_strategy
                                 )
                                 match.full_path.update(modified_obj, new_value)
+                                logger.debug(f"JSONPath matched '{field.field_name}': '{existing_value}' -> '{new_value}'")
                             applied_rules.append(f"BodyField: {field.field_name}")
+                        else:
+                            logger.debug(f"JSONPath '{field.match_pattern}' found no matches for field '{field.field_name}'")
+                    else:
+                        # JSONPath不可用时，回退到关键字匹配
+                        logger.warning(f"jsonpath-ng not available, falling back to keyword match for field '{field.field_name}'")
+                        if field.field_name in modified_obj:
+                            existing_value = modified_obj[field.field_name]
+                            new_value = cls.apply_replace_strategy(
+                                existing_value, field.field_value, field.replace_strategy
+                            )
+                            modified_obj[field.field_name] = new_value
+                            applied_rules.append(f"BodyField: {field.field_name} (keyword fallback)")
+                            logger.debug(f"Keyword fallback matched '{field.field_name}': '{existing_value}' -> '{new_value}'")
                 
                 elif field.match_strategy == MatchStrategy.KEYWORD:
                     # 直接访问字典key
@@ -228,6 +245,9 @@ class BodyFieldProcessor:
                         )
                         modified_obj[field.field_name] = new_value
                         applied_rules.append(f"BodyField: {field.field_name}")
+                        logger.debug(f"Keyword matched '{field.field_name}': '{existing_value}' -> '{new_value}'")
+                    else:
+                        logger.debug(f"Field '{field.field_name}' not found in JSON object")
                 
             except Exception as e:
                 logger.error(f"Failed to apply field rule '{field.field_name}': {e}")
@@ -301,7 +321,7 @@ class BodyFieldProcessor:
         applicable_fields.sort(key=lambda x: x.priority, reverse=True)
         
         # 应用规则
-        modified_params = params.copy()
+        modified_params = copy.deepcopy(params)  # 使用深拷贝
         applied_rules = []
         
         for field in applicable_fields:

@@ -21,10 +21,126 @@ class SessionHeaderManager:
         self._lock = threading.Lock()
         self._id_counter = 1  # ID计数器
         logger.debug("SessionHeaderManager initialized")
+        # 从数据库加载已有的会话请求头
+        self._load_from_database()
         
     def _get_db(self):
         """获取请求头数据库连接"""
         return DataStore.header_db
+    
+    def _load_from_database(self):
+        """从数据库加载所有未过期的会话请求头"""
+        try:
+            db = self._get_db()
+            if db is None:
+                logger.debug("Database not available, skipping load from database")
+                return
+            
+            # 获取当前时间
+            current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            
+            # 查询所有未过期的会话请求头
+            cursor = db.only_execute("""
+                SELECT id, client_ip, header_name, header_value, replace_strategy, priority,
+                       is_active, expires_at, created_at, updated_at, scope_config
+                FROM session_headers
+                WHERE expires_at > ?
+            """, (current_time,))
+            
+            if cursor is None:
+                logger.debug("No cursor returned from database")
+                return
+            
+            loaded_count = 0
+            max_id = 0
+            
+            for row in cursor:
+                try:
+                    (header_id, client_ip, header_name, header_value, replace_strategy_str,
+                     priority, is_active, expires_at_str, created_at_str, updated_at_str,
+                     scope_config_json) = row
+                    
+                    # 跟踪最大ID
+                    if header_id and header_id > max_id:
+                        max_id = header_id
+                    
+                    # 解析替换策略
+                    try:
+                        replace_strategy = ReplaceStrategy(replace_strategy_str)
+                    except ValueError:
+                        replace_strategy = ReplaceStrategy.REPLACE
+                    
+                    # 解析expires_at
+                    expires_at = None
+                    if expires_at_str:
+                        try:
+                            expires_at = datetime.strptime(expires_at_str, '%Y-%m-%d %H:%M:%S')
+                        except ValueError:
+                            expires_at = None
+                    
+                    # 解析created_at
+                    created_at = None
+                    if created_at_str:
+                        try:
+                            created_at = datetime.strptime(created_at_str, '%Y-%m-%d %H:%M:%S')
+                        except ValueError:
+                            created_at = datetime.now()
+                    
+                    # 解析updated_at
+                    updated_at = None
+                    if updated_at_str:
+                        try:
+                            updated_at = datetime.strptime(updated_at_str, '%Y-%m-%d %H:%M:%S')
+                        except ValueError:
+                            updated_at = None
+                    
+                    # 解析scope_config
+                    scope = None
+                    if scope_config_json:
+                        try:
+                            from model.HeaderScope import HeaderScope
+                            scope_dict = json.loads(scope_config_json)
+                            scope = HeaderScope.from_dict(scope_dict)
+                        except (json.JSONDecodeError, Exception) as e:
+                            logger.debug(f"Failed to parse scope config: {e}")
+                            scope = None
+                    
+                    # 创建 SessionHeader 对象
+                    session_header = SessionHeader(
+                        id=header_id,
+                        header_name=header_name,
+                        header_value=header_value,
+                        replace_strategy=replace_strategy,
+                        priority=priority or 50,
+                        is_active=bool(is_active),
+                        expires_at=expires_at,
+                        created_at=created_at,
+                        updated_at=updated_at,
+                        source_ip=client_ip,
+                        scope=scope
+                    )
+                    
+                    # 加载到内存
+                    if client_ip not in self._session_headers:
+                        self._session_headers[client_ip] = {}
+                    self._session_headers[client_ip][header_name] = session_header
+                    loaded_count += 1
+                    
+                except Exception as e:
+                    logger.error(f"Failed to load session header from row: {e}")
+                    continue
+            
+            # 更新ID计数器
+            if max_id > 0:
+                self._id_counter = max_id + 1
+            
+            if loaded_count > 0:
+                logger.info(f"Loaded {loaded_count} session headers from database")
+            else:
+                logger.debug("No active session headers found in database")
+                
+        except Exception as e:
+            logger.error(f"Failed to load session headers from database: {e}")
     
     def _generate_id(self) -> int:
         """生成唯一ID"""
