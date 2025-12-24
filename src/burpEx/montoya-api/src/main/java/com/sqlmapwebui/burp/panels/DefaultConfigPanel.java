@@ -310,6 +310,7 @@ public class DefaultConfigPanel extends BaseConfigPanel {
         useDefaultConfigRadio = new JRadioButton("使用默认配置", true);
         useDefaultConfigRadio.setToolTipText("使用左侧配置的参数进行扫描");
         configSourceGroup.add(useDefaultConfigRadio);
+        useDefaultConfigRadio.addItemListener(e -> saveConfigSourceSelection());
         panel.add(useDefaultConfigRadio, gbc);
         row++;
         
@@ -328,7 +329,10 @@ public class DefaultConfigPanel extends BaseConfigPanel {
         usePresetConfigRadio = new JRadioButton("使用常用配置");
         usePresetConfigRadio.setToolTipText("从常用配置列表中选择一个配置");
         configSourceGroup.add(usePresetConfigRadio);
-        usePresetConfigRadio.addItemListener(e -> updatePresetComboState());
+        usePresetConfigRadio.addItemListener(e -> {
+            updatePresetComboState();
+            saveConfigSourceSelection();
+        });
         panel.add(usePresetConfigRadio, gbc);
         row++;
         
@@ -337,6 +341,11 @@ public class DefaultConfigPanel extends BaseConfigPanel {
         gbc.insets = new Insets(0, 30, 6, 10);
         presetConfigCombo = new JComboBox<>();
         presetConfigCombo.setEnabled(false);
+        presetConfigCombo.addItemListener(e -> {
+            if (e.getStateChange() == java.awt.event.ItemEvent.SELECTED) {
+                saveConfigSourceSelection();
+            }
+        });
         refreshPresetConfigCombo();
         panel.add(presetConfigCombo, gbc);
         gbc.insets = new Insets(6, 10, 6, 10);
@@ -347,6 +356,7 @@ public class DefaultConfigPanel extends BaseConfigPanel {
         useLastHistoryRadio = new JRadioButton("使用最近历史配置");
         useLastHistoryRadio.setToolTipText("使用最近一次扫描的参数配置");
         configSourceGroup.add(useLastHistoryRadio);
+        useLastHistoryRadio.addItemListener(e -> saveConfigSourceSelection());
         panel.add(useLastHistoryRadio, gbc);
         row++;
         
@@ -462,7 +472,67 @@ public class DefaultConfigPanel extends BaseConfigPanel {
         // 初始化单选按钮状态
         updateRadioButtonStates();
         
+        // 从ConfigManager恢复之前的配置来源选择
+        restoreConfigSourceSelection();
+        
         return panel;
+    }
+    
+    /**
+     * 保存配置来源选择到ConfigManager
+     */
+    private void saveConfigSourceSelection() {
+        if (usePresetConfigRadio.isSelected()) {
+            configManager.setScanConfigSource(ConfigManager.ScanConfigSource.PRESET);
+            String selectedName = (String) presetConfigCombo.getSelectedItem();
+            if (selectedName != null) {
+                configManager.setSelectedPresetName(selectedName);
+            }
+        } else if (useLastHistoryRadio.isSelected()) {
+            configManager.setScanConfigSource(ConfigManager.ScanConfigSource.HISTORY);
+        } else {
+            configManager.setScanConfigSource(ConfigManager.ScanConfigSource.DEFAULT);
+        }
+    }
+    
+    /**
+     * 从ConfigManager恢复配置来源选择
+     */
+    private void restoreConfigSourceSelection() {
+        ConfigManager.ScanConfigSource source = configManager.getScanConfigSource();
+        switch (source) {
+            case PRESET:
+                if (presetConfigCombo.getItemCount() > 0) {
+                    usePresetConfigRadio.setSelected(true);
+                    // 恢复选中的常用配置
+                    String savedName = configManager.getSelectedPresetName();
+                    if (savedName != null) {
+                        for (int i = 0; i < presetConfigCombo.getItemCount(); i++) {
+                            if (savedName.equals(presetConfigCombo.getItemAt(i))) {
+                                presetConfigCombo.setSelectedIndex(i);
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    // 常用配置为空，回退到默认
+                    useDefaultConfigRadio.setSelected(true);
+                }
+                break;
+            case HISTORY:
+                if (configManager.getHistoryConfigs().size() > 0) {
+                    useLastHistoryRadio.setSelected(true);
+                } else {
+                    // 历史配置为空，回退到默认
+                    useDefaultConfigRadio.setSelected(true);
+                }
+                break;
+            case DEFAULT:
+            default:
+                useDefaultConfigRadio.setSelected(true);
+                break;
+        }
+        updatePresetComboState();
     }
     
     /**

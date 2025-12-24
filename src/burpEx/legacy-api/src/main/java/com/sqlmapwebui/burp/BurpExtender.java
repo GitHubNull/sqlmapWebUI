@@ -165,14 +165,15 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
             FilterResult filterResult = filterBinaryRequests(selectedMessages);
             String menuSuffix = filterResult.getMenuSuffix();
             
-            // 使用默认配置发送
+            // 使用用户选择的配置发送
             JMenuItem sendWithDefault = new JMenuItem("Send to SQLMap WebUI" + menuSuffix);
             if (filterResult.allBinary()) {
                 sendWithDefault.setEnabled(false);
                 sendWithDefault.setToolTipText("所有选中的报文都是二进制格式，无法发起扫描任务");
             } else {
                 sendWithDefault.addActionListener(e -> {
-                    sendFilteredRequests(filterResult, configManager.getDefaultConfig());
+                    // 使用用户在"右键菜单扫描使用的配置"中选择的配置
+                    sendFilteredRequests(filterResult, configManager.getSelectedScanConfig());
                 });
             }
             menuItems.add(sendWithDefault);

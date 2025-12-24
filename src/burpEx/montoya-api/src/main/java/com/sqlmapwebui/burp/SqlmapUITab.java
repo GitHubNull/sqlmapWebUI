@@ -83,8 +83,10 @@ public class SqlmapUITab extends JPanel {
         presetConfigPanel = new PresetConfigPanel(configManager, apiClient, this::appendLog);
         tabbedPane.addTab("常用配置", presetConfigPanel);
         
-        // 将常用配置数据库传递给默认配置面板
-        defaultConfigPanel.setPresetDatabase(presetConfigPanel.getDatabase());
+        // 将常用配置数据库传递给默认配置面板和ConfigManager
+        PresetConfigDatabase presetDatabase = presetConfigPanel.getDatabase();
+        defaultConfigPanel.setPresetDatabase(presetDatabase);
+        configManager.setPresetDatabase(presetDatabase);
         
         // Tab 4: 历史配置管理
         historyConfigPanel = new HistoryConfigPanel(configManager, apiClient, this::appendLog);

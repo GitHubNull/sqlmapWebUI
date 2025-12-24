@@ -24,6 +24,8 @@ public class ConfigManager {
     private static final String KEY_AUTO_DEDUPE = "autoDedupe";
     private static final String KEY_MAX_INJECTION_MARK_COUNT = "maxInjectionMarkCount";
     private static final String KEY_SHOW_BINARY_WARNING = "showBinaryWarning";
+    private static final String KEY_SCAN_CONFIG_SOURCE = "scanConfigSource";  // 扫描配置来源
+    private static final String KEY_SELECTED_PRESET_NAME = "selectedPresetName";  // 选中的常用配置名称
     
     // 历史记录数量限制
     public static final int MIN_HISTORY_SIZE = 3;
@@ -50,8 +52,24 @@ public class ConfigManager {
     private List<ScanConfig> presetConfigs;  // 常用配置
     private List<ScanConfig> historyConfigs; // 历史配置
     
+    // 扫描配置来源选择
+    private ScanConfigSource scanConfigSource = ScanConfigSource.DEFAULT;  // 默认使用默认配置
+    private String selectedPresetName = null;  // 选中的常用配置名称
+    
+    // 常用配置数据库引用
+    private PresetConfigDatabase presetDatabase;
+    
     // 连接状态
     private boolean connected = false;
+    
+    /**
+     * 扫描配置来源枚举
+     */
+    public enum ScanConfigSource {
+        DEFAULT,   // 使用默认配置
+        PRESET,    // 使用常用配置
+        HISTORY    // 使用最近历史配置
+    }
     
     public ConfigManager(MontoyaApi api) {
         this.api = api;
@@ -105,6 +123,22 @@ public class ConfigManager {
         String savedShowBinaryWarning = persistence.getString(KEY_SHOW_BINARY_WARNING);
         if (savedShowBinaryWarning != null && !savedShowBinaryWarning.isEmpty()) {
             showBinaryWarning = Boolean.parseBoolean(savedShowBinaryWarning);
+        }
+        
+        // 加载扫描配置来源
+        String savedConfigSource = persistence.getString(KEY_SCAN_CONFIG_SOURCE);
+        if (savedConfigSource != null && !savedConfigSource.isEmpty()) {
+            try {
+                scanConfigSource = ScanConfigSource.valueOf(savedConfigSource);
+            } catch (IllegalArgumentException e) {
+                scanConfigSource = ScanConfigSource.DEFAULT;
+            }
+        }
+        
+        // 加载选中的常用配置名称
+        String savedPresetName = persistence.getString(KEY_SELECTED_PRESET_NAME);
+        if (savedPresetName != null && !savedPresetName.isEmpty()) {
+            selectedPresetName = savedPresetName;
         }
         
         // 加载默认配置
@@ -213,6 +247,105 @@ public class ConfigManager {
     public void setShowBinaryWarning(boolean show) {
         this.showBinaryWarning = show;
         persistence.setString(KEY_SHOW_BINARY_WARNING, String.valueOf(show));
+    }
+    
+    // ============ 扫描配置来源管理 ============
+    
+    public ScanConfigSource getScanConfigSource() {
+        return scanConfigSource;
+    }
+    
+    public void setScanConfigSource(ScanConfigSource source) {
+        this.scanConfigSource = source;
+        persistence.setString(KEY_SCAN_CONFIG_SOURCE, source.name());
+    }
+    
+    public String getSelectedPresetName() {
+        return selectedPresetName;
+    }
+    
+    public void setSelectedPresetName(String name) {
+        this.selectedPresetName = name;
+        if (name != null) {
+            persistence.setString(KEY_SELECTED_PRESET_NAME, name);
+        }
+    }
+    
+    /**
+     * 设置常用配置数据库引用
+     */
+    public void setPresetDatabase(PresetConfigDatabase database) {
+        this.presetDatabase = database;
+    }
+    
+    /**
+     * 根据用户选择的配置来源获取扫描配置
+     * 这是右键菜单发送扫描时应该使用的方法
+     */
+    public ScanConfig getSelectedScanConfig() {
+        switch (scanConfigSource) {
+            case PRESET:
+                // 尝试从PresetConfigDatabase获取
+                if (presetDatabase != null && selectedPresetName != null) {
+                    PresetConfig presetConfig = presetDatabase.getConfigByName(selectedPresetName);
+                    if (presetConfig != null) {
+                        ScanConfig config = ScanConfig.createDefault();
+                        config.setName(presetConfig.getName());
+                        parseArgsToConfig(presetConfig.getParameterString(), config);
+                        return config;
+                    }
+                }
+                // 如果数据库不可用，尝试从内存列表获取
+                if (selectedPresetName != null) {
+                    ScanConfig presetConfig = getPresetConfig(selectedPresetName);
+                    if (presetConfig != null) {
+                        return presetConfig;
+                    }
+                }
+                // 回退到默认配置
+                return defaultConfig;
+                
+            case HISTORY:
+                if (!historyConfigs.isEmpty()) {
+                    return historyConfigs.get(0);
+                }
+                // 回退到默认配置
+                return defaultConfig;
+                
+            case DEFAULT:
+            default:
+                return defaultConfig;
+        }
+    }
+    
+    /**
+     * 解析参数字符串到ScanConfig
+     */
+    private void parseArgsToConfig(String argsStr, ScanConfig config) {
+        if (argsStr == null || argsStr.isEmpty()) return;
+        
+        String[] parts = argsStr.split("\\s+");
+        for (String part : parts) {
+            if (part.startsWith("--level=")) {
+                try {
+                    config.setLevel(Integer.parseInt(part.substring(8)));
+                } catch (NumberFormatException ignored) {}
+            } else if (part.startsWith("--risk=")) {
+                try {
+                    config.setRisk(Integer.parseInt(part.substring(7)));
+                } catch (NumberFormatException ignored) {}
+            } else if (part.startsWith("--dbms=")) {
+                config.setDbms(part.substring(7));
+            } else if (part.startsWith("--technique=")) {
+                config.setTechnique(part.substring(12));
+            } else if (part.startsWith("--proxy=")) {
+                config.setProxy(part.substring(8));
+            } else if (part.equals("--force-ssl")) {
+                config.setForceSSL(true);
+            } else if (part.equals("--batch")) {
+                config.setBatch(true);
+            }
+        }
     }
     
     // ============ 连接状态管理 ============
