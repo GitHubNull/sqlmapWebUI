@@ -126,6 +126,26 @@ const api = {
         }
     },
     
+    async createOrder(orderData) {
+        return this.post('/api/orders/create', orderData);
+    },
+    
+    async cancelOrder(orderId, reason) {
+        // XML格式请求
+        const xmlData = `<?xml version="1.0" encoding="UTF-8"?>
+<request>
+    <order_id>${orderId}</order_id>
+    <reason>${reason || ''}</reason>
+    <session_id>${Date.now()}</session_id>
+    <auth_token>${Math.random().toString(36).substring(7)}</auth_token>
+</request>`;
+        return this.request('/api/orders/cancel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/xml' },
+            body: xmlData
+        });
+    },
+    
     // 系统相关
     async getInfo() {
         return this.get('/api/info');
@@ -851,6 +871,43 @@ function initEventListeners() {
         });
     }
     
+    // 侧边栏漏洞接口菜单点击
+    document.querySelectorAll('.sidebar-menu a[data-api]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const apiType = this.dataset.api;
+            switch(apiType) {
+                case 'login':
+                    ui.showModal('loginModal');
+                    break;
+                case 'profile':
+                    ui.showPage('profile');
+                    break;
+                case 'search':
+                case 'detail':
+                    ui.showPage('products');
+                    break;
+                case 'order':
+                    ui.showPage('orders');
+                    break;
+                case 'register':
+                    ui.showModal('registerModal');
+                    break;
+                case 'checkout':
+                    if (state.cart.length === 0) {
+                        cart.showToast('购物车为空，请先添加商品', 'warning');
+                        ui.showPage('products');
+                    } else {
+                        ui.showModal('checkoutModal');
+                    }
+                    break;
+                case 'cart':
+                    cart.open();
+                    break;
+            }
+        });
+    });
+    
     // 结算表单
     document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -862,20 +919,63 @@ function initEventListeners() {
             return;
         }
         
-        // 模拟创建订单（这里可以添加真实的API调用）
-        const orderNo = 'ORD' + Date.now();
+        if (state.cart.length === 0) {
+            cart.showToast('购物车是空的', 'warning');
+            return;
+        }
         
-        // 显示订单结果
-        ui.showMessage('checkoutResult', `订单创建成功！订单号: ${orderNo}`, false);
+        // 获取用户ID（如果已登录）
+        const userId = state.currentUser ? state.currentUser.id : 1;
         
-        // 清空购物车
-        cart.clear();
+        // 为每个购物车商品创建订单
+        const orderResults = [];
+        let hasError = false;
         
-        // 3秒后关闭弹窗
-        setTimeout(() => {
-            ui.hideModal('checkoutModal');
-            document.getElementById('checkoutResult').style.display = 'none';
-        }, 3000);
+        for (const item of state.cart) {
+            const orderData = {
+                user_id: userId,
+                product_id: item.id,
+                quantity: item.quantity,
+                shipping_address: `${address} (电话: ${phone})`,
+                session_id: `sess_${Date.now()}`,
+                token: Math.random().toString(36).substring(7),
+                user_agent: navigator.userAgent
+            };
+            
+            const result = await api.createOrder(orderData);
+            
+            if (result.success) {
+                orderResults.push({
+                    product: item.name,
+                    order_no: result.data.order_no,
+                    total_price: result.data.total_price
+                });
+            } else {
+                hasError = true;
+                cart.showToast(`${item.name} 下单失败: ${result.message}`, 'error');
+            }
+        }
+        
+        if (orderResults.length > 0) {
+            // 显示订单结果
+            const orderNos = orderResults.map(o => o.order_no).join(', ');
+            const totalAmount = orderResults.reduce((sum, o) => sum + o.total_price, 0);
+            ui.showMessage('checkoutResult', 
+                `订单创建成功！\n订单号: ${orderNos}\n总金额: ¥${totalAmount.toFixed(2)}`, 
+                false
+            );
+            
+            // 清空购物车
+            cart.clear();
+            
+            // 3秒后关闭弹窗
+            setTimeout(() => {
+                ui.hideModal('checkoutModal');
+                document.getElementById('checkoutResult').style.display = 'none';
+            }, 3000);
+        } else if (!hasError) {
+            cart.showToast('订单创建失败', 'error');
+        }
     });
     
     // 漏洞卡片点击
@@ -899,6 +999,18 @@ function initEventListeners() {
                     break;
                 case 'register':
                     ui.showModal('registerModal');
+                    break;
+                case 'checkout':
+                    // 如果购物车为空，先去购物
+                    if (state.cart.length === 0) {
+                        cart.showToast('购物车为空，请先添加商品', 'warning');
+                        ui.showPage('products');
+                    } else {
+                        ui.showModal('checkoutModal');
+                    }
+                    break;
+                case 'cart':
+                    cart.open();
                     break;
                 default:
                     break;
