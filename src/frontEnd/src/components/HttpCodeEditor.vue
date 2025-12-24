@@ -337,6 +337,7 @@ function createEditorState(content: string): EditorState {
       highlightSelectionMatches(),
       syntaxHighlighting(httpHighlightStyle),
       httpLanguage,
+      EditorView.lineWrapping, // 启用软换行，防止长行撑开容器
       themeCompartment.of(getCurrentTheme()),
       keymap.of([
         ...defaultKeymap,

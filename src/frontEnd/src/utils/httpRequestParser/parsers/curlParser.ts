@@ -145,11 +145,15 @@ export function parseCurlCmd(input: string): ParsedHttpRequest | null {
     // Step 5: 处理剩余的 ^^ => ^ (转义的脱字符本身)
     normalized = normalized.replace(/\^\^/g, '^')
     
+    // Step 6: 移除非ASCII字符（中文等）前的 ^
+    // Windows CMD 中 ^ 也用于转义中文等多字节字符，如 ^电^话 => 电话
+    normalized = normalized.replace(/\^([^\x00-\x7F])/g, '$1')
+    
     // 使用库解析标准化后的 cURL 命令
     const result = parseCurlWithLib(normalized)
     
     if (result) {
-      // Step 6: 恢复占位符为实际的引号字符
+      // Step 7: 恢复占位符为实际的引号字符
       const restorePlaceholder = (str: string) => 
         str.replace(new RegExp(NESTED_QUOTE_PLACEHOLDER, 'g'), '"')
       
