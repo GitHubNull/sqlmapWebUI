@@ -3,6 +3,7 @@ package com.sqlmapwebui.burp.dialogs;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import com.sqlmapwebui.burp.ConfigManager;
+import com.sqlmapwebui.burp.HttpRequestUtils;
 import com.sqlmapwebui.burp.ScanConfig;
 import com.sqlmapwebui.burp.SqlmapApiClient;
 import com.sqlmapwebui.burp.SqlmapUITab;
@@ -140,7 +141,8 @@ public class ConfigSelectionDialog {
         try {
             String url = request.url();
             String method = request.method();
-            String body = request.bodyToString();
+            // 使用UTF-8编码获取body，避免中文乱码
+            String body = HttpRequestUtils.getBodyAsUtf8(request);
             
             // 构建headers列表
             List<String> headersList = new ArrayList<>();

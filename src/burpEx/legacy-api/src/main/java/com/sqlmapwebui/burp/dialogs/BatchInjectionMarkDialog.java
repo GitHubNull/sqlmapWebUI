@@ -10,6 +10,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -458,7 +459,7 @@ public class BatchInjectionMarkDialog {
                     currentRequestEditor.setText(requestEditors.get(index).getText());
                 } else {
                     IHttpRequestResponse msg = textMessages.get(index);
-                    String requestText = new String(msg.getRequest());
+                    String requestText = new String(msg.getRequest(), StandardCharsets.UTF_8);
                     currentRequestEditor.setText(requestText);
                     // 缓存
                     while (requestEditors.size() <= index) {
@@ -537,7 +538,7 @@ public class BatchInjectionMarkDialog {
             if (i < requestEditors.size() && requestEditors.get(i) != null) {
                 markedRequest = requestEditors.get(i).getText();
             } else {
-                markedRequest = new String(msg.getRequest());
+                markedRequest = new String(msg.getRequest(), StandardCharsets.UTF_8);
             }
             
             // 检查是否有标记

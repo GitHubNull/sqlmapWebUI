@@ -11,6 +11,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -623,7 +624,7 @@ public class AdvancedScanConfigDialog {
                     currentRequestEditor.setText(requestEditors.get(index).getText());
                 } else {
                     IHttpRequestResponse msg = textMessages.get(index);
-                    String requestText = new String(msg.getRequest());
+                    String requestText = new String(msg.getRequest(), StandardCharsets.UTF_8);
                     currentRequestEditor.setText(requestText);
                     // 缓存
                     while (requestEditors.size() <= index) {
@@ -789,7 +790,7 @@ public class AdvancedScanConfigDialog {
             if (i < requestEditors.size() && requestEditors.get(i) != null) {
                 markedRequest = requestEditors.get(i).getText();
             } else {
-                markedRequest = new String(msg.getRequest());
+                markedRequest = new String(msg.getRequest(), StandardCharsets.UTF_8);
             }
             
             // 检查是否有标记
@@ -822,7 +823,7 @@ public class AdvancedScanConfigDialog {
             int bodyOffset = requestInfo.getBodyOffset();
             String body = "";
             if (bodyOffset < request.length) {
-                body = new String(request, bodyOffset, request.length - bodyOffset);
+                body = new String(request, bodyOffset, request.length - bodyOffset, StandardCharsets.UTF_8);
             }
             
             // 构建JSON payload

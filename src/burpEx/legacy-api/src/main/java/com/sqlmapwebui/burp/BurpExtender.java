@@ -6,6 +6,7 @@ import com.sqlmapwebui.burp.dialogs.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.nio.charset.StandardCharsets;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -323,7 +324,7 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
             int bodyOffset = requestInfo.getBodyOffset();
             String body = "";
             if (bodyOffset < request.length) {
-                body = new String(request, bodyOffset, request.length - bodyOffset);
+                body = new String(request, bodyOffset, request.length - bodyOffset, StandardCharsets.UTF_8);
             }
             
             StringBuilder headersJson = new StringBuilder("[");

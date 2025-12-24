@@ -449,13 +449,14 @@ public class BatchInjectionMarkDialog {
                 if (index < requestEditors.size() && requestEditors.get(index) != null) {
                     currentRequestEditor.setText(requestEditors.get(index).getText());
                 } else {
+                    // 使用UTF-8编码获取请求内容，避免中文乱码
                     HttpRequestResponse msg = textMessages.get(index);
-                    currentRequestEditor.setText(msg.request().toString());
+                    currentRequestEditor.setText(HttpRequestUtils.getRequestAsUtf8(msg.request()));
                     // 缓存
                     while (requestEditors.size() <= index) {
                         requestEditors.add(null);
                     }
-                    JTextArea cached = new JTextArea(msg.request().toString());
+                    JTextArea cached = new JTextArea(HttpRequestUtils.getRequestAsUtf8(msg.request()));
                     requestEditors.set(index, cached);
                 }
                 currentRequestEditor.setEditable(true);
@@ -528,7 +529,8 @@ public class BatchInjectionMarkDialog {
             if (i < requestEditors.size() && requestEditors.get(i) != null) {
                 markedRequest = requestEditors.get(i).getText();
             } else {
-                markedRequest = msg.request().toString();
+                // 使用UTF-8编码获取请求内容，避免中文乱码
+                markedRequest = HttpRequestUtils.getRequestAsUtf8(msg.request());
             }
             
             // 检查是否有标记

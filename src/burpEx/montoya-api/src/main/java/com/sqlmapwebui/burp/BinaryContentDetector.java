@@ -6,6 +6,7 @@ import burp.api.montoya.http.message.HttpHeader;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 二进制内容检测器
@@ -215,7 +216,8 @@ public class BinaryContentDetector {
         }
         
         try {
-            String bodyStr = new String(body);
+            // 使用UTF-8编码解析body，避免编码问题
+            String bodyStr = new String(body, StandardCharsets.UTF_8);
             // 简单检查：如果包含Content-Type: image/、video/、audio/、application/octet-stream等
             String lowerBody = bodyStr.toLowerCase();
             return lowerBody.contains("content-type: image/") ||

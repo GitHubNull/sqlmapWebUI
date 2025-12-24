@@ -137,14 +137,15 @@ public class RequestDeduplicator {
             sb.append("query:").append(normalizedQuery).append("|");
             
             // 7. Body参数 (对于POST/PUT等)
-            String body = request.bodyToString();
+            // 使用UTF-8编码获取body，避免中文乱码
+            String body = HttpRequestUtils.getBodyAsUtf8(request);
             String normalizedBody = normalizeBody(body, getContentType(request));
             sb.append("body:").append(normalizedBody);
             
         } catch (Exception e) {
             // 如果解析失败，使用原始URL和body的hash
             sb.append("raw:").append(request.url()).append("|");
-            sb.append("body:").append(request.bodyToString());
+            sb.append("body:").append(HttpRequestUtils.getBodyAsUtf8(request));
         }
         
         // 生成MD5哈希作为指纹

@@ -154,7 +154,7 @@ public class RequestDeduplicator {
             int bodyOffset = requestInfo.getBodyOffset();
             String body = "";
             if (bodyOffset < request.length) {
-                body = new String(request, bodyOffset, request.length - bodyOffset);
+                body = new String(request, bodyOffset, request.length - bodyOffset, StandardCharsets.UTF_8);
             }
             String normalizedBody = normalizeBody(body, getContentType(requestInfo));
             sb.append("body:").append(normalizedBody);
@@ -162,7 +162,7 @@ public class RequestDeduplicator {
         } catch (Exception e) {
             // 如果解析失败，使用原始请求的hash
             byte[] request = requestResponse.getRequest();
-            sb.append("raw:").append(new String(request));
+            sb.append("raw:").append(new String(request, StandardCharsets.UTF_8));
         }
         
         // 生成MD5哈希作为指纹

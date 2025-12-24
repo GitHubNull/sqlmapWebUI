@@ -609,19 +609,15 @@ public class AdvancedScanConfigDialog {
                 currentMarkCountLabel.setText("标记数: -");
                 currentMarkCountLabel.setForeground(Color.GRAY);
             } else {
-                // 从缓存加载或原始请求
-                if (index < requestEditors.size() && requestEditors.get(index) != null) {
-                    currentRequestEditor.setText(requestEditors.get(index).getText());
-                } else {
-                    HttpRequestResponse msg = textMessages.get(index);
-                    currentRequestEditor.setText(msg.request().toString());
-                    // 缓存
-                    while (requestEditors.size() <= index) {
-                        requestEditors.add(null);
-                    }
-                    JTextArea cached = new JTextArea(msg.request().toString());
-                    requestEditors.set(index, cached);
+                // 使用UTF-8编码获取请求内容，避免中文乱码
+                HttpRequestResponse msg = textMessages.get(index);
+                currentRequestEditor.setText(HttpRequestUtils.getRequestAsUtf8(msg.request()));
+                // 缓存
+                while (requestEditors.size() <= index) {
+                    requestEditors.add(null);
                 }
+                JTextArea cached = new JTextArea(HttpRequestUtils.getRequestAsUtf8(msg.request()));
+                requestEditors.set(index, cached);
                 currentRequestEditor.setEditable(true);
                 currentRequestEditor.setBackground(Color.WHITE);
                 updateCurrentMarkCount();
@@ -779,7 +775,8 @@ public class AdvancedScanConfigDialog {
             if (i < requestEditors.size() && requestEditors.get(i) != null) {
                 markedRequest = requestEditors.get(i).getText();
             } else {
-                markedRequest = msg.request().toString();
+                // 使用UTF-8编码获取请求内容，避免中文乱码
+                markedRequest = HttpRequestUtils.getRequestAsUtf8(msg.request());
             }
             
             // 检查是否有标记
@@ -804,7 +801,8 @@ public class AdvancedScanConfigDialog {
         try {
             String url = request.url();
             String method = request.method();
-            String body = request.bodyToString();
+            // 使用UTF-8编码获取body，避免中文乱码
+            String body = HttpRequestUtils.getBodyAsUtf8(request);
             
             // 构建headers列表
             List<String> headersList = new ArrayList<>();

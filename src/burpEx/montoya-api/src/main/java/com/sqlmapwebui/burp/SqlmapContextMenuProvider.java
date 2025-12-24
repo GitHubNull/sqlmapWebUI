@@ -263,7 +263,8 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
         try {
             String url = request.url();
             String method = request.method();
-            String body = request.bodyToString();
+            // 使用UTF-8编码获取body，避免中文乱码
+            String body = HttpRequestUtils.getBodyAsUtf8(request);
             
             // 构建headers列表
             List<String> headersList = new ArrayList<>();

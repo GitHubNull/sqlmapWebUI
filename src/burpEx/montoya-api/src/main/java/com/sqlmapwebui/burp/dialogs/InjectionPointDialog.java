@@ -4,6 +4,7 @@ import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import com.sqlmapwebui.burp.ConfigManager;
+import com.sqlmapwebui.burp.HttpRequestUtils;
 import com.sqlmapwebui.burp.ScanConfig;
 import com.sqlmapwebui.burp.SqlmapApiClient;
 import com.sqlmapwebui.burp.SqlmapUITab;
@@ -70,7 +71,8 @@ public class InjectionPointDialog {
         requestPanel.setBorder(BorderFactory.createTitledBorder("HTTP请求 (可编辑)"));
         
         HttpRequest request = requestResponse.request();
-        String requestText = request.toString();
+        // 使用UTF-8编码获取请求内容，避免中文乱码
+        String requestText = HttpRequestUtils.getRequestAsUtf8(request);
         
         JTextArea requestArea = new JTextArea(requestText);
         requestArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
