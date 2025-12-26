@@ -313,6 +313,25 @@ User-Agent: CustomUserAgent/1.0"
           <template #content>
             <div class="formgrid grid p-fluid">
               <div class="field-horizontal mb-6">
+                <label for="replace_strategy" class="field-label-left">
+                  <i class="pi pi-sync mr-2"></i>
+                  替换策略
+                </label>
+                <div class="field-content">
+                  <Select
+                    id="replace_strategy"
+                    v-model="defaultReplaceStrategy"
+                    :options="replaceStrategyOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="选择替换策略"
+                    class="uniform-input w-full"
+                  />
+                  <small class="field-help text-color-secondary">定义如何处理已存在的Header</small>
+                </div>
+              </div>
+
+              <div class="field-horizontal mb-6">
                 <label for="priority" class="field-label-left">
                   <i class="pi pi-sort-amount-up mr-2"></i>
                   优先级 (0-100)
@@ -535,27 +554,66 @@ User-Agent: CustomUserAgent/1.0"
       class="session-dialog"
     >
       <div class="dialog-content">
-        <!-- 使用说明卡片 -->
+        <!-- 格式说明卡片 -->
         <Card class="info-card mb-4">
           <template #title>
-            <div class="flex align-items-center gap-2">
-              <i class="pi pi-book text-primary"></i>
-              <span>文件格式说明</span>
+            <div class="flex align-items-center justify-content-between">
+              <div class="flex align-items-center gap-2">
+                <i class="pi pi-file-import text-primary"></i>
+                <span>文件导入格式说明</span>
+              </div>
+              <div class="flex gap-2">
+                <Button
+                  label="文本模板"
+                  icon="pi pi-download"
+                  severity="secondary"
+                  size="small"
+                  outlined
+                  @click="downloadTextTemplate"
+                />
+                <Button
+                  label="JSON模板"
+                  icon="pi pi-download"
+                  severity="secondary"
+                  size="small"
+                  outlined
+                  @click="downloadJsonTemplate"
+                />
+              </div>
             </div>
           </template>
           <template #content>
-            <Message severity="info" :closable="false">
-              <div>
-                <div class="mb-2">
-                  <i class="pi pi-info-circle mr-2"></i>
-                  支持的文件格式：
+            <div class="format-description">
+              <Message severity="info" :closable="false" class="mb-3">
+                <div class="format-info">
+                  <div class="mb-2"><strong>支持两种文件格式：</strong></div>
+                  <ul class="m-0 pl-4">
+                    <li>文本文件 (.txt)：管道分隔格式</li>
+                    <li>JSON文件 (.json)：对象数组格式</li>
+                  </ul>
                 </div>
-                <ul class="ml-4">
-                  <li>文本文件 (.txt)：每行一个Header，格式为 <code class="format-code">Header-Name: Header-Value</code></li>
-                  <li>JSON文件 (.json)：对象数组格式，每个对象包含header_name和header_value字段</li>
-                </ul>
+              </Message>
+
+              <div class="format-tabs mb-3">
+                <div class="font-semibold mb-2">文本格式（.txt）：</div>
+                <div class="format-pattern mb-2">
+                  <code>Header名称|||Header值|||替换策略|||优先级|||TTL(秒)</code>
+                </div>
+                <pre class="example-code">Authorization|||Bearer eyJhbGciOiJIUzI1NiJ9...|||REPLACE|||80|||3600
+Cookie|||session_id=abc123|||UPSERT|||50|||7200
+X-API-Key|||your-api-key</pre>
               </div>
-            </Message>
+
+              <div class="format-tabs">
+                <div class="font-semibold mb-2">JSON格式（.json）：</div>
+                <pre class="example-code">[{"header_name": "Authorization", "header_value": "Bearer token", "replace_strategy": "REPLACE"}]</pre>
+              </div>
+
+              <div class="field-description mt-3">
+                <div class="font-semibold mb-2">替换策略可选值：</div>
+                <code>REPLACE</code>、<code>APPEND</code>、<code>PREPEND</code>、<code>UPSERT</code>
+              </div>
+            </div>
           </template>
         </Card>
 
@@ -609,7 +667,16 @@ User-Agent: CustomUserAgent/1.0"
           </template>
         </Card>
 
-        </div>
+        <!-- 作用域配置 -->
+        <ScopeConfigPanel
+          v-model="sessionScope"
+          :title="'作用域配置（可选）'"
+          :description="'为文件中未指定scope的Header统一设置作用域'"
+          :show-templates="true"
+          :show-info="true"
+          :show-advanced="false"
+        />
+      </div>
 
       <template #footer>
         <Button 
@@ -796,22 +863,55 @@ User-Agent: CustomUserAgent/1.0"
       class="session-dialog"
     >
       <div class="dialog-content">
-        <!-- 使用说明卡片 -->
+        <!-- 格式说明卡片 -->
         <Card class="info-card mb-4">
           <template #title>
-            <div class="flex align-items-center gap-2">
-              <i class="pi pi-file-edit text-primary"></i>
-              <span>文本导入格式说明</span>
+            <div class="flex align-items-center justify-content-between">
+              <div class="flex align-items-center gap-2">
+                <i class="pi pi-file-edit text-primary"></i>
+                <span>文本导入格式说明</span>
+              </div>
+              <Button
+                label="下载模板"
+                icon="pi pi-download"
+                severity="secondary"
+                size="small"
+                outlined
+                @click="downloadTextTemplate"
+              />
             </div>
           </template>
           <template #content>
-            <Message severity="info" :closable="false">
-              <div class="flex align-items-center gap-2">
-                <i class="pi pi-info-circle"></i>
-                <span>每行一个Header，格式：</span>
-                <code class="format-code">Header-Name: Header-Value</code>
+            <div class="format-description">
+              <Message severity="info" :closable="false" class="mb-3">
+                <div class="format-info">
+                  <div class="mb-2"><strong>每行一个Header，字段使用 <code>|||</code> 分隔</strong></div>
+                  <div class="format-pattern">
+                    <code>Header名称|||Header值|||替换策略|||优先级|||TTL(秒)</code>
+                  </div>
+                </div>
+              </Message>
+
+              <div class="field-description mb-3">
+                <div class="font-semibold mb-2">字段说明：</div>
+                <ul class="m-0 pl-4">
+                  <li><strong>Header名称</strong>：必填，如 <code>Authorization</code>、<code>Cookie</code></li>
+                  <li><strong>Header值</strong>：必填，如 <code>Bearer token123</code></li>
+                  <li><strong>替换策略</strong>：可选，默认 <code>REPLACE</code>，可选值：<code>REPLACE</code>、<code>APPEND</code>、<code>PREPEND</code>、<code>UPSERT</code></li>
+                  <li><strong>优先级</strong>：可选，0-100，默认50</li>
+                  <li><strong>TTL</strong>：可选，生存时间(秒)，默认3600</li>
+                </ul>
               </div>
-            </Message>
+
+              <div class="example-section">
+                <div class="font-semibold mb-2">示例：</div>
+                <pre class="example-code">Authorization|||Bearer eyJhbGciOiJIUzI1NiJ9...|||REPLACE|||80|||3600
+Cookie|||session_id=abc123|||UPSERT|||50|||7200
+X-Custom-Header|||custom-value|||APPEND|||60|||1800
+X-API-Key|||your-api-key</pre>
+                <small class="text-color-secondary">最后一行省略了可选字段，将使用默认值</small>
+              </div>
+            </div>
           </template>
         </Card>
 
@@ -829,61 +929,12 @@ User-Agent: CustomUserAgent/1.0"
                 v-model="fileContent"
                 rows="12"
                 class="uniform-textarea"
-                placeholder="例如:
-Authorization: Bearer your-token-here
-X-Custom-Header: custom-value
-Cookie: session_id=abc123
-X-API-Key: your-api-key
-User-Agent: CustomUserAgent/1.0"
+                placeholder="Authorization|||Bearer your-token-here|||REPLACE|||80|||3600
+Cookie|||session_id=abc123|||UPSERT|||50|||7200
+X-Custom-Header|||custom-value|||APPEND|||60|||1800"
               />
               <div class="input-stats mt-2">
                 <small class="text-color-secondary">输入行数: {{ fileContent.split('\n').filter(line => line.trim()).length }}</small>
-              </div>
-            </div>
-          </template>
-        </Card>
-
-        <!-- 配置选项卡片 -->
-        <Card class="config-card mb-4">
-          <template #title>
-            <div class="flex align-items-center gap-2">
-              <i class="pi pi-cog text-primary"></i>
-              <span>配置选项</span>
-            </div>
-          </template>
-          <template #content>
-            <div class="field-horizontal mb-6">
-              <label for="priority" class="field-label-left">
-                <i class="pi pi-sort-amount-up mr-2"></i>
-                默认优先级
-              </label>
-              <div class="field-content">
-                <InputNumber
-                  id="priority"
-                  v-model="defaultPriority"
-                  class="w-full"
-                  :min="0"
-                  :max="100"
-                />
-                <small class="field-help text-color-secondary">0-100，数值越大优先级越高</small>
-              </div>
-            </div>
-
-            <div class="field-horizontal mb-6">
-              <label for="ttl" class="field-label-left">
-                <i class="pi pi-clock mr-2"></i>
-                默认过期时间
-              </label>
-              <div class="field-content">
-                <InputNumber
-                  id="ttl"
-                  v-model="defaultTtl"
-                  class="w-full"
-                  :min="60"
-                  :max="86400"
-                  suffix=" 秒"
-                />
-                <small class="field-help text-color-secondary">60-86400秒（1分钟-24小时）</small>
               </div>
             </div>
           </template>
@@ -929,30 +980,68 @@ User-Agent: CustomUserAgent/1.0"
       class="session-dialog"
     >
       <div class="dialog-content">
-        <!-- 使用说明卡片 -->
+        <!-- 格式说明卡片 -->
         <Card class="info-card mb-4">
           <template #title>
-            <div class="flex align-items-center gap-2">
-              <i class="pi pi-code text-primary"></i>
-              <span>JSON导入格式说明</span>
+            <div class="flex align-items-center justify-content-between">
+              <div class="flex align-items-center gap-2">
+                <i class="pi pi-code text-primary"></i>
+                <span>JSON导入格式说明</span>
+              </div>
+              <Button
+                label="下载模板"
+                icon="pi pi-download"
+                severity="secondary"
+                size="small"
+                outlined
+                @click="downloadJsonTemplate"
+              />
             </div>
           </template>
           <template #content>
-            <Message severity="info" :closable="false">
-              <div class="flex flex-col gap-2">
-                <div><i class="pi pi-info-circle mr-2"></i>JSON格式，对象数组：</div>
-                <code class="format-code">
-[
+            <div class="format-description">
+              <Message severity="info" :closable="false" class="mb-3">
+                <div class="format-info">
+                  <div class="mb-2"><strong>JSON格式，对象数组</strong></div>
+                </div>
+              </Message>
+
+              <div class="field-description mb-3">
+                <div class="font-semibold mb-2">字段说明：</div>
+                <ul class="m-0 pl-4">
+                  <li><strong>header_name</strong>：必填，字符串，Header名称</li>
+                  <li><strong>header_value</strong>：必填，字符串，Header值</li>
+                  <li><strong>replace_strategy</strong>：可选，字符串，可选值：<code>REPLACE</code>、<code>APPEND</code>、<code>PREPEND</code>、<code>UPSERT</code>，默认<code>REPLACE</code></li>
+                  <li><strong>priority</strong>：可选，数字，0-100，默认50</li>
+                  <li><strong>ttl</strong>：可选，数字，生存时间(秒)，默认3600</li>
+                  <li><strong>is_active</strong>：可选，布尔值，是否启用，默认true</li>
+                </ul>
+              </div>
+
+              <div class="example-section">
+                <div class="font-semibold mb-2">示例：</div>
+                <pre class="example-code">[
   {
     "header_name": "Authorization",
-    "header_value": "Bearer token123",
+    "header_value": "Bearer eyJhbGciOiJIUzI1NiJ9...",
     "replace_strategy": "REPLACE",
-    "priority": 80
+    "priority": 80,
+    "ttl": 3600
+  },
+  {
+    "header_name": "Cookie",
+    "header_value": "session_id=abc123",
+    "replace_strategy": "UPSERT",
+    "priority": 50
+  },
+  {
+    "header_name": "X-API-Key",
+    "header_value": "your-api-key"
   }
-]
-                </code>
+]</pre>
+                <small class="text-color-secondary">未指定的可选字段将使用默认值</small>
               </div>
-            </Message>
+            </div>
           </template>
         </Card>
 
@@ -970,63 +1059,10 @@ User-Agent: CustomUserAgent/1.0"
                 v-model="fileContent"
                 rows="12"
                 class="uniform-textarea"
-                placeholder='[
-  {
-    "header_name": "Authorization",
-    "header_value": "Bearer your-token-here",
-    "replace_strategy": "REPLACE",
-    "priority": 80
-  }
-]'
+                :placeholder="jsonPlaceholder"
               />
               <div class="input-stats mt-2">
                 <small class="text-color-secondary">JSON数据长度: {{ fileContent.length }} 字符</small>
-              </div>
-            </div>
-          </template>
-        </Card>
-
-        <!-- 配置选项卡片 -->
-        <Card class="config-card mb-4">
-          <template #title>
-            <div class="flex align-items-center gap-2">
-              <i class="pi pi-cog text-primary"></i>
-              <span>配置选项</span>
-            </div>
-          </template>
-          <template #content>
-            <div class="field-horizontal mb-6">
-              <label for="priority" class="field-label-left">
-                <i class="pi pi-sort-amount-up mr-2"></i>
-                默认优先级
-              </label>
-              <div class="field-content">
-                <InputNumber
-                  id="priority"
-                  v-model="defaultPriority"
-                  class="w-full"
-                  :min="0"
-                  :max="100"
-                />
-                <small class="field-help text-color-secondary">当JSON中未指定优先级时使用</small>
-              </div>
-            </div>
-
-            <div class="field-horizontal mb-6">
-              <label for="ttl" class="field-label-left">
-                <i class="pi pi-clock mr-2"></i>
-                默认过期时间
-              </label>
-              <div class="field-content">
-                <InputNumber
-                  id="ttl"
-                  v-model="defaultTtl"
-                  class="w-full"
-                  :min="60"
-                  :max="86400"
-                  suffix=" 秒"
-                />
-                <small class="field-help text-color-secondary">当JSON中未指定过期时间时使用</small>
               </div>
             </div>
           </template>
@@ -1036,7 +1072,7 @@ User-Agent: CustomUserAgent/1.0"
         <ScopeConfigPanel
           v-model="sessionScope"
           :title="'作用域配置（可选）'"
-          :description="'为导入的Header统一设置作用域，不配置则对所有请求生效'"
+          :description="'为JSON中未指定scope的Header统一设置作用域'"
           :show-templates="true"
           :show-info="true"
           :show-advanced="false"
@@ -1095,6 +1131,7 @@ const batchRawHeaders = ref('')
 const fileContent = ref('')
 const defaultPriority = ref(50)
 const defaultTtl = ref(3600) // 默认1小时
+const defaultReplaceStrategy = ref(ReplaceStrategy.REPLACE) // 默认替换策略
 
 // 编辑相关状态
 const editingHeader = ref<any>(null) // 当前编辑的Header
@@ -1136,6 +1173,22 @@ const replaceStrategyOptions = [
   { label: '条件性替换', value: ReplaceStrategy.CONDITIONAL },
   { label: '存在则替换，不存在则新增', value: ReplaceStrategy.UPSERT },
 ]
+
+// JSON导入占位符
+const jsonPlaceholder = `[
+  {
+    "header_name": "Authorization",
+    "header_value": "Bearer your-token-here",
+    "replace_strategy": "REPLACE",
+    "priority": 80,
+    "ttl": 3600
+  },
+  {
+    "header_name": "Cookie",
+    "header_value": "session_id=abc123",
+    "replace_strategy": "UPSERT"
+  }
+]`
 
 onMounted(() => {
   loadSessionHeaders()
@@ -1187,6 +1240,69 @@ function showJsonImportDialog() {
   jsonImportDialogVisible.value = true
 }
 
+// 模板下载函数
+function downloadTextTemplate() {
+  const template = `# Session Headers 文本导入模板
+# 格式: Header名称|||Header值|||替换策略|||优先级|||TTL(秒)
+# 替换策略可选值: REPLACE, APPEND, PREPEND, UPSERT
+# 优先级: 0-100，默认50
+# TTL: 生存时间(秒)，默认3600
+# 以 # 开头的行为注释，会被忽略
+
+Authorization|||Bearer eyJhbGciOiJIUzI1NiJ9.your-token-here|||REPLACE|||80|||3600
+Cookie|||session_id=abc123; user_token=xyz789|||UPSERT|||50|||7200
+X-Custom-Header|||custom-value|||APPEND|||60|||1800
+X-API-Key|||your-api-key-here
+Content-Type|||application/json`
+
+  downloadFile(template, 'session_headers_template.txt', 'text/plain')
+}
+
+function downloadJsonTemplate() {
+  const template = JSON.stringify([
+    {
+      header_name: "Authorization",
+      header_value: "Bearer eyJhbGciOiJIUzI1NiJ9.your-token-here",
+      replace_strategy: "REPLACE",
+      priority: 80,
+      ttl: 3600,
+      is_active: true
+    },
+    {
+      header_name: "Cookie",
+      header_value: "session_id=abc123; user_token=xyz789",
+      replace_strategy: "UPSERT",
+      priority: 50,
+      ttl: 7200
+    },
+    {
+      header_name: "X-Custom-Header",
+      header_value: "custom-value",
+      replace_strategy: "APPEND",
+      priority: 60
+    },
+    {
+      header_name: "X-API-Key",
+      header_value: "your-api-key-here"
+    }
+  ], null, 2)
+
+  downloadFile(template, 'session_headers_template.json', 'application/json')
+}
+
+// 通用文件下载函数
+function downloadFile(content: string, filename: string, mimeType: string) {
+  const blob = new Blob([content], { type: mimeType })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
+
 async function addSessionHeaders() {
   if (!rawHeaders.value.trim()) {
     toast.add({
@@ -1210,6 +1326,7 @@ async function addSessionHeaders() {
         headers.push({
           header_name: name.trim(),
           header_value: valueParts.join(':').trim(),
+          replace_strategy: defaultReplaceStrategy.value,
           priority: defaultPriority.value,
           ttl: defaultTtl.value,
           scope: sessionScope.value, // 添加作用域配置
@@ -1249,7 +1366,7 @@ async function addSessionHeaders() {
   }
 }
 
-// 文本导入处理
+// 文本导入处理 - 解析管道分隔格式
 async function handleTextImport() {
   if (!fileContent.value.trim()) {
     toast.add({
@@ -1263,20 +1380,32 @@ async function handleTextImport() {
 
   saving.value = true
   try {
-    // 解析文本格式
-    const lines = fileContent.value.split('\n').filter(line => line.trim())
+    // 解析 ||| 分隔格式: Header名称|||Header值|||替换策略|||优先级|||TTL(秒)
+    const lines = fileContent.value.split('\n').filter(line => {
+      const trimmed = line.trim()
+      return trimmed && !trimmed.startsWith('#') // 过滤空行和注释行
+    })
     const headers = []
 
     for (const line of lines) {
       const trimmedLine = line.trim()
-      if (trimmedLine && trimmedLine.includes(':')) {
-        const [name, ...valueParts] = trimmedLine.split(':')
-        if (name && valueParts.length > 0) {
+      const parts = trimmedLine.split('|||')
+      
+      if (parts.length >= 2) {
+        // 解析各字段
+        const headerName = parts[0]?.trim()
+        const headerValue = parts[1]?.trim()
+        const replaceStrategy = parts[2]?.trim() || 'REPLACE'
+        const priority = parts[3] ? parseInt(parts[3].trim(), 10) : 50
+        const ttl = parts[4] ? parseInt(parts[4].trim(), 10) : 3600
+
+        if (headerName && headerValue) {
           headers.push({
-            header_name: name.trim(),
-            header_value: valueParts.join(':').trim(),
-            priority: defaultPriority.value,
-            ttl: defaultTtl.value,
+            header_name: headerName,
+            header_value: headerValue,
+            replace_strategy: replaceStrategy as ReplaceStrategy,
+            priority: isNaN(priority) ? 50 : priority,
+            ttl: isNaN(ttl) ? 3600 : ttl,
             scope: sessionScope.value
           })
         }
@@ -1287,7 +1416,7 @@ async function handleTextImport() {
       toast.add({
         severity: 'warn',
         summary: '解析失败',
-        detail: '未找到有效的Header格式，请检查输入格式',
+        detail: '未找到有效的Header格式，请检查输入格式（使用 ||| 分隔）',
         life: 3000,
       })
       return
@@ -1347,6 +1476,7 @@ async function handleJsonImport() {
         headers.push({
           header_name: item.header_name,
           header_value: item.header_value,
+          replace_strategy: item.replace_strategy || defaultReplaceStrategy.value,
           priority: item.priority || defaultPriority.value,
           ttl: item.ttl || defaultTtl.value,
           scope: item.scope || sessionScope.value
@@ -1487,24 +1617,39 @@ async function handleFileImport() {
         headers = jsonData.map(item => ({
           header_name: item.header_name || item.name,
           header_value: item.header_value || item.value,
+          replace_strategy: item.replace_strategy || defaultReplaceStrategy.value,
           priority: item.priority || defaultPriority.value,
           ttl: item.ttl || defaultTtl.value,
           scope: item.scope || sessionScope.value,
         }))
       }
     } catch {
-      // JSON解析失败，尝试作为文本文件解析
-      const lines = fileContent.value.split('\n').filter((line) => line.trim())
+      // JSON解析失败，尝试作为文本文件解析（||| 分隔格式）
+      const lines = fileContent.value.split('\n').filter(line => {
+        const trimmed = line.trim()
+        return trimmed && !trimmed.startsWith('#')
+      })
       for (const line of lines) {
-        const [name, ...valueParts] = line.split(':')
-        if (name && valueParts.length > 0) {
-          headers.push({
-            header_name: name.trim(),
-            header_value: valueParts.join(':').trim(),
-            priority: defaultPriority.value,
-            ttl: defaultTtl.value,
-            scope: sessionScope.value,
-          })
+        const trimmedLine = line.trim()
+        const parts = trimmedLine.split('|||')
+        
+        if (parts.length >= 2) {
+          const headerName = parts[0]?.trim()
+          const headerValue = parts[1]?.trim()
+          const replaceStrategy = parts[2]?.trim() || 'REPLACE'
+          const priority = parts[3] ? parseInt(parts[3].trim(), 10) : 50
+          const ttl = parts[4] ? parseInt(parts[4].trim(), 10) : 3600
+
+          if (headerName && headerValue) {
+            headers.push({
+              header_name: headerName,
+              header_value: headerValue,
+              replace_strategy: replaceStrategy as ReplaceStrategy,
+              priority: isNaN(priority) ? 50 : priority,
+              ttl: isNaN(ttl) ? 3600 : ttl,
+              scope: sessionScope.value,
+            })
+          }
         }
       }
     }
