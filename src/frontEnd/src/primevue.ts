@@ -4,6 +4,8 @@ import Lara from '@primevue/themes/lara'
 import Tooltip from 'primevue/tooltip'
 import ToastService from 'primevue/toastservice'
 import ConfirmationService from 'primevue/confirmationservice'
+import Select from 'primevue/select'
+import ToggleSwitch from 'primevue/toggleswitch'
 
 // 导入PrimeIcons图标库CSS(使用直接路径)
 import 'primeicons/primeicons.css'
@@ -32,4 +34,8 @@ export function setupPrimeVue(app: App) {
   
   // 注册Tooltip指令
   app.directive('tooltip', Tooltip)
+  
+  // 显式注册Select组件(解决PrimeVueResolver未自动识别问题)
+  app.component('Select', Select)
+  app.component('ToggleSwitch', ToggleSwitch)
 }
