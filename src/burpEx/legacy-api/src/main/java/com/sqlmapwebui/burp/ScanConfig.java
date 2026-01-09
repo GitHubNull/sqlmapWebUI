@@ -88,6 +88,10 @@ public class ScanConfig {
     private boolean freshQueries = false; // --fresh-queries
     private int verbose = 1;            // -v/--verbose (0-6)
     
+    // ==================== 额外参数（支持任意SQLMap参数）====================
+    private String extraArgs = "";      // 存储所有未被识别的参数，原样传递给后端
+    private Map<String, Object> extraOptions = new HashMap<>();  // 存储解析后的额外参数，传递给后端
+    
     // ==================== 元数据 ====================
     private long createdAt;
     private long lastUsedAt;
@@ -290,6 +294,21 @@ public class ScanConfig {
     public int getVerbose() { return verbose; }
     public void setVerbose(int verbose) { this.verbose = Math.max(0, Math.min(6, verbose)); }
     
+    // Extra Args
+    public String getExtraArgs() { return extraArgs; }
+    public void setExtraArgs(String extraArgs) { this.extraArgs = extraArgs != null ? extraArgs : ""; }
+    
+    // Extra Options
+    public Map<String, Object> getExtraOptions() { return extraOptions; }
+    public void setExtraOptions(Map<String, Object> extraOptions) { 
+        this.extraOptions = extraOptions != null ? extraOptions : new HashMap<>(); 
+    }
+    public void addExtraOption(String key, Object value) {
+        if (key != null && !key.isEmpty()) {
+            this.extraOptions.put(key, value);
+        }
+    }
+    
     // Metadata
     public long getCreatedAt() { return createdAt; }
     public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
@@ -380,6 +399,11 @@ public class ScanConfig {
         if (freshQueries) options.put("freshQueries", true);
         if (verbose != 1) options.put("verbose", verbose);
         
+        // Extra Options - 支持任意额外的SQLMap参数
+        if (extraOptions != null && !extraOptions.isEmpty()) {
+            options.putAll(extraOptions);
+        }
+        
         return options;
     }
     
@@ -462,6 +486,10 @@ public class ScanConfig {
         copy.flushSession = this.flushSession;
         copy.freshQueries = this.freshQueries;
         copy.verbose = this.verbose;
+        
+        // Extra
+        copy.extraArgs = this.extraArgs;
+        copy.extraOptions = new HashMap<>(this.extraOptions);
         
         // Metadata
         copy.createdAt = System.currentTimeMillis();

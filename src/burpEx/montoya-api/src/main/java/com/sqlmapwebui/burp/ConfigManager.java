@@ -289,10 +289,22 @@ public class ConfigManager {
                 if (presetDatabase != null && selectedPresetName != null) {
                     PresetConfig presetConfig = presetDatabase.getConfigByName(selectedPresetName);
                     if (presetConfig != null) {
-                        ScanConfig config = ScanConfig.createDefault();
-                        config.setName(presetConfig.getName());
-                        parseArgsToConfig(presetConfig.getParameterString(), config);
-                        return config;
+                        String paramString = presetConfig.getParameterString();
+                        if (paramString != null && !paramString.trim().isEmpty()) {
+                            // 使用完整的ScanConfigParser解析参数字符串
+                            ParseResult result = ScanConfigParser.parse(paramString);
+                            if (result.isSuccess() && result.getConfig() != null) {
+                                ScanConfig config = result.getConfig();
+                                config.setName(presetConfig.getName());
+                                config.setDescription(presetConfig.getDescription());
+                                return config;
+                            }
+                        }
+                        // 如果参数字符串为空或解析失败，返回默认配置但保留名称
+                        ScanConfig fallback = ScanConfig.createDefault();
+                        fallback.setName(presetConfig.getName());
+                        fallback.setDescription(presetConfig.getDescription());
+                        return fallback;
                     }
                 }
                 // 如果数据库不可用，尝试从内存列表获取
@@ -315,36 +327,6 @@ public class ConfigManager {
             case DEFAULT:
             default:
                 return defaultConfig;
-        }
-    }
-    
-    /**
-     * 解析参数字符串到ScanConfig
-     */
-    private void parseArgsToConfig(String argsStr, ScanConfig config) {
-        if (argsStr == null || argsStr.isEmpty()) return;
-        
-        String[] parts = argsStr.split("\\s+");
-        for (String part : parts) {
-            if (part.startsWith("--level=")) {
-                try {
-                    config.setLevel(Integer.parseInt(part.substring(8)));
-                } catch (NumberFormatException ignored) {}
-            } else if (part.startsWith("--risk=")) {
-                try {
-                    config.setRisk(Integer.parseInt(part.substring(7)));
-                } catch (NumberFormatException ignored) {}
-            } else if (part.startsWith("--dbms=")) {
-                config.setDbms(part.substring(7));
-            } else if (part.startsWith("--technique=")) {
-                config.setTechnique(part.substring(12));
-            } else if (part.startsWith("--proxy=")) {
-                config.setProxy(part.substring(8));
-            } else if (part.equals("--force-ssl")) {
-                config.setForceSSL(true);
-            } else if (part.equals("--batch")) {
-                config.setBatch(true);
-            }
         }
     }
     

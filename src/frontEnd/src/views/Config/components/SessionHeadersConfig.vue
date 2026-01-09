@@ -302,7 +302,7 @@ import {
 } from '@/api/headerRule'
 
 // 类型
-import type { HeaderScope, ReplaceStrategy, SessionHeader } from '@/types/headerRule'
+import type { HeaderScope, SessionHeader } from '@/types/headerRule'
 
 // Toast & Confirm
 const toast = useToast()

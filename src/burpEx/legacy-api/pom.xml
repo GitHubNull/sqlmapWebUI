@@ -6,7 +6,7 @@
 
     <groupId>com.sqlmapwebui</groupId>
     <artifactId>sqlmap-webui-burp-legacy</artifactId>
-    <version>1.0.0</version>
+    <version>1.8.14</version>
     <packaging>jar</packaging>
 
     <name>SQLMap WebUI Burp Extension (Legacy API)</name>

@@ -125,34 +125,11 @@
 
       <!-- 命令行参数视图 -->
       <div v-else class="cmdline-container">
-        <div class="cmdline-header">
-          <span class="cmdline-prefix">sqlmap</span>
+        <div v-if="filteredCmdlineArgs.length === 0" class="no-results">
+          <i class="pi pi-search"></i>
+          <span>未找到匹配的参数</span>
         </div>
-        <div class="cmdline-content">
-          <div v-if="filteredCmdlineArgs.length === 0" class="no-results">
-            <i class="pi pi-search"></i>
-            <span>未找到匹配的参数</span>
-          </div>
-          <div v-else class="cmdline-args">
-            <span
-              v-for="(arg, index) in filteredCmdlineArgs"
-              :key="index"
-              class="cmdline-arg"
-              :class="getArgClass(arg)"
-              v-html="highlightCmdlineArg(arg)"
-            ></span>
-          </div>
-        </div>
-        <!-- 完整命令预览 -->
-        <div class="cmdline-preview">
-          <div class="preview-label">
-            <i class="pi pi-terminal"></i>
-            <span>完整命令</span>
-          </div>
-          <div class="preview-content">
-            <code>sqlmap {{ fullCommandLine }}</code>
-          </div>
-        </div>
+        <div v-else class="cmdline-full" v-html="highlightedFullCommand"></div>
       </div>
     </div>
     <span v-else class="text-muted">无配置信息</span>
@@ -212,60 +189,242 @@ const optionToCmdMap: Record<string, string> = {
   randomAgent: '--random-agent',
   proxy: '--proxy',
   proxyAuth: '--proxy-auth',
+  proxyFile: '--proxy-file',
+  proxyFreq: '--proxy-freq',
   tor: '--tor',
   torType: '--tor-type',
   torPort: '--tor-port',
+  checkTor: '--check-tor',
+  
+  // 请求选项
+  method: '--method',
+  paramDel: '--param-del',
+  cookieDel: '--cookie-del',
+  liveCookies: '--live-cookies',
+  loadCookies: '--load-cookies',
+  dropSetCookie: '--drop-set-cookie',
+  mobile: '--mobile',
+  host: '--host',
+  referer: '--referer',
+  authType: '--auth-type',
+  authCred: '--auth-cred',
+  authFile: '--auth-file',
+  abortCode: '--abort-code',
+  ignoreCode: '--ignore-code',
+  ignoreProxy: '--ignore-proxy',
+  ignoreRedirects: '--ignore-redirects',
+  ignoreTimeouts: '--ignore-timeouts',
+  forceSSL: '--force-ssl',
+  chunked: '--chunked',
+  hpp: '--hpp',
+  evalCode: '--eval',
+  
+  // 连接选项
+  delay: '--delay',
+  timeout: '--timeout',
+  retries: '--retries',
+  retryOn: '--retry-on',
+  randomize: '--randomize',
+  safeUrl: '--safe-url',
+  safePost: '--safe-post',
+  safeReq: '--safe-req',
+  safeFreq: '--safe-freq',
+  skipUrlencode: '--skip-urlencode',
+  csrfToken: '--csrf-token',
+  csrfUrl: '--csrf-url',
+  csrfMethod: '--csrf-method',
+  csrfData: '--csrf-data',
+  csrfRetries: '--csrf-retries',
+  
+  // 优化选项
+  optimize: '-o',
+  predictOutput: '--predict-output',
+  keepAlive: '--keep-alive',
+  nullConnection: '--null-connection',
+  threads: '--threads',
   
   // 检测相关
   level: '--level',
   risk: '--risk',
+  string: '--string',
+  notString: '--not-string',
+  regexp: '--regexp',
+  code: '--code',
+  smart: '--smart',
+  textOnly: '--text-only',
+  titles: '--titles',
+  
+  // 注入相关
   technique: '--technique',
   testParameter: '-p',
   skip: '--skip',
+  skipStatic: '--skip-static',
+  paramExclude: '--param-exclude',
+  paramFilter: '--param-filter',
   dbms: '--dbms',
+  dbmsCred: '--dbms-cred',
   os: '--os',
-  
-  // 注入相关
+  invalidBignum: '--invalid-bignum',
+  invalidLogical: '--invalid-logical',
+  invalidString: '--invalid-string',
+  noCast: '--no-cast',
+  noEscape: '--no-escape',
   prefix: '--prefix',
   suffix: '--suffix',
   tamper: '--tamper',
+  timeSec: '--time-sec',
+  disableStats: '--disable-stats',
+  unionCols: '--union-cols',
+  unionChar: '--union-char',
+  unionFrom: '--union-from',
+  unionValues: '--union-values',
+  dnsDomain: '--dns-domain',
+  secondUrl: '--second-url',
+  secondReq: '--second-req',
+  
+  // 指纹识别
+  fingerprint: '--fingerprint',
   
   // 枚举相关
+  getAll: '--all',
+  getBanner: '--banner',
+  getCurrentUser: '--current-user',
+  getCurrentDb: '--current-db',
+  getHostname: '--hostname',
+  isDba: '--is-dba',
+  getUsers: '--users',
+  getPasswords: '--passwords',
+  getPrivileges: '--privileges',
+  getRoles: '--roles',
   getDbs: '--dbs',
   getTables: '--tables',
   getColumns: '--columns',
+  getSchema: '--schema',
+  getCount: '--count',
   dumpTable: '--dump',
   dumpAll: '--dump-all',
+  search: '--search',
+  getComments: '--comments',
+  getStatements: '--statements',
   db: '-D',
   tbl: '-T',
   col: '-C',
+  exclude: '-X',
+  user: '-U',
+  excludeSysDbs: '--exclude-sysdbs',
+  pivotColumn: '--pivot-column',
+  dumpWhere: '--where',
+  limitStart: '--start',
+  limitStop: '--stop',
+  firstChar: '--first',
+  lastChar: '--last',
+  sqlQuery: '--sql-query',
+  sqlShell: '--sql-shell',
+  sqlFile: '--sql-file',
   
-  // 性能相关
-  threads: '--threads',
-  timeout: '--timeout',
-  retries: '--retries',
-  delay: '--delay',
-  timeSec: '--time-sec',
+  // 暴力破解
+  commonTables: '--common-tables',
+  commonColumns: '--common-columns',
+  commonFiles: '--common-files',
+  
+  // UDF
+  udfInject: '--udf-inject',
+  sharedLib: '--shared-lib',
+  
+  // 文件系统
+  fileRead: '--file-read',
+  fileWrite: '--file-write',
+  fileDest: '--file-dest',
+  
+  // 操作系统
+  osCmd: '--os-cmd',
+  osShell: '--os-shell',
+  osPwn: '--os-pwn',
+  osSmbrelay: '--os-smbrelay',
+  osBof: '--os-bof',
+  privEsc: '--priv-esc',
+  msfPath: '--msf-path',
+  tmpPath: '--tmp-path',
+  
+  // 注册表
+  regRead: '--reg-read',
+  regAdd: '--reg-add',
+  regDel: '--reg-del',
+  regKey: '--reg-key',
+  regValue: '--reg-value',
+  regData: '--reg-data',
+  regType: '--reg-type',
   
   // 通用选项
+  sessionFile: '-s',
+  trafficFile: '-t',
+  abortOnEmpty: '--abort-on-empty',
+  answers: '--answers',
+  base64Param: '--base64',
+  base64Safe: '--base64-safe',
   batch: '--batch',
-  verbose: '-v',
-  flushSession: '--flush-session',
-  freshQueries: '--fresh-queries',
-  forms: '--forms',
+  binaryFields: '--binary-fields',
+  checkInternet: '--check-internet',
+  cleanup: '--cleanup',
   crawlDepth: '--crawl',
-  
-  // 输出相关
-  outputDir: '-o',
+  crawlExclude: '--crawl-exclude',
   csvDel: '--csv-del',
+  charset: '--charset',
+  dumpFile: '--dump-file',
   dumpFormat: '--dump-format',
+  encoding: '--encoding',
+  eta: '--eta',
+  flushSession: '--flush-session',
+  forms: '--forms',
+  freshQueries: '--fresh-queries',
+  googlePage: '--gpage',
+  harFile: '--har',
+  hexConvert: '--hex',
+  outputDir: '--output-dir',
+  parseErrors: '--parse-errors',
+  preprocess: '--preprocess',
+  postprocess: '--postprocess',
+  repair: '--repair',
+  saveConfig: '--save',
+  scope: '--scope',
+  skipHeuristics: '--skip-heuristics',
+  skipWaf: '--skip-waf',
+  tablePrefix: '--table-prefix',
+  testFilter: '--test-filter',
+  testSkip: '--test-skip',
+  timeLimit: '--time-limit',
+  unsafeNaming: '--unsafe-naming',
+  webRoot: '--web-root',
   
-  // 其他
-  googlePage: '--google-page',
+  // 杂项
+  verbose: '-v',
+  mnemonics: '-z',
+  alert: '--alert',
+  beep: '--beep',
+  dependencies: '--dependencies',
   disableColoring: '--disable-coloring',
+  disableHashing: '--disable-hashing',
+  listTampers: '--list-tampers',
+  noLogging: '--no-logging',
+  noTruncate: '--no-truncate',
+  offline: '--offline',
+  purge: '--purge',
+  resultsFile: '--results-file',
+  shell: '--shell',
+  tmpDir: '--tmp-dir',
+  unstable: '--unstable',
+  updateSqlmap: '--update',
+  wizard: '--wizard',
+  
+  // 内部选项
   api: '--api',
   taskid: '--taskid',
   database: '--database',
+}
+
+// 驼峰命名转换为 kebab-case
+function camelToKebab(str: string): string {
+  return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
 }
 
 // 需要跳过的内部选项
@@ -281,7 +440,11 @@ function optionToArg(key: string, value: any): string | null {
     return null
   }
   
-  const cmdFlag = optionToCmdMap[key] || `--${key}`
+  // 获取命令行标志：优先使用映射表，否则将驼峰转为 kebab-case
+  const cmdFlag = optionToCmdMap[key] || `--${camelToKebab(key)}`
+  
+  // 判断是短参数还是长参数
+  const isShortParam = cmdFlag.startsWith('-') && !cmdFlag.startsWith('--')
   
   // 布尔值选项
   if (typeof value === 'boolean') {
@@ -291,7 +454,9 @@ function optionToArg(key: string, value: any): string | null {
   // 数组值
   if (Array.isArray(value)) {
     if (value.length === 0) return null
-    return `${cmdFlag}="${value.join(',')}"`
+    const joinedValue = value.join(',')
+    // 短参数用空格，长参数用等号
+    return isShortParam ? `${cmdFlag} "${joinedValue}"` : `${cmdFlag}="${joinedValue}"`
   }
   
   // 字符串或数字
@@ -302,12 +467,13 @@ function optionToArg(key: string, value: any): string | null {
     // 对于多行文本（如headers），使用简化显示
     if (strValue.includes('\n')) {
       const firstLine = strValue.split('\n')[0]
-      return `${cmdFlag}="${firstLine}..."`
+      return isShortParam ? `${cmdFlag} "${firstLine}..."` : `${cmdFlag}="${firstLine}..."`
     }
-    return `${cmdFlag}="${strValue}"`
+    return isShortParam ? `${cmdFlag} "${strValue}"` : `${cmdFlag}="${strValue}"`
   }
   
-  return `${cmdFlag}=${strValue}`
+  // 短参数用空格分隔，长参数用等号
+  return isShortParam ? `${cmdFlag} ${strValue}` : `${cmdFlag}=${strValue}`
 }
 
 // 计算命令行参数数组
@@ -353,9 +519,64 @@ const filteredCmdlineArgs = computed(() => {
   )
 })
 
-// 完整命令行字符串
-const fullCommandLine = computed(() => {
-  return cmdlineArgs.value.join(' ')
+// 带语法高亮的完整命令
+const highlightedFullCommand = computed(() => {
+  const args = searchQuery.value.trim() ? filteredCmdlineArgs.value : cmdlineArgs.value
+  if (args.length === 0) return ''
+  
+  const parts = args.map(arg => {
+    // 先进行 HTML 转义
+    let escaped = arg
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+    
+    // 获取参数类别样式
+    const argClass = getArgClass(arg)
+    
+    // 搜索高亮函数
+    const highlightText = (text: string): string => {
+      if (!searchQuery.value.trim()) return text
+      const query = searchQuery.value.trim()
+      const escQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      return text.replace(
+        new RegExp(`(${escQuery})`, 'gi'),
+        '<mark class="highlight-match">$1</mark>'
+      )
+    }
+    
+    // 判断是短参数还是长参数
+    const isShortParam = arg.startsWith('-') && !arg.startsWith('--')
+    
+    // 查找参数名和值的分隔位置
+    // 短参数用空格分隔，长参数用等号分隔
+    const separator = isShortParam ? ' ' : '='
+    const sepIndex = escaped.indexOf(separator)
+    
+    if (sepIndex > 0) {
+      const paramName = escaped.substring(0, sepIndex)
+      const paramValue = escaped.substring(sepIndex + 1)
+      
+      // 构建高亮 HTML
+      let result = `<span class="cmd-arg ${argClass}">`
+      result += `<span class="arg-name">${highlightText(paramName)}</span>`
+      result += isShortParam ? ' ' : `<span class="arg-equals">=</span>`
+      
+      // 处理引号包裹的值
+      if (paramValue.startsWith('&quot;') || paramValue.startsWith('"')) {
+        result += `<span class="arg-quoted">${highlightText(paramValue)}</span>`
+      } else {
+        result += `<span class="arg-value">${highlightText(paramValue)}</span>`
+      }
+      result += '</span>'
+      return result
+    } else {
+      // 没有分隔符，整个都是参数名（布尔标志）
+      return `<span class="cmd-arg ${argClass}"><span class="arg-name">${highlightText(escaped)}</span></span>`
+    }
+  })
+  
+  return `<span class="cmd-prefix">python sqlmap.py</span> ${parts.join(' ')}`
 })
 
 // 获取参数的CSS类（用于语法高亮）
@@ -387,52 +608,9 @@ function getArgClass(arg: string): string {
   return ''
 }
 
-// 高亮命令行参数
-function highlightCmdlineArg(arg: string): string {
-  // 先进行 HTML 转义
-  let escaped = arg
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-  
-  // 提取参数名和值
-  const eqIndex = escaped.indexOf('=')
-  
-  // 搜索高亮函数
-  const highlightText = (text: string): string => {
-    if (!searchQuery.value.trim()) return text
-    const query = searchQuery.value.trim()
-    const escQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    return text.replace(
-      new RegExp(`(${escQuery})`, 'gi'),
-      '<mark class="highlight-match">$1</mark>'
-    )
-  }
-  
-  if (eqIndex > 0) {
-    const paramName = escaped.substring(0, eqIndex)
-    const paramValue = escaped.substring(eqIndex + 1)
-    
-    // 构建高亮 HTML
-    let result = `<span class="arg-name">${highlightText(paramName)}</span>`
-    result += `<span class="arg-equals">=</span>`
-    
-    // 处理引号包裹的值
-    if (paramValue.startsWith('&quot;') || paramValue.startsWith('"')) {
-      result += `<span class="arg-quoted">${highlightText(paramValue)}</span>`
-    } else {
-      result += `<span class="arg-value">${highlightText(paramValue)}</span>`
-    }
-    return result
-  } else {
-    // 没有等号，整个都是参数名
-    return `<span class="arg-name">${highlightText(escaped)}</span>`
-  }
-}
-
 // 复制命令行
 function copyCommandLine() {
-  const fullCmd = 'sqlmap ' + cmdlineArgs.value.join(' ')
+  const fullCmd = 'python sqlmap.py ' + cmdlineArgs.value.join(' ')
   navigator.clipboard.writeText(fullCmd).then(() => {
     toast.add({
       severity: 'success',
@@ -564,7 +742,6 @@ function highlightMatch(text: string): string {
   gap: 16px;
   height: 100%;
   min-height: 400px;
-  max-height: calc(100vh - 280px);
 }
 
 // 视图切换区域 - 突出显示
@@ -853,33 +1030,10 @@ function highlightMatch(text: string): string {
   background: #1e1e2e;
   border-radius: 10px;
   border: 1px solid var(--p-content-border-color);
-  overflow: hidden;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
-}
-
-.cmdline-header {
-  display: flex;
-  align-items: center;
-  padding: 12px 16px;
-  background: #11111b;
-  border-bottom: 1px solid #313244;
-
-  .cmdline-prefix {
-    color: #89b4fa;
-    font-weight: 600;
-    font-size: 14px;
-    
-    &::before {
-      content: '$ ';
-      color: #a6e3a1;
-    }
-  }
-}
-
-.cmdline-content {
-  padding: 16px;
-  min-height: 150px;
-  max-height: 300px;
+  flex: 1;
+  min-height: 200px;
+  padding: 20px;
   overflow-y: auto;
 
   &::-webkit-scrollbar {
@@ -903,119 +1057,87 @@ function highlightMatch(text: string): string {
   .no-results {
     color: #6c7086;
     background: transparent;
+    text-align: center;
+    padding: 32px;
+
+    i {
+      font-size: 24px;
+      margin-bottom: 8px;
+      display: block;
+    }
   }
 }
 
-.cmdline-args {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-  line-height: 1.8;
-}
-
-.cmdline-arg {
-  display: inline-block;
-  padding: 4px 8px;
-  background: #313244;
-  border-radius: 4px;
-  font-size: 13px;
+.cmdline-full {
+  font-size: 14px;
+  line-height: 2;
   color: #cdd6f4;
-  transition: all 0.2s ease;
+  word-break: break-all;
+  white-space: pre-wrap;
 
-  &:hover {
-    background: #45475a;
-    transform: translateY(-1px);
+  // 前缀样式
+  :deep(.cmd-prefix) {
+    color: #a6e3a1;
+    font-weight: 600;
+    margin-right: 8px;
   }
 
-  // 参数类型颜色
-  &.arg-short {
-    border-left: 3px solid #f9e2af;
+  // 参数包装器
+  :deep(.cmd-arg) {
+    display: inline;
+    padding: 2px 0;
+    border-radius: 3px;
+    
+    // 短参数
+    &.arg-short .arg-name {
+      color: #f9e2af;
+    }
+    
+    // 长参数
+    &.arg-long .arg-name {
+      color: #89b4fa;
+    }
+    
+    // 检测/注入相关
+    &.arg-detection .arg-name {
+      color: #f38ba8;
+    }
+    
+    // 性能相关
+    &.arg-performance .arg-name {
+      color: #a6e3a1;
+    }
+    
+    // 枚举相关
+    &.arg-enumerate .arg-name {
+      color: #fab387;
+    }
+    
+    // 网络相关
+    &.arg-network .arg-name {
+      color: #94e2d5;
+    }
   }
 
-  &.arg-long {
-    border-left: 3px solid #89b4fa;
-  }
-
-  &.arg-detection {
-    border-left: 3px solid #f38ba8;
-    background: rgba(243, 139, 168, 0.1);
-  }
-
-  &.arg-performance {
-    border-left: 3px solid #a6e3a1;
-    background: rgba(166, 227, 161, 0.1);
-  }
-
-  &.arg-enumerate {
-    border-left: 3px solid #fab387;
-    background: rgba(250, 179, 135, 0.1);
-  }
-
-  &.arg-network {
-    border-left: 3px solid #94e2d5;
-    background: rgba(148, 226, 213, 0.1);
-  }
-
-  // 语法高亮
+  // 参数名
   :deep(.arg-name) {
     color: #89b4fa;
     font-weight: 600;
   }
 
+  // 等号
   :deep(.arg-equals) {
     color: #f9e2af;
   }
 
+  // 引号包裹的值
   :deep(.arg-quoted) {
     color: #a6e3a1;
   }
-}
 
-.cmdline-preview {
-  border-top: 1px solid #313244;
-  padding: 12px 16px;
-  background: #11111b;
-
-  .preview-label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: #6c7086;
-    font-size: 12px;
-    margin-bottom: 8px;
-
-    i {
-      font-size: 14px;
-    }
-  }
-
-  .preview-content {
-    background: #1e1e2e;
-    border-radius: 6px;
-    padding: 12px;
-    overflow-x: auto;
-
-    code {
-      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
-      font-size: 12px;
-      color: #cdd6f4;
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-
-    &::-webkit-scrollbar {
-      height: 6px;
-    }
-
-    &::-webkit-scrollbar-track {
-      background: #11111b;
-      border-radius: 3px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: #45475a;
-      border-radius: 3px;
-    }
+  // 普通值
+  :deep(.arg-value) {
+    color: #cba6f7;
   }
 }
 

@@ -1,9 +1,11 @@
 package com.sqlmapwebui.burp.panels;
 
 import com.sqlmapwebui.burp.ConfigManager;
+import com.sqlmapwebui.burp.ParseResult;
 import com.sqlmapwebui.burp.PresetConfig;
 import com.sqlmapwebui.burp.PresetConfigDatabase;
 import com.sqlmapwebui.burp.ScanConfig;
+import com.sqlmapwebui.burp.ScanConfigParser;
 import com.sqlmapwebui.burp.SqlmapApiClient;
 
 import javax.swing.*;
@@ -586,10 +588,20 @@ public class DefaultConfigPanel extends BaseConfigPanel {
             if (selectedName != null) {
                 PresetConfig presetConfig = presetDatabase.getConfigByName(selectedName);
                 if (presetConfig != null) {
-                    // 将PresetConfig的参数字符串转换为ScanConfig
+                    // 使用完整的ScanConfigParser解析参数字符串
+                    String paramString = presetConfig.getParameterString();
+                    if (paramString != null && !paramString.trim().isEmpty()) {
+                        ParseResult result = ScanConfigParser.parse(paramString);
+                        if (result.isSuccess() && result.getConfig() != null) {
+                            ScanConfig config = result.getConfig();
+                            config.setName(presetConfig.getName());
+                            config.setDescription(presetConfig.getDescription());
+                            return config;
+                        }
+                    }
+                    // 解析失败则返回默认配置
                     ScanConfig config = ScanConfig.createDefault();
                     config.setName(presetConfig.getName());
-                    parseArgsToConfig(presetConfig.getParameterString(), config);
                     return config;
                 }
             }
@@ -601,36 +613,6 @@ public class DefaultConfigPanel extends BaseConfigPanel {
         }
         // 默认返回当前配置
         return configManager.getDefaultConfig();
-    }
-    
-    /**
-     * 解析参数字符串到ScanConfig
-     */
-    private void parseArgsToConfig(String argsStr, ScanConfig config) {
-        if (argsStr == null || argsStr.isEmpty()) return;
-        
-        String[] parts = argsStr.split("\\s+");
-        for (String part : parts) {
-            if (part.startsWith("--level=")) {
-                try {
-                    config.setLevel(Integer.parseInt(part.substring(8)));
-                } catch (NumberFormatException ignored) {}
-            } else if (part.startsWith("--risk=")) {
-                try {
-                    config.setRisk(Integer.parseInt(part.substring(7)));
-                } catch (NumberFormatException ignored) {}
-            } else if (part.startsWith("--dbms=")) {
-                config.setDbms(part.substring(7));
-            } else if (part.startsWith("--technique=")) {
-                config.setTechnique(part.substring(12));
-            } else if (part.startsWith("--proxy=")) {
-                config.setProxy(part.substring(8));
-            } else if (part.equals("--force-ssl")) {
-                config.setForceSSL(true);
-            } else if (part.equals("--batch")) {
-                config.setBatch(true);
-            }
-        }
     }
     
     /**

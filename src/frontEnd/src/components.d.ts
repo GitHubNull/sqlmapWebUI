@@ -29,7 +29,6 @@ declare module 'vue' {
     InlineMessage: typeof import('primevue/inlinemessage')['default']
     InputIcon: typeof import('primevue/inputicon')['default']
     InputNumber: typeof import('primevue/inputnumber')['default']
-    InputSwitch: typeof import('primevue/inputswitch')['default']
     InputText: typeof import('primevue/inputtext')['default']
     Message: typeof import('primevue/message')['default']
     OfflineBanner: typeof import('./components/OfflineBanner.vue')['default']
@@ -37,7 +36,6 @@ declare module 'vue' {
     ProgressSpinner: typeof import('primevue/progressspinner')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    Select: typeof import('primevue/select')['default']
     SelectButton: typeof import('primevue/selectbutton')['default']
     Slider: typeof import('primevue/slider')['default']
     Tag: typeof import('primevue/tag')['default']
@@ -45,6 +43,5 @@ declare module 'vue' {
     TaskSummary: typeof import('./components/TaskSummary.vue')['default']
     Textarea: typeof import('primevue/textarea')['default']
     ToggleButton: typeof import('primevue/togglebutton')['default']
-    ToggleSwitch: typeof import('primevue/toggleswitch')['default']
   }
 }

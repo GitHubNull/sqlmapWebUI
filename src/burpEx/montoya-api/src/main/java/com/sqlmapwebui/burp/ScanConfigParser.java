@@ -45,8 +45,217 @@ public class ScanConfigParser {
         "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE"
     ));
     
+    // SQLMap 所有合法参数名称集合（排除 -r，从 sqlmap --help 提取）
+    private static final Set<String> ALL_SQLMAP_PARAMS = new HashSet<>(Arrays.asList(
+        // Target (exclude -r)
+        "u", "url", "d", "direct", "l", "logFile", "m", "bulkFile", "g", "googleDork", "c", "configFile",
+        // Request
+        "A", "user-agent", "H", "header", "method", "data", "param-del", "cookie", "cookie-del",
+        "live-cookies", "load-cookies", "drop-set-cookie", "mobile", "random-agent", "host", "referer",
+        "headers", "auth-type", "auth-cred", "auth-file", "abort-code", "ignore-code", "ignore-proxy",
+        "ignore-redirects", "ignore-timeouts", "proxy", "proxy-cred", "proxy-file", "proxy-freq",
+        "tor", "tor-port", "tor-type", "check-tor", "delay", "timeout", "retries", "retry-on",
+        "randomize", "safe-url", "safe-post", "safe-req", "safe-freq", "skip-urlencode",
+        "csrf-token", "csrf-url", "csrf-method", "csrf-data", "csrf-retries",
+        "force-ssl", "chunked", "hpp", "eval", "http10", "http2",
+        // Optimization
+        "o", "predict-output", "keep-alive", "null-connection", "threads",
+        // Injection
+        "p", "skip", "skip-static", "param-exclude", "param-filter", "dbms", "dbms-cred", "os",
+        "invalid-bignum", "invalid-logical", "invalid-string", "no-cast", "no-escape",
+        "prefix", "suffix", "tamper",
+        // Detection
+        "level", "risk", "string", "not-string", "regexp", "code", "smart", "text-only", "titles",
+        // Techniques
+        "technique", "time-sec", "disable-stats", "union-cols", "union-char", "union-from",
+        "union-values", "dns-domain", "second-url", "second-req",
+        // Fingerprint
+        "f", "fingerprint",
+        // Enumeration
+        "a", "all", "b", "banner", "current-user", "current-db", "hostname", "is-dba",
+        "users", "passwords", "privileges", "roles", "dbs", "tables", "columns", "schema",
+        "count", "dump", "dump-all", "search", "comments", "statements",
+        "D", "T", "C", "X", "U", "exclude-sysdbs", "pivot-column", "where",
+        "start", "stop", "first", "last", "sql-query", "sql-shell", "sql-file",
+        // Brute force
+        "common-tables", "common-columns", "common-files",
+        // UDF
+        "udf-inject", "shared-lib",
+        // File system
+        "file-read", "file-write", "file-dest",
+        // OS access
+        "os-cmd", "os-shell", "os-pwn", "os-smbrelay", "os-bof", "priv-esc", "msf-path", "tmp-path",
+        // Windows registry
+        "reg-read", "reg-add", "reg-del", "reg-key", "reg-value", "reg-data", "reg-type",
+        // General
+        "s", "t", "abort-on-empty", "answers", "base64", "base64-safe", "batch",
+        "binary-fields", "check-internet", "cleanup", "crawl", "crawl-exclude",
+        "csv-del", "charset", "dump-file", "dump-format", "encoding", "eta",
+        "flush-session", "forms", "fresh-queries", "gpage", "har", "hex",
+        "output-dir", "parse-errors", "preprocess", "postprocess", "repair",
+        "save", "scope", "skip-heuristics", "skip-waf", "table-prefix",
+        "test-filter", "test-skip", "time-limit", "unsafe-naming", "web-root",
+        // Miscellaneous
+        "z", "alert", "beep", "dependencies", "disable-coloring", "disable-hashing",
+        "list-tampers", "no-logging", "no-truncate", "offline", "purge",
+        "results-file", "shell", "tmp-dir", "unstable", "update", "wizard",
+        // Verbose
+        "v", "verbose", "hh", "version"
+    ));
+    
+    // 参数名规范化映射（短选项/带连字符 -> 后端参数名）
+    private static final Map<String, String> PARAM_NAME_MAP = new HashMap<>();
+    
     static {
         initOptions();
+        initParamNameMap();
+    }
+    
+    /**
+     * 初始化参数名映射
+     */
+    private static void initParamNameMap() {
+        // 短选项映射
+        PARAM_NAME_MAP.put("u", "url");
+        PARAM_NAME_MAP.put("A", "agent");
+        PARAM_NAME_MAP.put("H", "header");
+        PARAM_NAME_MAP.put("p", "testParameter");
+        PARAM_NAME_MAP.put("o", "optimize");
+        PARAM_NAME_MAP.put("f", "extensiveFp");
+        PARAM_NAME_MAP.put("a", "getAll");
+        PARAM_NAME_MAP.put("b", "getBanner");
+        PARAM_NAME_MAP.put("D", "db");
+        PARAM_NAME_MAP.put("T", "tbl");
+        PARAM_NAME_MAP.put("C", "col");
+        PARAM_NAME_MAP.put("X", "exclude");
+        PARAM_NAME_MAP.put("U", "user");
+        PARAM_NAME_MAP.put("s", "sessionFile");
+        PARAM_NAME_MAP.put("t", "trafficFile");
+        PARAM_NAME_MAP.put("z", "mnemonics");
+        PARAM_NAME_MAP.put("v", "verbose");
+        
+        // 带连字符的参数名 -> 驼峰命名
+        PARAM_NAME_MAP.put("user-agent", "agent");
+        PARAM_NAME_MAP.put("not-string", "notString");
+        PARAM_NAME_MAP.put("text-only", "textOnly");
+        PARAM_NAME_MAP.put("skip-static", "skipStatic");
+        PARAM_NAME_MAP.put("param-exclude", "paramExclude");
+        PARAM_NAME_MAP.put("param-filter", "paramFilter");
+        PARAM_NAME_MAP.put("param-del", "paramDel");
+        PARAM_NAME_MAP.put("cookie-del", "cookieDel");
+        PARAM_NAME_MAP.put("live-cookies", "liveCookies");
+        PARAM_NAME_MAP.put("load-cookies", "loadCookies");
+        PARAM_NAME_MAP.put("drop-set-cookie", "dropSetCookie");
+        PARAM_NAME_MAP.put("random-agent", "randomAgent");
+        PARAM_NAME_MAP.put("auth-type", "authType");
+        PARAM_NAME_MAP.put("auth-cred", "authCred");
+        PARAM_NAME_MAP.put("auth-file", "authFile");
+        PARAM_NAME_MAP.put("abort-code", "abortCode");
+        PARAM_NAME_MAP.put("ignore-code", "ignoreCode");
+        PARAM_NAME_MAP.put("ignore-proxy", "ignoreProxy");
+        PARAM_NAME_MAP.put("ignore-redirects", "ignoreRedirects");
+        PARAM_NAME_MAP.put("ignore-timeouts", "ignoreTimeouts");
+        PARAM_NAME_MAP.put("proxy-cred", "proxyCred");
+        PARAM_NAME_MAP.put("proxy-file", "proxyFile");
+        PARAM_NAME_MAP.put("proxy-freq", "proxyFreq");
+        PARAM_NAME_MAP.put("tor-port", "torPort");
+        PARAM_NAME_MAP.put("tor-type", "torType");
+        PARAM_NAME_MAP.put("check-tor", "checkTor");
+        PARAM_NAME_MAP.put("retry-on", "retryOn");
+        PARAM_NAME_MAP.put("safe-url", "safeUrl");
+        PARAM_NAME_MAP.put("safe-post", "safePost");
+        PARAM_NAME_MAP.put("safe-req", "safeReqFile");
+        PARAM_NAME_MAP.put("safe-freq", "safeFreq");
+        PARAM_NAME_MAP.put("skip-urlencode", "skipUrlEncode");
+        PARAM_NAME_MAP.put("csrf-token", "csrfToken");
+        PARAM_NAME_MAP.put("csrf-url", "csrfUrl");
+        PARAM_NAME_MAP.put("csrf-method", "csrfMethod");
+        PARAM_NAME_MAP.put("csrf-data", "csrfData");
+        PARAM_NAME_MAP.put("csrf-retries", "csrfRetries");
+        PARAM_NAME_MAP.put("force-ssl", "forceSSL");
+        PARAM_NAME_MAP.put("predict-output", "predictOutput");
+        PARAM_NAME_MAP.put("keep-alive", "keepAlive");
+        PARAM_NAME_MAP.put("null-connection", "nullConnection");
+        PARAM_NAME_MAP.put("dbms-cred", "dbmsCred");
+        PARAM_NAME_MAP.put("invalid-bignum", "invalidBignum");
+        PARAM_NAME_MAP.put("invalid-logical", "invalidLogical");
+        PARAM_NAME_MAP.put("invalid-string", "invalidString");
+        PARAM_NAME_MAP.put("no-cast", "noCast");
+        PARAM_NAME_MAP.put("no-escape", "noEscape");
+        PARAM_NAME_MAP.put("time-sec", "timeSec");
+        PARAM_NAME_MAP.put("disable-stats", "disableStats");
+        PARAM_NAME_MAP.put("union-cols", "uCols");
+        PARAM_NAME_MAP.put("union-char", "uChar");
+        PARAM_NAME_MAP.put("union-from", "uFrom");
+        PARAM_NAME_MAP.put("union-values", "uValues");
+        PARAM_NAME_MAP.put("dns-domain", "dnsDomain");
+        PARAM_NAME_MAP.put("second-url", "secondUrl");
+        PARAM_NAME_MAP.put("second-req", "secondReq");
+        PARAM_NAME_MAP.put("current-user", "getCurrentUser");
+        PARAM_NAME_MAP.put("current-db", "getCurrentDb");
+        PARAM_NAME_MAP.put("is-dba", "isDba");
+        PARAM_NAME_MAP.put("dump-all", "dumpAll");
+        PARAM_NAME_MAP.put("exclude-sysdbs", "excludeSysDbs");
+        PARAM_NAME_MAP.put("pivot-column", "pivotColumn");
+        PARAM_NAME_MAP.put("sql-query", "sqlQuery");
+        PARAM_NAME_MAP.put("sql-shell", "sqlShell");
+        PARAM_NAME_MAP.put("sql-file", "sqlFile");
+        PARAM_NAME_MAP.put("common-tables", "commonTables");
+        PARAM_NAME_MAP.put("common-columns", "commonColumns");
+        PARAM_NAME_MAP.put("common-files", "commonFiles");
+        PARAM_NAME_MAP.put("udf-inject", "udfInject");
+        PARAM_NAME_MAP.put("shared-lib", "shLib");
+        PARAM_NAME_MAP.put("file-read", "fileRead");
+        PARAM_NAME_MAP.put("file-write", "fileWrite");
+        PARAM_NAME_MAP.put("file-dest", "fileDest");
+        PARAM_NAME_MAP.put("os-cmd", "osCmd");
+        PARAM_NAME_MAP.put("os-shell", "osShell");
+        PARAM_NAME_MAP.put("os-pwn", "osPwn");
+        PARAM_NAME_MAP.put("os-smbrelay", "osSmb");
+        PARAM_NAME_MAP.put("os-bof", "osBof");
+        PARAM_NAME_MAP.put("priv-esc", "privEsc");
+        PARAM_NAME_MAP.put("msf-path", "msfPath");
+        PARAM_NAME_MAP.put("tmp-path", "tmpPath");
+        PARAM_NAME_MAP.put("reg-read", "regRead");
+        PARAM_NAME_MAP.put("reg-add", "regAdd");
+        PARAM_NAME_MAP.put("reg-del", "regDel");
+        PARAM_NAME_MAP.put("reg-key", "regKey");
+        PARAM_NAME_MAP.put("reg-value", "regVal");
+        PARAM_NAME_MAP.put("reg-data", "regData");
+        PARAM_NAME_MAP.put("reg-type", "regType");
+        PARAM_NAME_MAP.put("abort-on-empty", "abortOnEmpty");
+        PARAM_NAME_MAP.put("base64-safe", "base64Safe");
+        PARAM_NAME_MAP.put("binary-fields", "binaryFields");
+        PARAM_NAME_MAP.put("check-internet", "checkInternet");
+        PARAM_NAME_MAP.put("crawl-exclude", "crawlExclude");
+        PARAM_NAME_MAP.put("csv-del", "csvDel");
+        PARAM_NAME_MAP.put("dump-file", "dumpFile");
+        PARAM_NAME_MAP.put("dump-format", "dumpFormat");
+        PARAM_NAME_MAP.put("flush-session", "flushSession");
+        PARAM_NAME_MAP.put("fresh-queries", "freshQueries");
+        PARAM_NAME_MAP.put("output-dir", "outputDir");
+        PARAM_NAME_MAP.put("parse-errors", "parseErrors");
+        PARAM_NAME_MAP.put("skip-heuristics", "skipHeuristics");
+        PARAM_NAME_MAP.put("skip-waf", "skipWaf");
+        PARAM_NAME_MAP.put("table-prefix", "tablePrefix");
+        PARAM_NAME_MAP.put("test-filter", "testFilter");
+        PARAM_NAME_MAP.put("test-skip", "testSkip");
+        PARAM_NAME_MAP.put("time-limit", "timeLimit");
+        PARAM_NAME_MAP.put("unsafe-naming", "unsafeNaming");
+        PARAM_NAME_MAP.put("web-root", "webRoot");
+        PARAM_NAME_MAP.put("disable-coloring", "disableColoring");
+        PARAM_NAME_MAP.put("disable-hashing", "disableHashing");
+        PARAM_NAME_MAP.put("list-tampers", "listTampers");
+        PARAM_NAME_MAP.put("no-logging", "noLogging");
+        PARAM_NAME_MAP.put("no-truncate", "noTruncate");
+        PARAM_NAME_MAP.put("results-file", "resultsFile");
+        PARAM_NAME_MAP.put("tmp-dir", "tmpDir");
+        PARAM_NAME_MAP.put("http1.0", "http10");
+        
+        // 一些简单的转换
+        PARAM_NAME_MAP.put("banner", "getBanner");
+        PARAM_NAME_MAP.put("dump", "dumpTable");
+        PARAM_NAME_MAP.put("crawl", "crawlDepth");
     }
     
     /**
@@ -196,20 +405,16 @@ public class ScanConfigParser {
             // 分词为参数数组
             String[] args = tokenize(normalized);
             
-            // 使用 Apache Commons CLI 解析
+            // 使用 Apache Commons CLI 解析已知参数
             CommandLineParser parser = new DefaultParser();
             CommandLine cmd = parser.parse(OPTIONS, args, true);
             
-            // 处理解析后的选项
+            // 处理解析后的已知选项
             processOptions(cmd, result);
             
-            // 检查未识别的参数
+            // 处理未识别的参数 - 检查是否是合法的SQLMap参数
             List<String> unrecognized = cmd.getArgList();
-            for (String arg : unrecognized) {
-                if (arg.startsWith("-")) {
-                    result.addWarning("未识别的参数: " + arg);
-                }
-            }
+            processUnrecognizedArgs(unrecognized, result);
             
         } catch (ParseException e) {
             result.addError("命令行解析错误: " + e.getMessage());
@@ -218,6 +423,78 @@ public class ScanConfigParser {
         }
         
         return result;
+    }
+    
+    /**
+     * 处理未被 Apache Commons CLI 识别的参数
+     * 如果是合法的SQLMap参数，存入extraOptions
+     */
+    private static void processUnrecognizedArgs(List<String> args, ParseResult result) {
+        for (int i = 0; i < args.size(); i++) {
+            String arg = args.get(i);
+            
+            if (!arg.startsWith("-")) {
+                continue; // 跳过非参数的值
+            }
+            
+            // 提取参数名
+            String paramName = arg.startsWith("--") ? arg.substring(2) : arg.substring(1);
+            
+            // 跳过 -r 参数
+            if (paramName.equals("r") || paramName.equals("requestFile")) {
+                result.addWarning("参数 '-r' 不支持，已忽略");
+                continue;
+            }
+            
+            // 检查是否是合法的SQLMap参数
+            if (ALL_SQLMAP_PARAMS.contains(paramName)) {
+                // 获取规范化的参数名
+                String canonicalName = PARAM_NAME_MAP.getOrDefault(paramName, paramName);
+                
+                // 尝试获取参数值（下一个不以-开头的元素）
+                Object value = true; // 默认为布尔真
+                if (i + 1 < args.size() && !args.get(i + 1).startsWith("-")) {
+                    String nextArg = args.get(i + 1);
+                    // 尝试解析为数字
+                    value = parseValue(nextArg);
+                    i++; // 跳过已处理的值
+                }
+                
+                // 存入extraOptions
+                result.getConfig().addExtraOption(canonicalName, value);
+            } else {
+                // 不是合法的SQLMap参数，忽略并跳过
+                // 不输出警告，静默忽略非法参数
+            }
+        }
+    }
+    
+    /**
+     * 解析参数值，尝试转换为适当的类型
+     */
+    private static Object parseValue(String value) {
+        if (value == null || value.isEmpty()) {
+            return true;
+        }
+        
+        // 尝试解析为布尔
+        String lower = value.toLowerCase();
+        if (lower.equals("true") || lower.equals("false")) {
+            return Boolean.parseBoolean(lower);
+        }
+        
+        // 尝试解析为整数
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException ignored) {}
+        
+        // 尝试解析为浮点数
+        try {
+            return Float.parseFloat(value);
+        } catch (NumberFormatException ignored) {}
+        
+        // 默认为字符串
+        return value;
     }
     
     /**

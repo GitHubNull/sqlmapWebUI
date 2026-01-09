@@ -19,6 +19,7 @@ from model.BaseResponseMsg import BaseResponseMsg
 from third_lib.sqlmap.lib.core.settings import RESTAPI_UNSUPPORTED_OPTIONS
 from third_lib.sqlmap.lib.core.convert import encodeHex
 from third_lib.sqlmap.lib.core.data import logger
+from third_lib.sqlmap.lib.core.defaults import _defaults as SQLMAP_DEFAULTS
 from utils.content_type_helper import get_content_type_by_number
 
 
@@ -541,6 +542,9 @@ class TaskService(object):
 
     def _get_task_scan_options_sync(self, taskId: str):
         """同步获取扫描选项（在线程池中执行）"""
+        # 不应该返回给前端的内部选项
+        INTERNAL_OPTIONS = {'api', 'taskid', 'database', 'disableColoring', 'eta', 'headers'}
+        
         with DataStore.tasks_lock:
             if taskId not in DataStore.tasks:
                 return (None, False, "task not found", status.HTTP_404_NOT_FOUND)
@@ -548,16 +552,28 @@ class TaskService(object):
             task_options = task.get_options()
             res_options = []
             for option in task_options:
+                # 跳过内部选项
+                if option in INTERNAL_OPTIONS:
+                    continue
+                    
                 option_value = task_options[option]
-                if option_value is not None:
-                    if isinstance(option_value, list) and len(option_value) > 0:
-                        res_options.append({"option": option, "value": option_value})
-                    elif isinstance(option_value, bool) and option_value is True:
-                        res_options.append({"option": option, "value": option_value})
-                    elif isinstance(option_value, str) and len(option_value) > 0:
-                        res_options.append({"option": option, "value": option_value})
-                    elif isinstance(option_value, int) and option_value > 0:
-                        res_options.append({"option": option, "value": option_value})
+                if option_value is None:
+                    continue
+                
+                # 跳过与 SQLMap 默认值相同的选项（用户没有显式设置的）
+                default_value = SQLMAP_DEFAULTS.get(option)
+                if default_value is not None and option_value == default_value:
+                    continue
+                
+                # 只返回有意义的非默认值
+                if isinstance(option_value, list) and len(option_value) > 0:
+                    res_options.append({"option": option, "value": option_value})
+                elif isinstance(option_value, bool) and option_value is True:
+                    res_options.append({"option": option, "value": option_value})
+                elif isinstance(option_value, str) and len(option_value) > 0:
+                    res_options.append({"option": option, "value": option_value})
+                elif isinstance(option_value, (int, float)) and option_value > 0:
+                    res_options.append({"option": option, "value": option_value})
             data = {
                 "taskid": taskId,
                 "options": res_options,
