@@ -2,7 +2,7 @@
  * 配置状态管理
  */
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { getStorage, setStorage } from '@/utils/storage'
 import type { PersistentHeaderRule } from '@/types/headerRule'
 import { getRefreshIntervalConfig, setRefreshIntervalConfig } from '@/api/system'
@@ -33,11 +33,11 @@ export const useConfigStore = defineStore('config', () => {
     theme.value = newTheme
     setStorage('theme', newTheme)
     
-    // 应用主题到DOM
+    // 应用主题到DOM - 使用PrimeVue官方的.app-dark类
     if (newTheme === 'dark') {
-      document.documentElement.classList.add('dark-mode')
+      document.documentElement.classList.add('app-dark')
     } else {
-      document.documentElement.classList.remove('dark-mode')
+      document.documentElement.classList.remove('app-dark')
     }
   }
 
@@ -83,6 +83,15 @@ export const useConfigStore = defineStore('config', () => {
       return false
     }
   }
+
+  // 初始化主题
+  watch(theme, (newTheme) => {
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('app-dark')
+    } else {
+      document.documentElement.classList.remove('app-dark')
+    }
+  }, { immediate: true })
 
   return {
     // 状态

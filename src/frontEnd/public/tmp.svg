@@ -1,0 +1,99 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="128" height="128" fill="#1a1a1a" rx="8"/>
+  
+  <!-- 钻台底座 -->
+  <rect x="15" y="95" width="98" height="12" fill="#2c2c2c" stroke="#444" stroke-width="1" rx="2"/>
+  <rect x="20" y="90" width="88" height="8" fill="#333" rx="1"/>
+  
+  <!-- 主支柱 -->
+  <rect x="62" y="25" width="4" height="65" fill="#555" stroke="#666" stroke-width="1"/>
+  
+  <!-- 水平导轨 -->
+  <rect x="25" y="22" width="78" height="6" fill="#444" stroke="#555" stroke-width="1" rx="3"/>
+  
+  <!-- 垂直导轨滑块 -->
+  <g transform="translate(50, 28)">
+    <!-- 滑块主体 -->
+    <rect x="0" y="0" width="28" height="35" fill="#3a3a3a" stroke="#555" stroke-width="1" rx="3"/>
+    
+    <!-- 垂直导轨 -->
+    <rect x="12" y="-15" width="4" height="50" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    
+    <!-- 注射器固定架 -->
+    <rect x="2" y="25" width="24" height="8" fill="#555" stroke="#666" stroke-width="1" rx="2"/>
+    
+    <!-- 注射器 -->
+    <g transform="translate(14, 33)">
+      <!-- 针筒主体 -->
+      <rect x="-4" y="0" width="8" height="30" fill="#d0d0d0" stroke="#aaa" stroke-width="1"/>
+      <!-- 红色药液 -->
+      <rect x="-4" y="15" width="8" height="15" fill="#ff0000" opacity="0.9"/>
+      <!-- 推杆 -->
+      <rect x="-3" y="-8" width="6" height="10" fill="#666"/>
+      <circle cx="0" cy="-8" r="2" fill="#333"/>
+      <!-- 针头 -->
+      <polygon points="-4,30 4,30 0,38" fill="#silver" stroke="#888" stroke-width="1"/>
+    </g>
+  </g>
+  
+  <!-- 深度控制手柄 (左侧) -->
+  <g transform="translate(20, 45)">
+    <!-- 手柄底座 -->
+    <rect x="0" y="0" width="12" height="8" fill="#2a2a2a" stroke="#444" stroke-width="1" rx="2"/>
+    <!-- 手柄杆 -->
+    <rect x="5" y="-12" width="2" height="12" fill="#666"/>
+    <!-- 手柄球 -->
+    <circle cx="6" cy="-14" r="3" fill="#888"/>
+    <!-- 刻度盘 -->
+    <circle cx="6" cy="4" r="4" fill="none" stroke="#666" stroke-width="1"/>
+    <line x1="6" y1="4" x2="9" y2="4" stroke="#999" stroke-width="1"/>
+  </g>
+  
+  <!-- 水平X轴控制手柄 (右侧) -->
+  <g transform="translate(95, 35)">
+    <rect x="0" y="0" width="12" height="8" fill="#2a2a2a" stroke="#444" stroke-width="1" rx="2"/>
+    <rect x="5" y="-12" width="2" height="12" fill="#666"/>
+    <circle cx="6" cy="-14" r="3" fill="#888"/>
+    <circle cx="6" cy="4" r="4" fill="none" stroke="#666" stroke-width="1"/>
+    <line x1="6" y1="4" x2="9" y2="4" stroke="#999" stroke-width="1"/>
+  </g>
+  
+  <!-- 水平Y轴控制手柄 (前侧) -->
+  <g transform="translate(75, 65)">
+    <rect x="0" y="0" width="8" height="12" fill="#2a2a2a" stroke="#444" stroke-width="1" rx="2"/>
+    <rect x="-10" y="5" width="10" height="2" fill="#666"/>
+    <circle cx="-12" cy="6" r="3" fill="#888"/>
+    <circle cx="4" cy="6" r="4" fill="none" stroke="#666" stroke-width="1"/>
+    <line x1="4" y1="6" x2="7" y2="6" stroke="#999" stroke-width="1"/>
+  </g>
+  
+  <!-- 控制面板 -->
+  <rect x="85" y="75" width="25" height="18" fill="#1a1a1a" stroke="#333" stroke-width="1" rx="2"/>
+  <rect x="88" y="78" width="19" height="12" fill="#0a0a0a" stroke="#222" stroke-width="1"/>
+  
+  <!-- LED指示灯 -->
+  <circle cx="92" cy="82" r="1.5" fill="#ff4444"/>
+  <circle cx="97" cy="82" r="1.5" fill="#44ff44"/>
+  <circle cx="102" cy="82" r="1.5" fill="#4444ff"/>
+  
+  <!-- 数值显示 -->
+  <text x="95" y="89" text-anchor="middle" font-family="monospace" font-size="4" fill="#00ff00">0.00</text>
+  
+  <!-- 数据库目标 (底部) -->
+  <g transform="translate(45, 108)">
+    <ellipse cx="10" cy="3" rx="10" ry="3" fill="#4a90e2" opacity="0.7"/>
+    <rect x="0" y="3" width="20" height="8" fill="#4a90e2" opacity="0.7"/>
+    <ellipse cx="10" cy="11" rx="10" ry="3" fill="#357abd" opacity="0.8"/>
+    <!-- 数据流 -->
+    <line x1="10" y1="3" x2="10" y2="11" stroke="#fff" stroke-width="0.5" opacity="0.5"/>
+  </g>
+  
+  <!-- 项目名称 -->
+  <text x="64" y="18" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#ccc">sqlmapWebUI</text>
+  
+  <!-- 操作轨迹线 -->
+  <path d="M 26 38 Q 35 30 48 38" stroke="#555" stroke-width="1" fill="none" opacity="0.6"/>
+  <path d="M 101 38 Q 90 45 78 45" stroke="#555" stroke-width="1" fill="none" opacity="0.6"/>
+  <path d="M 79 67 Q 70 60 55 55" stroke="#555" stroke-width="1" fill="none" opacity="0.6"/>
+</svg>

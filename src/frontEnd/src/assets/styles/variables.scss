@@ -1,83 +1,4 @@
-// SCSS全局变量
-
-// ==================== 3D立体质感设计系统 ====================
-
-// 渐变色彩系统
-$gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-$gradient-secondary: linear-gradient(135deg, #06b6d4 0%, #10b981 100%);
-$gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
-$gradient-warning: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
-$gradient-danger: linear-gradient(135deg, #ef4444 0%, #ec4899 100%);
-$gradient-info: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-
-// 多彩渐变系统
-$gradient-rainbow: linear-gradient(135deg, #f66 0%, #6cf 50%, #6f6 100%);
-$gradient-sunset: linear-gradient(135deg, #ff6b6b 0%, #ffd93d 50%, #6bcf7f 100%);
-$gradient-ocean: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-$gradient-fire: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-
-// 3D阴影系统
-$shadow-inset-light: inset 0 1px 2px rgba(255, 255, 255, 0.8);
-$shadow-inset-dark: inset 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 0 15px rgba(0, 0, 0, 0.2);
-$shadow-inset-deep: inset 0 3px 12px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(0, 0, 0, 0.3);
-
-$shadow-raised: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1), 0 16px 32px rgba(0, 0, 0, 0.05);
-$shadow-elevated: 0 4px 8px rgba(0, 0, 0, 0.12), 0 12px 24px rgba(0, 0, 0, 0.12), 0 24px 48px rgba(0, 0, 0, 0.08);
-$shadow-floating: 0 8px 16px rgba(0, 0, 0, 0.15), 0 16px 32px rgba(0, 0, 0, 0.15), 0 32px 64px rgba(0, 0, 0, 0.1);
-
-$shadow-pressed: inset 0 2px 8px rgba(0, 0, 0, 0.15), inset 0 0 12px rgba(0, 0, 0, 0.1);
-$shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3), 0 0 40px rgba(99, 102, 241, 0.1);
-
-// 立体边缘效果
-$border-highlight: 1px solid rgba(255, 255, 255, 0.6);
-$border-shadow: 1px solid rgba(0, 0, 0, 0.1);
-
-// ==================== 基础颜色系统 ====================
-
-// 主题色
-$primary-color: #6366f1;
-$secondary-color: #06b6d4;
-$success-color: #10b981;
-$warning-color: #f59e0b;
-$danger-color: #ef4444;
-$info-color: #3b82f6;
-
-// 文本颜色
-$text-color: #1f2937;
-$text-color-secondary: #6b7280;
-$text-color-light: #9ca3af;
-$text-color-white: #ffffff;
-
-// 背景色
-$bg-color: #ffffff;
-$bg-color-secondary: #f8fafc;
-$bg-color-tertiary: #f1f5f9;
-$bg-color-dark: #0f172a;
-
-// 表面颜色(用于立体效果)
-$surface-white: #ffffff;
-$surface-light: #f8fafc;
-$surface-lighter: #f1f5f9;
-$surface-gray: #e2e8f0;
-
-// ==================== 立体效果参数 ====================
-
-// 边框圆角
-$border-radius: 8px;
-$border-radius-sm: 6px;
-$border-radius-md: 10px;
-$border-radius-lg: 16px;
-$border-radius-xl: 24px;
-$border-radius-full: 50px;
-
-// 间距
-$spacing-unit: 8px;
-$spacing-xs: $spacing-unit * 0.5; // 4px
-$spacing-sm: $spacing-unit; // 8px
-$spacing-md: $spacing-unit * 2; // 16px
-$spacing-lg: $spacing-unit * 3; // 24px
-$spacing-xl: $spacing-unit * 4; // 32px
-$spacing-2xl: $spacing-unit * 6; // 48px
+// SCSS变量 - 仅保留基础变量
 
 // 字体
 $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -87,27 +8,24 @@ $font-size-base: 16px;
 $font-size-lg: 18px;
 $font-size-xl: 20px;
 $font-size-2xl: 24px;
-$font-size-3xl: 32px;
+
+// 间距
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+
+// 圆角
+$border-radius: 6px;
+$border-radius-lg: 8px;
+$border-radius-xl: 12px;
 
 // 字重
-$font-weight-light: 300;
 $font-weight-normal: 400;
 $font-weight-medium: 500;
 $font-weight-semibold: 600;
 $font-weight-bold: 700;
 
-// 过渡动画
-$transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-$transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-$transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-
-// 3D变换
-$transform-hover: translateY(-2px) scale(1.02);
-$transform-press: translateY(0px) scale(0.98);
-$transform-float: translateY(-4px) scale(1.05);
-
-// Z-index层级
-$z-index-dropdown: 1000;
-$z-index-modal: 1050;
-$z-index-popover: 1060;
-$z-index-tooltip: 1070;
+// 过渡
+$transition-base: all 0.2s ease;

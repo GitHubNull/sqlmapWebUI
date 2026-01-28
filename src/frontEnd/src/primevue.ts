@@ -1,41 +1,31 @@
 import type { App } from 'vue'
 import PrimeVue from 'primevue/config'
-import Lara from '@primevue/themes/lara'
+import Aura from '@primevue/themes/aura'
 import Tooltip from 'primevue/tooltip'
 import ToastService from 'primevue/toastservice'
 import ConfirmationService from 'primevue/confirmationservice'
-import Select from 'primevue/select'
-import ToggleSwitch from 'primevue/toggleswitch'
 
-// 导入PrimeIcons图标库CSS(使用直接路径)
+// 导入 PrimeIcons
 import 'primeicons/primeicons.css'
 
 export function setupPrimeVue(app: App) {
   app.use(PrimeVue, {
     theme: {
-      preset: Lara,
+      preset: Aura,
       options: {
-        darkModeSelector: '.dark-mode',
-        cssLayer: {
-          name: 'primevue',
-          order: 'tailwind-base, primevue, tailwind-utilities'
-        }
+        prefix: 'p',
+        darkModeSelector: '.app-dark',
+        cssLayer: false
       }
     },
     ripple: true,
-    inputStyle: 'outlined',
+    inputStyle: 'outlined'
   })
-  
-  // 注册ToastService
+
+  // 注册服务
   app.use(ToastService)
-  
-  // 注册ConfirmationService
   app.use(ConfirmationService)
-  
-  // 注册Tooltip指令
+
+  // 注册指令
   app.directive('tooltip', Tooltip)
-  
-  // 显式注册Select组件(解决PrimeVueResolver未自动识别问题)
-  app.component('Select', Select)
-  app.component('ToggleSwitch', ToggleSwitch)
 }

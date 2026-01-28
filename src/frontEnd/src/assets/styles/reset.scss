@@ -3,72 +3,39 @@
 *::before,
 *::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
-// 强制隐藏html和body的滚动条
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow: hidden !important;
-  height: 100vh;
-  width: 100vw;
-  position: fixed;
-  
-  // 隐藏滚动条但保持功能（如果需要的话）
-  &::-webkit-scrollbar {
-    display: none;
-    width: 0;
-    height: 0;
-  }
-  scrollbar-width: none;  // Firefox
-  -ms-overflow-style: none;  // IE and Edge
+  height: 100%;
 }
 
 body {
   margin: 0;
+  padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  color: #495057;
-  background-color: #F8F9FA;
-  overflow: hidden !important;
-  height: 100vh;
-  width: 100vw;
-  position: fixed;
-  
-  // 隐藏滚动条
-  &::-webkit-scrollbar {
-    display: none;
-    width: 0;
-    height: 0;
-  }
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  height: 100%;
+  overflow: hidden;
 }
 
 #app {
   height: 100vh;
-  width: 100vw;
-  overflow: hidden !important;
-  position: relative;
+  overflow: hidden;
 }
 
 a {
-  color: #3B82F6;
   text-decoration: none;
-  transition: color 0.3s ease;
-
-  &:hover {
-    color: #2563EB;
-  }
 }
 
 ul,
 ol {
   list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 img {
@@ -89,5 +56,4 @@ textarea,
 select {
   font-family: inherit;
   font-size: inherit;
-  // 不重置边框，允许组件自定义边框样式
 }

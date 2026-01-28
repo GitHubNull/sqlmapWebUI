@@ -12,10 +12,12 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     Badge: typeof import('primevue/badge')['default']
+    BatchActionsToolbar: typeof import('./components/BatchActionsToolbar.vue')['default']
     Button: typeof import('primevue/button')['default']
     Card: typeof import('primevue/card')['default']
     Checkbox: typeof import('primevue/checkbox')['default']
     Column: typeof import('primevue/column')['default']
+    CommandLinePreview: typeof import('./components/CommandLinePreview.vue')['default']
     DataTable: typeof import('primevue/datatable')['default']
     Dialog: typeof import('primevue/dialog')['default']
     Divider: typeof import('primevue/divider')['default']
@@ -36,8 +38,10 @@ declare module 'vue' {
     ProgressSpinner: typeof import('primevue/progressspinner')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SearchFilterBar: typeof import('./components/SearchFilterBar.vue')['default']
     SelectButton: typeof import('primevue/selectbutton')['default']
     Slider: typeof import('primevue/slider')['default']
+    StatCard: typeof import('./components/StatCard.vue')['default']
     Tag: typeof import('primevue/tag')['default']
     TaskFilter: typeof import('./components/TaskFilter.vue')['default']
     TaskSummary: typeof import('./components/TaskSummary.vue')['default']
