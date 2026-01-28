@@ -504,13 +504,13 @@ onMounted(() => {
 .search-section {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.7) 100%);
   border: 1px solid rgba(226, 232, 240, 0.5);
-  border-radius: $border-radius;
+  border-radius: var(--p-border-radius);
   padding: 12px;
   
   .search-title {
     font-weight: 600;
     font-size: 13px;
-    color: $text-color;
+    color: var(--p-text-color);
     margin-bottom: 8px;
   }
   
@@ -522,7 +522,7 @@ onMounted(() => {
     
     label {
       font-size: 13px;
-      color: $text-color;
+      color: var(--p-text-color);
     }
     
     .search-input {
@@ -531,7 +531,7 @@ onMounted(() => {
     
     .checkbox-text {
       font-size: 13px;
-      color: $text-color;
+      color: var(--p-text-color);
     }
   }
 }
@@ -551,16 +551,16 @@ onMounted(() => {
 .table-section {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.7) 100%);
   border: 1px solid rgba(226, 232, 240, 0.5);
-  border-radius: $border-radius;
+  border-radius: var(--p-border-radius);
   padding: 12px;
   
   .table-title {
     font-weight: 600;
     font-size: 14px;
-    color: $text-color;
+    color: var(--p-text-color);
     margin-bottom: 12px;
     padding-bottom: 8px;
-    border-bottom: 2px solid $primary-color;
+    border-bottom: 2px solid var(--p-primary-color);
   }
 }
 
@@ -575,10 +575,10 @@ onMounted(() => {
 
 .status-bar {
   font-size: 13px;
-  color: $text-color-secondary;
+  color: var(--p-text-color)-secondary;
   padding: 8px 12px;
   background: rgba(248, 250, 252, 0.5);
-  border-radius: $border-radius;
+  border-radius: var(--p-border-radius);
 }
 
 .dialog-form, .import-form {
@@ -594,7 +594,7 @@ onMounted(() => {
     label {
       font-size: 13px;
       font-weight: 500;
-      color: $text-color-secondary;
+      color: var(--p-text-color)-secondary;
     }
   }
 }

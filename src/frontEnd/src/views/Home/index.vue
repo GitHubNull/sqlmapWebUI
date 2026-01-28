@@ -66,20 +66,20 @@ import StatCard from '@/components/StatCard.vue'
 const router = useRouter()
 const taskStore = useTaskStore()
 
-const statusStats = [
-  { key: 'total', label: '总任务数', icon: 'pi pi-list', severity: 'info' as const, filter: 'all' },
-  { key: 'running', label: '运行中', icon: 'pi pi-spin pi-spinner', severity: 'primary' as const, filter: 'running' },
-  { key: 'pending', label: '等待中', icon: 'pi pi-clock', severity: 'warn' as const, filter: 'pending' },
-  { key: 'success', label: '已完成', icon: 'pi pi-check-circle', severity: 'success' as const, filter: 'success' },
-  { key: 'failed', label: '失败', icon: 'pi pi-times-circle', severity: 'danger' as const, filter: 'failed' },
-  { key: 'stopped', label: '已停止', icon: 'pi pi-stop-circle', severity: 'secondary' as const, filter: 'stopped' },
-  { key: 'terminated', label: '已终止', icon: 'pi pi-ban', severity: 'secondary' as const, filter: 'terminated' },
+const statusStats: Array<{ key: keyof typeof taskStore.taskStats; label: string; icon: string; severity: 'info' | 'primary' | 'warn' | 'success' | 'danger' | 'secondary'; filter: FilterType }> = [
+  { key: 'total', label: '总任务数', icon: 'pi pi-list', severity: 'info', filter: 'all' },
+  { key: 'running', label: '运行中', icon: 'pi pi-spin pi-spinner', severity: 'primary', filter: 'running' },
+  { key: 'pending', label: '等待中', icon: 'pi pi-clock', severity: 'warn', filter: 'pending' },
+  { key: 'success', label: '已完成', icon: 'pi pi-check-circle', severity: 'success', filter: 'success' },
+  { key: 'failed', label: '失败', icon: 'pi pi-times-circle', severity: 'danger', filter: 'failed' },
+  { key: 'stopped', label: '已停止', icon: 'pi pi-stop-circle', severity: 'secondary', filter: 'stopped' },
+  { key: 'terminated', label: '已终止', icon: 'pi pi-ban', severity: 'secondary', filter: 'terminated' },
 ]
 
-const injectionStats = [
-  { key: 'injectable', label: '存在注入', icon: 'pi pi-exclamation-triangle', severity: 'danger' as const, filter: 'injectable' },
-  { key: 'nonInjectable', label: '无注入', icon: 'pi pi-check-circle', severity: 'success' as const, filter: 'not_injectable' },
-  { key: 'unknown', label: '未知状态', icon: 'pi pi-question-circle', severity: 'secondary' as const, filter: 'unknown' },
+const injectionStats: Array<{ key: keyof typeof taskStore.taskStats; label: string; icon: string; severity: 'info' | 'primary' | 'warn' | 'success' | 'danger' | 'secondary'; filter: FilterType }> = [
+  { key: 'injectable', label: '存在注入', icon: 'pi pi-exclamation-triangle', severity: 'danger', filter: 'injectable' },
+  { key: 'nonInjectable', label: '无注入', icon: 'pi pi-check-circle', severity: 'success', filter: 'not_injectable' },
+  { key: 'unknown', label: '未知状态', icon: 'pi pi-question-circle', severity: 'secondary', filter: 'unknown' },
 ]
 
 onMounted(async () => {

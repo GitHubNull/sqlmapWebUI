@@ -151,7 +151,7 @@ async function copyCommand() {
 :deep(.preset-tabs) {
   .p-tablist {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.6) 100%);
-    border-radius: $border-radius;
+    border-radius: var(--p-border-radius);
     padding: 4px 8px;
     gap: 8px;
     margin-bottom: 16px;
@@ -159,7 +159,7 @@ async function copyCommand() {
 
   .p-tab {
     padding: 10px 20px;
-    border-radius: $border-radius;
+    border-radius: var(--p-border-radius);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -176,9 +176,8 @@ async function copyCommand() {
   }
 
   .p-tab[data-p-active="true"] {
-    background: $gradient-primary;
+    background: var(--p-primary-color);
     color: white;
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
 
     i {
       color: white;
@@ -196,7 +195,7 @@ async function copyCommand() {
     background: #1e1e1e;
     color: #d4d4d4;
     padding: 16px;
-    border-radius: $border-radius;
+    border-radius: var(--p-border-radius);
     font-family: 'Consolas', 'Monaco', monospace;
     font-size: 13px;
     line-height: 1.5;

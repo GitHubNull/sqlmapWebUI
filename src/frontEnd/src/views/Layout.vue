@@ -144,9 +144,10 @@ function handleKeyboardShortcut(event: KeyboardEvent): void {
       '3': '/add-task',
       '4': '/config',
     }
-    if (keyMap[event.key]) {
+    const key = event.key
+    if (key && keyMap[key]) {
       event.preventDefault()
-      navigateTo(keyMap[event.key])
+      navigateTo(keyMap[key])
     }
   }
 }

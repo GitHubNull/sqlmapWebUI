@@ -157,7 +157,7 @@ import Divider from 'primevue/divider'
 import HttpCodeEditor from '@/components/HttpCodeEditor.vue'
 import CommandLinePreview from '@/components/CommandLinePreview.vue'
 import { parseHttpRequest } from '@/utils/httpRequestParser'
-import { createTask } from '@/api/task'
+import { addTask } from '@/api/task'
 
 const router = useRouter()
 const toast = useToast()
@@ -269,10 +269,12 @@ function onInputChange() {
 function parseInput() {
   try {
     const result = parseHttpRequest(inputContent.value)
-    if (result) {
-      rawHttpContent.value = result.raw
-      parsedRequest.value = result.parsed
+    if (result.success) {
+      rawHttpContent.value = result.rawHttp || ''
+      parsedRequest.value = result.data
       toast.add({ severity: 'success', summary: '解析成功', life: 2000 })
+    } else {
+      toast.add({ severity: 'error', summary: '解析失败', detail: result.error, life: 3000 })
     }
   } catch (error) {
     toast.add({ severity: 'error', summary: '解析失败', detail: String(error), life: 3000 })
@@ -301,8 +303,8 @@ async function submitTask() {
   
   submitting.value = true
   try {
-    const result = await createTask({
-      request: rawHttpContent.value,
+    const result = await addTask({
+      scanUrl: rawHttpContent.value,
       options: {
         level: configOptions.level ? configOptions.levelValue : undefined,
         threads: configOptions.threads ? configOptions.threadsValue : undefined,

@@ -298,23 +298,23 @@ onMounted(async () => {
 .left-panel, .right-panel {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.7) 100%);
   border: 1px solid rgba(226, 232, 240, 0.5);
-  border-radius: $border-radius;
+  border-radius: var(--p-border-radius);
   padding: 16px;
 }
 
 .section-title {
   font-weight: 600;
   font-size: 15px;
-  color: $text-color;
+  color: var(--p-text-color);
   margin-bottom: 16px;
   padding-bottom: 8px;
-  border-bottom: 2px solid $primary-color;
+  border-bottom: 2px solid var(--p-primary-color);
 }
 
 .section-subtitle {
   font-weight: 600;
   font-size: 14px;
-  color: $text-color;
+  color: var(--p-text-color);
   margin-bottom: 12px;
 }
 
@@ -333,17 +333,17 @@ onMounted(async () => {
     min-width: 100px;
     font-size: 13px;
     font-weight: 500;
-    color: $text-color;
+    color: var(--p-text-color);
   }
   
   .param-desc {
     font-size: 12px;
-    color: $text-color-secondary;
+    color: var(--p-text-color)-secondary;
   }
   
   .checkbox-label {
     font-size: 13px;
-    color: $text-color;
+    color: var(--p-text-color);
   }
 }
 
@@ -402,7 +402,7 @@ onMounted(async () => {
 
 .source-desc {
   font-size: 12px;
-  color: $text-color-secondary;
+  color: var(--p-text-color)-secondary;
   margin-left: 28px;
   margin-bottom: 8px;
 }
@@ -431,7 +431,7 @@ onMounted(async () => {
   
   .option-desc {
     font-size: 12px;
-    color: $text-color-secondary;
+    color: var(--p-text-color)-secondary;
     margin-left: 28px;
     margin-top: 4px;
   }
@@ -444,7 +444,7 @@ onMounted(async () => {
   gap: 16px;
   padding: 12px;
   background: rgba(248, 250, 252, 0.5);
-  border-radius: $border-radius;
+  border-radius: var(--p-border-radius);
   
   .persist-option {
     display: flex;
@@ -459,7 +459,7 @@ onMounted(async () => {
 
 .preview-section {
   background: #1e1e1e;
-  border-radius: $border-radius;
+  border-radius: var(--p-border-radius);
   overflow: hidden;
   
   .section-title {
