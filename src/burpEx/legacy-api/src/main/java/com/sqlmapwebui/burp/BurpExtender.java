@@ -43,7 +43,7 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
     private SqlmapUITab uiTab;
     
     private static final String EXTENSION_NAME = "SQLMap WebUI";
-    private static final String EXTENSION_VERSION = "1.0.0";
+    private static final String EXTENSION_VERSION = "1.8.16";
     
     /**
      * 过滤结果类 - 存储过滤后的纯文本请求和过滤统计

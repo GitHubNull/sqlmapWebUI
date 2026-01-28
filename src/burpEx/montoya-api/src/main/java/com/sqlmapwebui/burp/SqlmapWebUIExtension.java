@@ -19,7 +19,7 @@ import burp.api.montoya.MontoyaApi;
 public class SqlmapWebUIExtension implements BurpExtension {
     
     private static final String EXTENSION_NAME = "SQLMap WebUI";
-    private static final String EXTENSION_VERSION = "1.0.0";
+    private static final String EXTENSION_VERSION = "1.8.16";
     
     private MontoyaApi api;
     private ConfigManager configManager;

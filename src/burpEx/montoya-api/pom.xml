@@ -6,7 +6,7 @@
 
     <groupId>com.sqlmapwebui</groupId>
     <artifactId>sqlmap-webui-burp-montoya</artifactId>
-    <version>1.8.14</version>
+    <version>1.8.16</version>
     <packaging>jar</packaging>
 
     <name>SQLMap WebUI Burp Extension (Montoya API)</name>

@@ -125,7 +125,12 @@ public class BinaryContentDetector {
         String contentType = getContentType(request);
         if (contentType != null && !contentType.isEmpty()) {
             DetectionResult contentTypeResult = checkContentType(contentType);
-            if (contentTypeResult.isBinary()) {
+            // 如果是已知文本类型，直接返回文本结果，不再进行后续检测
+            if (!contentTypeResult.isBinary()) {
+                return contentTypeResult;
+            }
+            // 如果是已知二进制类型，直接返回二进制结果
+            if (contentTypeResult.getReason().startsWith("已知二进制类型")) {
                 return contentTypeResult;
             }
         }
@@ -139,7 +144,7 @@ public class BinaryContentDetector {
             }
         }
         
-        // 3. 检查请求体是否包含二进制数据
+        // 3. 检查请求体是否包含二进制数据（仅针对未知类型）
         byte[] body = request.body().getBytes();
         if (body != null && body.length > 0) {
             DetectionResult bodyResult = checkBodyForBinary(body);
