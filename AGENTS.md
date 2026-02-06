@@ -122,9 +122,122 @@ sqlmapWebUI/
   - Port pattern (supports multiple values)
   - Path pattern (supports wildcards)
   - Regex support for complex matching
-- **Batch Import**: Import multiple headers from text
-
-### VulnShop Lab
+   - **Batch Import**: Import multiple headers from text
+   - **Batch Import**: Import multiple headers from text
+   
+   ### 完整 SQLMap 参数支持
+   
+   本项目支持 SQLMap 的 **215 个参数**（除 `-r` 外），完全兼容 SQLMap 1.9.11.3+。
+   
+   #### 参数分类总览
+   
+   | 分类 | 参数数量 | 说明 |
+   |------|---------|------|
+   | Target | 8 | 目标定义（URL、日志、批量文件等）|
+   | Request | 51 | HTTP 请求配置（认证、代理、CSRF 等）|
+   | Optimization | 5 | 性能优化（线程、连接等）|
+   | Injection | 17 | 注入测试配置（测试参数、注入技术等）|
+   | Detection | 8 | 检测配置（level、risk、匹配规则等）|
+   | Techniques | 9 | 注入技术配置（UNION、DNS 外泄等）|
+   | Fingerprint | 1 | 数据库指纹识别 |
+   | Enumeration | 36 | 数据枚举（表、列、用户等）|
+   | Brute Force | 3 | 暴力破解（常见表、列、文件）|
+   | UDF | 2 | 用户自定义函数注入 |
+   | File System | 3 | 文件系统访问（读、写文件）|
+   | OS Takeover | 8 | 操作系统接管（命令执行、shell 等）|
+   | Windows Registry | 6 | Windows 注册表操作 |
+   | General | 38 | 通用选项（输出格式、会话管理等）|
+   | Miscellaneous | 17 | 其他选项（工具、调试等）|
+   
+   #### 完整参数列表
+   
+   详见 `doc/SQLMap参数支持进度.md` 获取所有 215 个参数的详细列表和分类。
+   
+   #### 重点参数说明
+   
+   **--answers 参数（预定义答案）**:
+   ```bash
+   --answers="quit=N,follow=N,extending=N"
+   ```
+   用于在非交互式扫描中预定义 SQLMap 询问的答案，实现自动化扫描。
+   
+   **常见参数组合**:
+   
+   - **基础扫描**:
+     ```bash
+     --batch --level=1 --risk=1
+     ```
+   
+   - **深度扫描**:
+     ```bash
+     --batch --level=5 --risk=3 --technique=BEUSTQ
+     ```
+   
+   - **高级请求配置**:
+     ```bash
+     --method=POST --data="id=1" --cookie="session=abc123"
+     --headers="X-Custom-Header: value" --random-agent
+     ```
+   
+   - **代理和认证**:
+     ```bash
+     --proxy="http://127.0.0.1:8080" --auth-type=Basic
+     --auth-cred="user:pass"
+     ```
+   
+   - **枚举数据**:
+     ```bash
+     --batch --dbs --tables --columns --dump
+     -D=testdb -T=users -C=id,password
+     ```
+   
+   - **导出配置**:
+     ```bash
+     --dump-format=CSV --csv-del=";" --output-dir="/tmp/scan_results"
+     ```
+   
+   #### 限制说明
+   
+   **已排除的参数**:
+   - `-r` (`--requestFile`): 由 Web UI 通过 HTTP 请求文件功能处理，不通过命令行参数传递
+   
+   **SQLMap RESTAPI 限制**:
+   以下参数由 SQLMap RESTAPI 限制，在 Burp 插件中会显示为置灰不可用：
+   - `sqlShell` (`--sql-shell`): 交互式 SQL shell
+   - `wizard` (`--wizard`): 向导模式
+   
+   **安全警告**:
+   以下参数会在 UI 中显示明显的安全警告标识（⚠️）：
+   
+   - **严重** (🚫 红色): 可远程执行系统命令或修改注册表，风险极高
+     - `osCmd`, `osPwn`, `osSmb`, `osBof`, `regRead`, `regAdd`, `regDel`
+   
+   - **高危** (⚠️ 橙色): 可访问操作系统或提升权限
+     - `osShell`, `privEsc`
+   
+   - **中危** (⚠️ 橙色): 可访问文件系统
+     - `fileRead`, `fileWrite`, `fileDest`
+   
+   **使用建议**:
+   - 仅在授权的测试环境中使用危险参数
+   - 了解潜在的安全风险和法律法规要求
+   - 建议先在隔离环境中测试
+   
+   #### 常见问题解答
+   
+   **Q: 为什么某些参数显示为置灰不可用？**
+   A: 这些参数由 SQLMap RESTAPI 限制，无法通过 API 调用。如需使用这些参数，请使用命令行版本的 SQLMap。
+   
+   **Q: 如何使用 --answers 参数？**
+   A: --answers 参数用于预定义 SQLMap 在扫描过程中的答案，实现非交互式自动化扫描。
+   
+   **Q: 如何配置代理？**
+   A: 使用 --proxy 参数指定代理服务器，支持 HTTP/HTTPS/SOCKS 代理。
+   
+   **Q: 危险参数有风险吗？**
+   A: 危险参数（如 os-cmd）允许远程执行系统命令，请确保：1. 仅在授权测试环境中使用；2. 了解潜在的安全风险；3. 遵守相关法律法规。
+   
+   ### VulnShop Lab
 - 8 SQL injection vulnerability types
 - 3 WAF difficulty levels (Easy/Medium/Hard)
 - Light/Dark theme support

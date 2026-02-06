@@ -42,8 +42,19 @@ public class ScanConfigParser {
     
     // 支持的 HTTP 方法
     private static final Set<String> VALID_METHODS = new HashSet<>(Arrays.asList(
-        "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE"
+        "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"
     ));
+    
+    // 危险参数列表（可能导致数据泄露或系统访问）
+    private static final Set<String> DANGEROUS_PARAMS = new HashSet<>(Arrays.asList(
+        "osCmd", "osShell", "osPwn", "osSmb", "osBof",
+        "privEsc", "regRead", "regAdd", "regDel"
+    ));
+    
+    // 危险等级说明
+    private static final String DANGER_CRITICAL = "严重 - 可执行系统命令或修改注册表";
+    private static final String DANGER_HIGH = "高危 - 可访问操作系统";
+    private static final String DANGER_MEDIUM = "中危 - 可访问文件系统";
     
     // SQLMap 所有合法参数名称集合（排除 -r，从 sqlmap --help 提取）
     private static final Set<String> ALL_SQLMAP_PARAMS = new HashSet<>(Arrays.asList(
@@ -252,6 +263,182 @@ public class ScanConfigParser {
         PARAM_NAME_MAP.put("tmp-dir", "tmpDir");
         PARAM_NAME_MAP.put("http1.0", "http10");
         
+        // Target 参数映射
+        PARAM_NAME_MAP.put("direct", "direct");
+        PARAM_NAME_MAP.put("logFile", "logFile");
+        PARAM_NAME_MAP.put("bulkFile", "bulkFile");
+        PARAM_NAME_MAP.put("sessionFile", "sessionFile");
+        PARAM_NAME_MAP.put("googleDork", "googleDork");
+        PARAM_NAME_MAP.put("configFile", "configFile");
+        
+        // General 扩展参数映射
+        PARAM_NAME_MAP.put("trafficFile", "trafficFile");
+        PARAM_NAME_MAP.put("abortOnEmpty", "abortOnEmpty");
+        PARAM_NAME_MAP.put("answers", "answers");
+        PARAM_NAME_MAP.put("base64Parameter", "base64Parameter");
+        PARAM_NAME_MAP.put("base64Safe", "base64Safe");
+        PARAM_NAME_MAP.put("binaryFields", "binaryFields");
+        PARAM_NAME_MAP.put("charset", "charset");
+        PARAM_NAME_MAP.put("checkInternet", "checkInternet");
+        PARAM_NAME_MAP.put("cleanup", "cleanup");
+        PARAM_NAME_MAP.put("crawlExclude", "crawlExclude");
+        PARAM_NAME_MAP.put("csvDel", "csvDel");
+        PARAM_NAME_MAP.put("dumpFile", "dumpFile");
+        PARAM_NAME_MAP.put("dumpFormat", "dumpFormat");
+        PARAM_NAME_MAP.put("encoding", "encoding");
+        PARAM_NAME_MAP.put("googlePage", "googlePage");
+        PARAM_NAME_MAP.put("harFile", "harFile");
+        PARAM_NAME_MAP.put("hexConvert", "hexConvert");
+        PARAM_NAME_MAP.put("outputDir", "outputDir");
+        PARAM_NAME_MAP.put("parseErrors", "parseErrors");
+        PARAM_NAME_MAP.put("preprocess", "preprocess");
+        PARAM_NAME_MAP.put("postprocess", "postprocess");
+        PARAM_NAME_MAP.put("repair", "repair");
+        PARAM_NAME_MAP.put("saveConfig", "saveConfig");
+        PARAM_NAME_MAP.put("scope", "scope");
+        PARAM_NAME_MAP.put("skipHeuristics", "skipHeuristics");
+        PARAM_NAME_MAP.put("skipWaf", "skipWaf");
+        PARAM_NAME_MAP.put("tablePrefix", "tablePrefix");
+        PARAM_NAME_MAP.put("testFilter", "testFilter");
+        PARAM_NAME_MAP.put("testSkip", "testSkip");
+        PARAM_NAME_MAP.put("timeLimit", "timeLimit");
+        PARAM_NAME_MAP.put("unsafeNaming", "unsafeNaming");
+        PARAM_NAME_MAP.put("webRoot", "webRoot");
+        
+        // Request 扩展参数映射
+        PARAM_NAME_MAP.put("paramDel", "paramDel");
+        PARAM_NAME_MAP.put("cookieDel", "cookieDel");
+        PARAM_NAME_MAP.put("liveCookies", "liveCookies");
+        PARAM_NAME_MAP.put("loadCookies", "loadCookies");
+        PARAM_NAME_MAP.put("dropSetCookie", "dropSetCookie");
+        PARAM_NAME_MAP.put("http2", "http2");
+        PARAM_NAME_MAP.put("http10", "http10");
+        PARAM_NAME_MAP.put("mobile", "mobile");
+        PARAM_NAME_MAP.put("authType", "authType");
+        PARAM_NAME_MAP.put("authCred", "authCred");
+        PARAM_NAME_MAP.put("authFile", "authFile");
+        PARAM_NAME_MAP.put("abortCode", "abortCode");
+        PARAM_NAME_MAP.put("ignoreCode", "ignoreCode");
+        PARAM_NAME_MAP.put("ignoreProxy", "ignoreProxy");
+        PARAM_NAME_MAP.put("ignoreRedirects", "ignoreRedirects");
+        PARAM_NAME_MAP.put("ignoreTimeouts", "ignoreTimeouts");
+        PARAM_NAME_MAP.put("proxyFile", "proxyFile");
+        PARAM_NAME_MAP.put("proxyFreq", "proxyFreq");
+        PARAM_NAME_MAP.put("torPort", "torPort");
+        PARAM_NAME_MAP.put("torType", "torType");
+        PARAM_NAME_MAP.put("checkTor", "checkTor");
+        PARAM_NAME_MAP.put("retryOn", "retryOn");
+        PARAM_NAME_MAP.put("randomize", "rParam");
+        PARAM_NAME_MAP.put("safeUrl", "safeUrl");
+        PARAM_NAME_MAP.put("safePost", "safePost");
+        PARAM_NAME_MAP.put("safeReqFile", "safeReqFile");
+        PARAM_NAME_MAP.put("safeFreq", "safeFreq");
+        PARAM_NAME_MAP.put("csrfToken", "csrfToken");
+        PARAM_NAME_MAP.put("csrfUrl", "csrfUrl");
+        PARAM_NAME_MAP.put("csrfMethod", "csrfMethod");
+        PARAM_NAME_MAP.put("csrfData", "csrfData");
+        PARAM_NAME_MAP.put("csrfRetries", "csrfRetries");
+        PARAM_NAME_MAP.put("chunked", "chunked");
+        PARAM_NAME_MAP.put("hpp", "hpp");
+        PARAM_NAME_MAP.put("evalCode", "evalCode");
+        
+        // Optimization 扩展参数映射
+        PARAM_NAME_MAP.put("predictOutput", "predictOutput");
+        
+        // Injection 扩展参数映射
+        PARAM_NAME_MAP.put("paramFilter", "paramFilter");
+        PARAM_NAME_MAP.put("dbmsCred", "dbmsCred");
+        PARAM_NAME_MAP.put("invalidBignum", "invalidBignum");
+        PARAM_NAME_MAP.put("invalidLogical", "invalidLogical");
+        PARAM_NAME_MAP.put("invalidString", "invalidString");
+        PARAM_NAME_MAP.put("noCast", "noCast");
+        PARAM_NAME_MAP.put("noEscape", "noEscape");
+        
+        // Techniques 扩展参数映射
+        PARAM_NAME_MAP.put("disableStats", "disableStats");
+        PARAM_NAME_MAP.put("union-cols", "uCols");
+        PARAM_NAME_MAP.put("union-char", "uChar");
+        PARAM_NAME_MAP.put("union-from", "uFrom");
+        PARAM_NAME_MAP.put("union-values", "uValues");
+        PARAM_NAME_MAP.put("dns-domain", "dnsDomain");
+        PARAM_NAME_MAP.put("second-url", "secondUrl");
+        PARAM_NAME_MAP.put("second-req", "secondReq");
+        
+        // Fingerprint 扩展参数映射
+        PARAM_NAME_MAP.put("fingerprint", "extensiveFp");
+        
+        // Enumeration 扩展参数映射
+        PARAM_NAME_MAP.put("all", "getAll");
+        PARAM_NAME_MAP.put("hostname", "getHostname");
+        PARAM_NAME_MAP.put("passwords", "getPasswords");
+        PARAM_NAME_MAP.put("privileges", "getPrivileges");
+        PARAM_NAME_MAP.put("roles", "getRoles");
+        PARAM_NAME_MAP.put("schema", "getSchema");
+        PARAM_NAME_MAP.put("count", "getCount");
+        PARAM_NAME_MAP.put("search", "search");
+        PARAM_NAME_MAP.put("comments", "getComments");
+        PARAM_NAME_MAP.put("statements", "getStatements");
+        PARAM_NAME_MAP.put("exclude", "exclude");
+        PARAM_NAME_MAP.put("pivot-column", "pivotColumn");
+        PARAM_NAME_MAP.put("where", "dumpWhere");
+        PARAM_NAME_MAP.put("user", "user");
+        PARAM_NAME_MAP.put("exclude-sysdbs", "excludeSysDbs");
+        PARAM_NAME_MAP.put("start", "limitStart");
+        PARAM_NAME_MAP.put("stop", "limitStop");
+        PARAM_NAME_MAP.put("first", "firstChar");
+        PARAM_NAME_MAP.put("last", "lastChar");
+        PARAM_NAME_MAP.put("sql-query", "sqlQuery");
+        PARAM_NAME_MAP.put("sql-shell", "sqlShell");
+        PARAM_NAME_MAP.put("sql-file", "sqlFile");
+        
+        // Brute force 参数映射
+        PARAM_NAME_MAP.put("common-tables", "commonTables");
+        PARAM_NAME_MAP.put("common-columns", "commonColumns");
+        PARAM_NAME_MAP.put("common-files", "commonFiles");
+        
+        // UDF 参数映射
+        PARAM_NAME_MAP.put("udf-inject", "udfInject");
+        PARAM_NAME_MAP.put("shared-lib", "shLib");
+        
+        // File system 参数映射
+        PARAM_NAME_MAP.put("file-read", "fileRead");
+        PARAM_NAME_MAP.put("file-write", "fileWrite");
+        PARAM_NAME_MAP.put("file-dest", "fileDest");
+        
+        // OS takeover 参数映射
+        PARAM_NAME_MAP.put("os-cmd", "osCmd");
+        PARAM_NAME_MAP.put("os-pwn", "osPwn");
+        PARAM_NAME_MAP.put("os-smbrelay", "osSmb");
+        PARAM_NAME_MAP.put("os-bof", "osBof");
+        PARAM_NAME_MAP.put("priv-esc", "privEsc");
+        PARAM_NAME_MAP.put("msf-path", "msfPath");
+        PARAM_NAME_MAP.put("tmp-path", "tmpPath");
+        
+        // Windows registry 参数映射
+        PARAM_NAME_MAP.put("reg-read", "regRead");
+        PARAM_NAME_MAP.put("reg-add", "regAdd");
+        PARAM_NAME_MAP.put("reg-del", "regDel");
+        PARAM_NAME_MAP.put("reg-key", "regKey");
+        PARAM_NAME_MAP.put("reg-value", "regVal");
+        PARAM_NAME_MAP.put("reg-data", "regData");
+        PARAM_NAME_MAP.put("reg-type", "regType");
+        
+        // Miscellaneous 参数映射
+        PARAM_NAME_MAP.put("alert", "alert");
+        PARAM_NAME_MAP.put("beep", "beep");
+        PARAM_NAME_MAP.put("dependencies", "dependencies");
+        PARAM_NAME_MAP.put("disable-coloring", "disableColoring");
+        PARAM_NAME_MAP.put("disable-hashing", "disableHashing");
+        PARAM_NAME_MAP.put("list-tampers", "listTampers");
+        PARAM_NAME_MAP.put("no-logging", "noLogging");
+        PARAM_NAME_MAP.put("no-truncate", "noTruncate");
+        PARAM_NAME_MAP.put("offline", "offline");
+        PARAM_NAME_MAP.put("purge", "purge");
+        PARAM_NAME_MAP.put("results-file", "resultsFile");
+        PARAM_NAME_MAP.put("tmp-dir", "tmpDir");
+        PARAM_NAME_MAP.put("unstable", "unstable");
+        PARAM_NAME_MAP.put("mnemonics", "mnemonics");
+        
         // 一些简单的转换
         PARAM_NAME_MAP.put("banner", "getBanner");
         PARAM_NAME_MAP.put("dump", "dumpTable");
@@ -333,6 +520,182 @@ public class ScanConfigParser {
         addOption("flush-session", "flushSession", "刷新会话", Boolean.class, false, null, null, null);
         addOption("fresh-queries", "freshQueries", "新鲜查询", Boolean.class, false, null, null, null);
         addOptionWithShort("v", "verbose", null, "详细程度 (0-6)", Integer.class, 1, 0, 6, null);
+        
+        // ==================== Target 目标选项 ====================
+        addOptionWithShort("d", "direct", null, "直接数据库连接", String.class, "", null, null, null);
+        addOptionWithShort("l", "logFile", null, "日志文件", String.class, "", null, null, null);
+        addOptionWithShort("m", "bulkFile", null, "批量文件", String.class, "", null, null, null);
+        addOptionWithShort("s", "sessionFile", null, "会话文件", String.class, "", null, null, null);
+        addOptionWithShort("g", "googleDork", null, "Google dork", String.class, "", null, null, null);
+        addOptionWithShort("c", "configFile", null, "配置文件", String.class, "", null, null, null);
+        
+        // ==================== General 扩展选项 ====================
+        addOptionWithShort("t", "trafficFile", null, "流量文件", String.class, "", null, null, null);
+        addOption("abort-on-empty", "abortOnEmpty", "空结果中止", Boolean.class, false, null, null, null);
+        addOption("answers", null, "预定义答案", String.class, "", null, null, null);
+        addOption("base64", "base64Parameter", "Base64参数", String.class, "", null, null, null);
+        addOption("base64-safe", "base64Safe", "安全Base64", Boolean.class, false, null, null, null);
+        addOption("binary-fields", "binaryFields", "二进制字段", String.class, "", null, null, null);
+        addOption("charset", null, "字符集", String.class, "", null, null, null);
+        addOption("check-internet", "checkInternet", "检查网络", Boolean.class, false, null, null, null);
+        addOption("cleanup", null, "清理", Boolean.class, false, null, null, null);
+        addOption("crawl-exclude", "crawlExclude", "排除爬取", String.class, "", null, null, null);
+        addOption("csv-del", "csvDel", "CSV分隔符", String.class, "", null, null, null);
+        addOption("dump-file", "dumpFile", "导出文件", String.class, "", null, null, null);
+        addOption("dump-format", "dumpFormat", "导出格式", String.class, "", null, null, null);
+        addOption("encoding", null, "编码", String.class, "", null, null, null);
+        addOption("gpage", "googlePage", "Google页码", Integer.class, 0, 0, null, null);
+        addOption("har", "harFile", "HAR文件", String.class, "", null, null, null);
+        addOption("hex", "hexConvert", "十六进制", Boolean.class, false, null, null, null);
+        addOption("output-dir", "outputDir", "输出目录", String.class, "", null, null, null);
+        addOption("parse-errors", "parseErrors", "解析错误", Boolean.class, false, null, null, null);
+        addOption("preprocess", null, "预处理脚本", String.class, "", null, null, null);
+        addOption("postprocess", null, "后处理脚本", String.class, "", null, null, null);
+        addOption("repair", null, "修复", Boolean.class, false, null, null, null);
+        addOption("save", "saveConfig", "保存配置", String.class, "", null, null, null);
+        addOption("scope", null, "目标范围", String.class, "", null, null, null);
+        addOption("skip-heuristics", "skipHeuristics", "跳过启发式", Boolean.class, false, null, null, null);
+        addOption("skip-waf", "skipWaf", "跳过WAF检测", Boolean.class, false, null, null, null);
+        addOption("table-prefix", "tablePrefix", "表前缀", String.class, "", null, null, null);
+        addOption("test-filter", "testFilter", "测试过滤", String.class, "", null, null, null);
+        addOption("test-skip", "testSkip", "跳过测试", String.class, "", null, null, null);
+        addOption("time-limit", "timeLimit", "时间限制", Float.class, 0f, 0f, null, null);
+        addOption("unsafe-naming", "unsafeNaming", "不安全命名", Boolean.class, false, null, null, null);
+        addOption("web-root", "webRoot", "Web根目录", String.class, "", null, null, null);
+        
+        // ==================== Request 扩展选项 ====================
+        addOption("param-del", "paramDel", "参数分隔符", String.class, "", null, null, null);
+        addOption("cookie-del", "cookieDel", "cookie分隔符", String.class, "", null, null, null);
+        addOption("live-cookies", "liveCookies", "实时cookies", String.class, "", null, null, null);
+        addOption("load-cookies", "loadCookies", "加载cookie文件", String.class, "", null, null, null);
+        addOption("drop-set-cookie", "dropSetCookie", "忽略Set-Cookie", Boolean.class, false, null, null, null);
+        addOption("http2", null, "使用HTTP/2", Boolean.class, false, null, null, null);
+        addOption("http1.0", "http10", "使用HTTP/1.0", Boolean.class, false, null, null, null);
+        addOption("mobile", null, "模拟移动端", Boolean.class, false, null, null, null);
+        addOption("auth-type", "authType", "HTTP认证类型", String.class, "", null, null, null);
+        addOption("auth-cred", "authCred", "HTTP认证凭据", String.class, "", null, null, null);
+        addOption("auth-file", "authFile", "HTTP认证文件", String.class, "", null, null, null);
+        addOption("abort-code", "abortCode", "中止错误码", String.class, "", null, null, null);
+        addOption("ignore-code", "ignoreCode", "忽略错误码", String.class, "", null, null, null);
+        addOption("ignore-proxy", "ignoreProxy", "忽略系统代理", Boolean.class, false, null, null, null);
+        addOption("ignore-redirects", "ignoreRedirects", "忽略重定向", Boolean.class, false, null, null, null);
+        addOption("ignore-timeouts", "ignoreTimeouts", "忽略超时", Boolean.class, false, null, null, null);
+        addOption("proxy-file", "proxyFile", "代理文件", String.class, "", null, null, null);
+        addOption("proxy-freq", "proxyFreq", "代理切换频率", Integer.class, 0, 0, null, null);
+        addOption("tor-port", "torPort", "Tor端口", Integer.class, 9050, 1, 65535, null);
+        addOption("tor-type", "torType", "Tor类型", String.class, "SOCKS5", null, null, null);
+        addOption("check-tor", "checkTor", "检查Tor", Boolean.class, false, null, null, null);
+        addOption("retry-on", "retryOn", "重试匹配", String.class, "", null, null, null);
+        addOption("randomize", "rParam", "随机化参数", String.class, "", null, null, null);
+        addOption("safe-url", "safeUrl", "安全URL", String.class, "", null, null, null);
+        addOption("safe-post", "safePost", "安全POST", String.class, "", null, null, null);
+        addOption("safe-req", "safeReqFile", "安全请求文件", String.class, "", null, null, null);
+        addOption("safe-freq", "safeFreq", "安全访问频率", Integer.class, 0, 0, null, null);
+        addOption("csrf-token", "csrfToken", "CSRF令牌参数", String.class, "", null, null, null);
+        addOption("csrf-url", "csrfUrl", "CSRF获取URL", String.class, "", null, null, null);
+        addOption("csrf-method", "csrfMethod", "CSRF方法", String.class, "", null, null, null);
+        addOption("csrf-data", "csrfData", "CSRF数据", String.class, "", null, null, null);
+        addOption("csrf-retries", "csrfRetries", "CSRF重试次数", Integer.class, 0, 0, null, null);
+        addOption("chunked", null, "分块传输", Boolean.class, false, null, null, null);
+        addOption("hpp", null, "HTTP参数污染", Boolean.class, false, null, null, null);
+        addOption("eval", "evalCode", "Python代码执行", String.class, "", null, null, null);
+        
+        // ==================== Optimization 扩展选项 ====================
+        addOption("predict-output", "predictOutput", "预测输出", Boolean.class, false, null, null, null);
+        
+        // ==================== Injection 扩展选项 ====================
+        addOption("param-filter", "paramFilter", "参数过滤", String.class, "", null, null, null);
+        addOption("dbms-cred", "dbmsCred", "数据库凭据", String.class, "", null, null, null);
+        addOption("invalid-bignum", "invalidBignum", "大数无效化", Boolean.class, false, null, null, null);
+        addOption("invalid-logical", "invalidLogical", "逻辑无效化", Boolean.class, false, null, null, null);
+        addOption("invalid-string", "invalidString", "字符串无效化", Boolean.class, false, null, null, null);
+        addOption("no-cast", "noCast", "禁用类型转换", Boolean.class, false, null, null, null);
+        addOption("no-escape", "noEscape", "禁用转义", Boolean.class, false, null, null, null);
+        
+        // ==================== Techniques 扩展选项 ====================
+        addOption("disable-stats", "disableStats", "禁用统计模型", Boolean.class, false, null, null, null);
+        addOption("union-cols", "uCols", "UNION列数", String.class, "", null, null, null);
+        addOption("union-char", "uChar", "UNION字符", String.class, "", null, null, null);
+        addOption("union-from", "uFrom", "UNION表", String.class, "", null, null, null);
+        addOption("union-values", "uValues", "UNION值", String.class, "", null, null, null);
+        addOption("dns-domain", "dnsDomain", "DNS外泄域名", String.class, "", null, null, null);
+        addOption("second-url", "secondUrl", "二阶URL", String.class, "", null, null, null);
+        addOption("second-req", "secondReq", "二阶请求", String.class, "", null, null, null);
+        
+        // ==================== Fingerprint 扩展选项 ====================
+        addOptionWithShort("f", "fingerprint", "extensiveFp", "扩展指纹", Boolean.class, false, null, null, null);
+        
+        // ==================== Enumeration 扩展选项 ====================
+        addOptionWithShort("a", "all", "getAll", "获取所有", Boolean.class, false, null, null, null);
+        addOption("hostname", "getHostname", "获取主机名", Boolean.class, false, null, null, null);
+        addOption("passwords", "getPasswords", "获取密码哈希", Boolean.class, false, null, null, null);
+        addOption("privileges", "getPrivileges", "获取权限", Boolean.class, false, null, null, null);
+        addOption("roles", "getRoles", "获取角色", Boolean.class, false, null, null, null);
+        addOption("schema", "getSchema", "获取架构", Boolean.class, false, null, null, null);
+        addOption("count", "getCount", "获取条目数", Boolean.class, false, null, null, null);
+        addOption("search", null, "搜索", Boolean.class, false, null, null, null);
+        addOption("comments", "getComments", "获取注释", Boolean.class, false, null, null, null);
+        addOption("statements", "getStatements", "获取SQL语句", Boolean.class, false, null, null, null);
+        addOptionWithShort("X", "exclude", null, "排除数据库", String.class, "", null, null, null);
+        addOption("pivot-column", "pivotColumn", "轴心列", String.class, "", null, null, null);
+        addOption("where", "dumpWhere", "导出WHERE条件", String.class, "", null, null, null);
+        addOptionWithShort("U", "user", null, "用户", String.class, "", null, null, null);
+        addOption("exclude-sysdbs", "excludeSysDbs", "排除系统库", Boolean.class, false, null, null, null);
+        addOption("start", "limitStart", "起始行", Integer.class, 0, 0, null, null);
+        addOption("stop", "limitStop", "结束行", Integer.class, 0, 0, null, null);
+        addOption("first", "firstChar", "起始字符", Integer.class, 0, 0, null, null);
+        addOption("last", "lastChar", "结束字符", Integer.class, 0, 0, null, null);
+        addOption("sql-query", "sqlQuery", "SQL查询", String.class, "", null, null, null);
+        addOption("sql-shell", "sqlShell", "SQL shell", Boolean.class, false, null, null, null);
+        addOption("sql-file", "sqlFile", "SQL文件", String.class, "", null, null, null);
+        
+        // ==================== Brute force 暴力破解 ====================
+        addOption("common-tables", "commonTables", "常见表", Boolean.class, false, null, null, null);
+        addOption("common-columns", "commonColumns", "常见列", Boolean.class, false, null, null, null);
+        addOption("common-files", "commonFiles", "常见文件", Boolean.class, false, null, null, null);
+        
+        // ==================== UDF ====================
+        addOption("udf-inject", "udfInject", "注入UDF", Boolean.class, false, null, null, null);
+        addOption("shared-lib", "shLib", "共享库", String.class, "", null, null, null);
+        
+        // ==================== File system 文件系统 ====================
+        addOption("file-read", "fileRead", "读取文件", String.class, "", null, null, null);
+        addOption("file-write", "fileWrite", "写入文件", String.class, "", null, null, null);
+        addOption("file-dest", "fileDest", "目标文件路径", String.class, "", null, null, null);
+        
+        // ==================== OS takeover 操作系统接管 ====================
+        addOption("os-cmd", "osCmd", "执行OS命令", String.class, "", null, null, null);
+        addOption("os-pwn", "osPwn", "OOB shell", Boolean.class, false, null, null, null);
+        addOption("os-smbrelay", "osSmb", "SMB中继", Boolean.class, false, null, null, null);
+        addOption("os-bof", "osBof", "缓冲区溢出", Boolean.class, false, null, null, null);
+        addOption("priv-esc", "privEsc", "权限提升", Boolean.class, false, null, null, null);
+        addOption("msf-path", "msfPath", "Metasploit路径", String.class, "", null, null, null);
+        addOption("tmp-path", "tmpPath", "临时路径", String.class, "", null, null, null);
+        
+        // ==================== Windows registry Windows注册表 ====================
+        addOption("reg-read", "regRead", "读取注册表", Boolean.class, false, null, null, null);
+        addOption("reg-add", "regAdd", "添加注册表", Boolean.class, false, null, null, null);
+        addOption("reg-del", "regDel", "删除注册表", Boolean.class, false, null, null, null);
+        addOption("reg-key", "regKey", "注册表键", String.class, "", null, null, null);
+        addOption("reg-value", "regVal", "注册表值", String.class, "", null, null, null);
+        addOption("reg-data", "regData", "注册表数据", String.class, "", null, null, null);
+        addOption("reg-type", "regType", "注册表类型", String.class, "", null, null, null);
+        
+        // ==================== Miscellaneous 其他选项 ====================
+        addOption("alert", null, "警告命令", String.class, "", null, null, null);
+        addOption("beep", null, "蜂鸣", Boolean.class, false, null, null, null);
+        addOption("dependencies", null, "检查依赖", Boolean.class, false, null, null, null);
+        addOption("disable-coloring", "disableColoring", "禁用颜色", Boolean.class, false, null, null, null);
+        addOption("disable-hashing", "disableHashing", "禁用哈希", Boolean.class, false, null, null, null);
+        addOption("list-tampers", "listTampers", "列出tamper脚本", Boolean.class, false, null, null, null);
+        addOption("no-logging", "noLogging", "禁用日志", Boolean.class, false, null, null, null);
+        addOption("no-truncate", "noTruncate", "禁用截断", Boolean.class, false, null, null, null);
+        addOption("offline", null, "离线模式", Boolean.class, false, null, null, null);
+        addOption("purge", null, "清理数据", Boolean.class, false, null, null, null);
+        addOption("results-file", "resultsFile", "结果文件", String.class, "", null, null, null);
+        addOption("tmp-dir", "tmpDir", "临时目录", String.class, "", null, null, null);
+        addOption("unstable", null, "不稳定连接调整", Boolean.class, false, null, null, null);
+        addOptionWithShort("z", "mnemonics", null, "助记符", String.class, "", null, null, null);
     }
     
     /**
@@ -829,6 +1192,182 @@ public class ScanConfigParser {
                 case "flushSession": config.setFlushSession((Boolean) value); break;
                 case "freshQueries": config.setFreshQueries((Boolean) value); break;
                 case "verbose": config.setVerbose((Integer) value); break;
+                
+                // Target
+                case "direct": config.setDirect((String) value); break;
+                case "logFile": config.setLogFile((String) value); break;
+                case "bulkFile": config.setBulkFile((String) value); break;
+                case "sessionFile": config.setSessionFile((String) value); break;
+                case "googleDork": config.setGoogleDork((String) value); break;
+                case "configFile": config.setConfigFile((String) value); break;
+                
+                // General Extended
+                case "trafficFile": config.setTrafficFile((String) value); break;
+                case "abortOnEmpty": config.setAbortOnEmpty((Boolean) value); break;
+                case "answers": config.setAnswers((String) value); break;
+                case "base64Parameter": config.setBase64Parameter((String) value); break;
+                case "base64Safe": config.setBase64Safe((Boolean) value); break;
+                case "binaryFields": config.setBinaryFields((String) value); break;
+                case "charset": config.setCharset((String) value); break;
+                case "checkInternet": config.setCheckInternet((Boolean) value); break;
+                case "cleanup": config.setCleanup((Boolean) value); break;
+                case "crawlExclude": config.setCrawlExclude((String) value); break;
+                case "csvDel": config.setCsvDel((String) value); break;
+                case "dumpFile": config.setDumpFile((String) value); break;
+                case "dumpFormat": config.setDumpFormat((String) value); break;
+                case "encoding": config.setEncoding((String) value); break;
+                case "googlePage": config.setGooglePage((Integer) value); break;
+                case "harFile": config.setHarFile((String) value); break;
+                case "hexConvert": config.setHexConvert((Boolean) value); break;
+                case "outputDir": config.setOutputDir((String) value); break;
+                case "parseErrors": config.setParseErrors((Boolean) value); break;
+                case "preprocess": config.setPreprocess((String) value); break;
+                case "postprocess": config.setPostprocess((String) value); break;
+                case "repair": config.setRepair((Boolean) value); break;
+                case "saveConfig": config.setSaveConfig((String) value); break;
+                case "scope": config.setScope((String) value); break;
+                case "skipHeuristics": config.setSkipHeuristics((Boolean) value); break;
+                case "skipWaf": config.setSkipWaf((Boolean) value); break;
+                case "tablePrefix": config.setTablePrefix((String) value); break;
+                case "testFilter": config.setTestFilter((String) value); break;
+                case "testSkip": config.setTestSkip((String) value); break;
+                case "timeLimit": config.setTimeLimit((Float) value); break;
+                case "unsafeNaming": config.setUnsafeNaming((Boolean) value); break;
+                case "webRoot": config.setWebRoot((String) value); break;
+                
+                // Request Extended
+                case "paramDel": config.setParamDel((String) value); break;
+                case "cookieDel": config.setCookieDel((String) value); break;
+                case "liveCookies": config.setLiveCookies((String) value); break;
+                case "loadCookies": config.setLoadCookies((String) value); break;
+                case "dropSetCookie": config.setDropSetCookie((Boolean) value); break;
+                case "http2": config.setHttp2((Boolean) value); break;
+                case "http10": config.setHttp10((Boolean) value); break;
+                case "mobile": config.setMobile((Boolean) value); break;
+                case "authType": config.setAuthType((String) value); break;
+                case "authCred": config.setAuthCred((String) value); break;
+                case "authFile": config.setAuthFile((String) value); break;
+                case "abortCode": config.setAbortCode((String) value); break;
+                case "ignoreCode": config.setIgnoreCode((String) value); break;
+                case "ignoreProxy": config.setIgnoreProxy((Boolean) value); break;
+                case "ignoreRedirects": config.setIgnoreRedirects((Boolean) value); break;
+                case "ignoreTimeouts": config.setIgnoreTimeouts((Boolean) value); break;
+                case "proxyFile": config.setProxyFile((String) value); break;
+                case "proxyFreq": config.setProxyFreq((Integer) value); break;
+                case "torPort": config.setTorPort((Integer) value); break;
+                case "torType": config.setTorType((String) value); break;
+                case "checkTor": config.setCheckTor((Boolean) value); break;
+                case "retryOn": config.setRetryOn((String) value); break;
+                case "rParam": config.setRParam((String) value); break;
+                case "safeUrl": config.setSafeUrl((String) value); break;
+                case "safePost": config.setSafePost((String) value); break;
+                case "safeReqFile": config.setSafeReqFile((String) value); break;
+                case "safeFreq": config.setSafeFreq((Integer) value); break;
+                case "csrfToken": config.setCsrfToken((String) value); break;
+                case "csrfUrl": config.setCsrfUrl((String) value); break;
+                case "csrfMethod": config.setCsrfMethod((String) value); break;
+                case "csrfData": config.setCsrfData((String) value); break;
+                case "csrfRetries": config.setCsrfRetries((Integer) value); break;
+                case "chunked": config.setChunked((Boolean) value); break;
+                case "hpp": config.setHpp((Boolean) value); break;
+                case "evalCode": config.setEvalCode((String) value); break;
+                
+                // Optimization Extended
+                case "predictOutput": config.setPredictOutput((Boolean) value); break;
+                
+                // Injection Extended
+                case "paramFilter": config.setParamFilter((String) value); break;
+                case "dbmsCred": config.setDbmsCred((String) value); break;
+                case "invalidBignum": config.setInvalidBignum((Boolean) value); break;
+                case "invalidLogical": config.setInvalidLogical((Boolean) value); break;
+                case "invalidString": config.setInvalidString((Boolean) value); break;
+                case "noCast": config.setNoCast((Boolean) value); break;
+                case "noEscape": config.setNoEscape((Boolean) value); break;
+                
+                // Techniques Extended
+                case "disableStats": config.setDisableStats((Boolean) value); break;
+                case "uCols": config.setUCols((String) value); break;
+                case "uChar": config.setUChar((String) value); break;
+                case "uFrom": config.setUFrom((String) value); break;
+                case "uValues": config.setUValues((String) value); break;
+                case "dnsDomain": config.setDnsDomain((String) value); break;
+                case "secondUrl": config.setSecondUrl((String) value); break;
+                case "secondReq": config.setSecondReq((String) value); break;
+                
+                // Fingerprint Extended
+                case "extensiveFp": config.setExtensiveFp((Boolean) value); break;
+                
+                // Enumeration Extended
+                case "getAll": config.setGetAll((Boolean) value); break;
+                case "getHostname": config.setGetHostname((Boolean) value); break;
+                case "getPasswords": config.setGetPasswords((Boolean) value); break;
+                case "getPrivileges": config.setGetPrivileges((Boolean) value); break;
+                case "getRoles": config.setGetRoles((Boolean) value); break;
+                case "getSchema": config.setGetSchema((Boolean) value); break;
+                case "getCount": config.setGetCount((Boolean) value); break;
+                case "search": config.setSearch((Boolean) value); break;
+                case "getComments": config.setGetComments((Boolean) value); break;
+                case "getStatements": config.setGetStatements((Boolean) value); break;
+                case "exclude": config.setExclude((String) value); break;
+                case "pivotColumn": config.setPivotColumn((String) value); break;
+                case "dumpWhere": config.setDumpWhere((String) value); break;
+                case "user": config.setUser((String) value); break;
+                case "excludeSysDbs": config.setExcludeSysDbs((Boolean) value); break;
+                case "limitStart": config.setLimitStart((Integer) value); break;
+                case "limitStop": config.setLimitStop((Integer) value); break;
+                case "firstChar": config.setFirstChar((Integer) value); break;
+                case "lastChar": config.setLastChar((Integer) value); break;
+                case "sqlQuery": config.setSqlQuery((String) value); break;
+                case "sqlShell": config.setSqlShell((Boolean) value); break;
+                case "sqlFile": config.setSqlFile((String) value); break;
+                
+                // Brute force
+                case "commonTables": config.setCommonTables((Boolean) value); break;
+                case "commonColumns": config.setCommonColumns((Boolean) value); break;
+                case "commonFiles": config.setCommonFiles((Boolean) value); break;
+                
+                // UDF
+                case "udfInject": config.setUdfInject((Boolean) value); break;
+                case "shLib": config.setShLib((String) value); break;
+                
+                // File system
+                case "fileRead": config.setFileRead((String) value); break;
+                case "fileWrite": config.setFileWrite((String) value); break;
+                case "fileDest": config.setFileDest((String) value); break;
+                
+                // OS takeover
+                case "osCmd": config.setOsCmd((String) value); break;
+                case "osPwn": config.setOsPwn((Boolean) value); break;
+                case "osSmb": config.setOsSmb((Boolean) value); break;
+                case "osBof": config.setOsBof((Boolean) value); break;
+                case "privEsc": config.setPrivEsc((Boolean) value); break;
+                case "msfPath": config.setMsfPath((String) value); break;
+                case "tmpPath": config.setTmpPath((String) value); break;
+                
+                // Windows registry
+                case "regRead": config.setRegRead((Boolean) value); break;
+                case "regAdd": config.setRegAdd((Boolean) value); break;
+                case "regDel": config.setRegDel((Boolean) value); break;
+                case "regKey": config.setRegKey((String) value); break;
+                case "regVal": config.setRegVal((String) value); break;
+                case "regData": config.setRegData((String) value); break;
+                case "regType": config.setRegType((String) value); break;
+                
+                // Miscellaneous
+                case "alert": config.setAlert((String) value); break;
+                case "beep": config.setBeep((Boolean) value); break;
+                case "dependencies": config.setDependencies((Boolean) value); break;
+                case "disableColoring": config.setDisableColoring((Boolean) value); break;
+                case "disableHashing": config.setDisableHashing((Boolean) value); break;
+                case "listTampers": config.setListTampers((Boolean) value); break;
+                case "noLogging": config.setNoLogging((Boolean) value); break;
+                case "noTruncate": config.setNoTruncate((Boolean) value); break;
+                case "offline": config.setOffline((Boolean) value); break;
+                case "purge": config.setPurge((Boolean) value); break;
+                case "resultsFile": config.setResultsFile((String) value); break;
+                case "tmpDir": config.setTmpDir((String) value); break;
+                case "unstable": config.setUnstable((Boolean) value); break;
+                case "mnemonics": config.setMnemonics((String) value); break;
                 
                 default:
                     result.addWarning("未知参数名: " + paramName);

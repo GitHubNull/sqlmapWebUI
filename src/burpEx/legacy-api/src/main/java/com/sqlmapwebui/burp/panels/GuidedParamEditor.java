@@ -34,7 +34,11 @@ public class GuidedParamEditor extends JPanel {
     /** 参数分类 */
     private static final String[] PARAM_CATEGORIES = {
         "全部", "Detection 检测", "Injection 注入", "Techniques 技术",
-        "Request 请求", "Optimization 优化", "Enumeration 枚举", "General 通用"
+        "Request 请求", "Optimization 优化", "Enumeration 枚举", "General 通用",
+        "Target 目标", "Fingerprint 指纹识别", "Brute Force 暴力破解",
+        "UDF 用户定义函数", "File System 文件系统",
+        "OS Takeover 操作系统接管", "Windows Registry Windows注册表",
+        "Miscellaneous 其他"
     };
     
     /** 参数分类映射 */
@@ -366,14 +370,21 @@ public class GuidedParamEditor extends JPanel {
                                    String searchText, Pattern pattern, boolean caseSensitive) {
         if (searchText.isEmpty()) return true;
         
+        // 获取 CLI 命令名用于搜索
+        String cliName = getCliName(name);
+        
         if (pattern != null) {
             return pattern.matcher(name).find() || 
+                   pattern.matcher(cliName).find() ||
                    pattern.matcher(description).find();
         } else {
             String searchLower = caseSensitive ? searchText : searchText.toLowerCase();
             String nameLower = caseSensitive ? name : name.toLowerCase();
+            String cliNameLower = caseSensitive ? cliName : cliName.toLowerCase();
             String descLower = caseSensitive ? description : description.toLowerCase();
-            return nameLower.contains(searchLower) || descLower.contains(searchLower);
+            return nameLower.contains(searchLower) || 
+                   cliNameLower.contains(searchLower) || 
+                   descLower.contains(searchLower);
         }
     }
     
@@ -516,7 +527,12 @@ public class GuidedParamEditor extends JPanel {
         } else if (component instanceof JComboBox) {
             ((JComboBox<?>) component).setSelectedItem(value.toString());
         } else if (component instanceof JTextField) {
-            ((JTextField) component).setText(value.toString());
+            String textValue = value.toString();
+            // 特殊处理 answers 参数：如果值被引号包围，在文本框中显示时不带引号
+            if (meta.getName().equals("answers")) {
+                textValue = stripQuotes(textValue);
+            }
+            ((JTextField) component).setText(textValue);
         } else if (component instanceof JPanel && meta.getName().equals("technique")) {
             // technique 多选
             String techStr = value.toString();
@@ -545,7 +561,14 @@ public class GuidedParamEditor extends JPanel {
         } else if (component instanceof JComboBox) {
             return ((JComboBox<?>) component).getSelectedItem();
         } else if (component instanceof JTextField) {
-            return ((JTextField) component).getText();
+            String text = ((JTextField) component).getText().trim();
+            // 特殊处理 answers 参数：如果值包含逗号且没有引号，自动添加引号
+            if (meta.getName().equals("answers") && !text.isEmpty()) {
+                if (!isQuoted(text) && text.contains(",")) {
+                    text = "\"" + text + "\"";
+                }
+            }
+            return text;
         } else if (component instanceof JPanel && meta.getName().equals("technique")) {
             StringBuilder sb = new StringBuilder();
             for (Component c : component.getComponents()) {
@@ -556,6 +579,29 @@ public class GuidedParamEditor extends JPanel {
             return sb.toString();
         }
         return null;
+    }
+    
+    /**
+     * 检查字符串是否被引号包围
+     */
+    private boolean isQuoted(String text) {
+        if (text == null || text.length() < 2) return false;
+        char first = text.charAt(0);
+        char last = text.charAt(text.length() - 1);
+        return (first == '"' && last == '"') || (first == '\'' && last == '\'');
+    }
+    
+    /**
+     * 去除字符串的引号
+     */
+    private String stripQuotes(String text) {
+        if (text == null || text.length() < 2) return text;
+        char first = text.charAt(0);
+        char last = text.charAt(text.length() - 1);
+        if ((first == '"' && last == '"') || (first == '\'' && last == '\'')) {
+            return text.substring(1, text.length() - 1);
+        }
+        return text;
     }
     
     // ==================== 参数操作 ====================
@@ -721,9 +767,9 @@ public class GuidedParamEditor extends JPanel {
     }
     
     /**
-     * 获取 CLI 参数名
+     * 获取 CLI 参数名（静态方法，供内部类使用）
      */
-    private String getCliName(String paramName) {
+    private static String getCliName(String paramName) {
         // 特殊映射
         Map<String, String> specialMapping = new HashMap<>();
         specialMapping.put("testParameter", "-p");
@@ -757,6 +803,50 @@ public class GuidedParamEditor extends JPanel {
         specialMapping.put("crawlDepth", "--crawl");
         specialMapping.put("flushSession", "--flush-session");
         specialMapping.put("freshQueries", "--fresh-queries");
+        specialMapping.put("getAll", "--all");
+        specialMapping.put("getHostname", "--hostname");
+        specialMapping.put("getPasswords", "--passwords");
+        specialMapping.put("getPrivileges", "--privileges");
+        specialMapping.put("getRoles", "--roles");
+        specialMapping.put("getSchema", "--schema");
+        specialMapping.put("getCount", "--count");
+        specialMapping.put("getComments", "--comments");
+        specialMapping.put("getStatements", "--statements");
+        specialMapping.put("sqlQuery", "--sql-query");
+        specialMapping.put("sqlShell", "--sql-shell");
+        specialMapping.put("sqlFile", "--sql-file");
+        specialMapping.put("dumpWhere", "--where");
+        specialMapping.put("limitStart", "--start");
+        specialMapping.put("limitStop", "--stop");
+        specialMapping.put("firstChar", "--first");
+        specialMapping.put("lastChar", "--last");
+        specialMapping.put("user", "-U");
+        specialMapping.put("exclude", "-X");
+        specialMapping.put("pivotColumn", "--pivot-column");
+        specialMapping.put("excludeSysDbs", "--exclude-sysdbs");
+        specialMapping.put("commonTables", "--common-tables");
+        specialMapping.put("commonColumns", "--common-columns");
+        specialMapping.put("commonFiles", "--common-files");
+        specialMapping.put("udfInject", "--udf-inject");
+        specialMapping.put("shLib", "--shared-lib");
+        specialMapping.put("fileRead", "--file-read");
+        specialMapping.put("fileWrite", "--file-write");
+        specialMapping.put("fileDest", "--file-dest");
+        specialMapping.put("osCmd", "--os-cmd");
+        specialMapping.put("osShell", "--os-shell");
+        specialMapping.put("osPwn", "--os-pwn");
+        specialMapping.put("osSmb", "--os-smbrelay");
+        specialMapping.put("osBof", "--os-bof");
+        specialMapping.put("privEsc", "--priv-esc");
+        specialMapping.put("msfPath", "--msf-path");
+        specialMapping.put("tmpPath", "--tmp-path");
+        specialMapping.put("regRead", "--reg-read");
+        specialMapping.put("regAdd", "--reg-add");
+        specialMapping.put("regDel", "--reg-del");
+        specialMapping.put("regKey", "--reg-key");
+        specialMapping.put("regVal", "--reg-value");
+        specialMapping.put("regData", "--reg-data");
+        specialMapping.put("regType", "--reg-type");
         
         if (specialMapping.containsKey(paramName)) {
             return specialMapping.get(paramName);
@@ -868,7 +958,7 @@ public class GuidedParamEditor extends JPanel {
     private Object getConfigValue(ScanConfig config, String paramName, ParamMeta meta) {
         try {
             switch (paramName) {
-                // Detection
+                // Detection (检测)
                 case "level": return config.getLevel();
                 case "risk": return config.getRisk();
                 case "string": return config.getString();
@@ -879,7 +969,7 @@ public class GuidedParamEditor extends JPanel {
                 case "textOnly": return config.isTextOnly();
                 case "titles": return config.isTitles();
                 
-                // Injection
+                // Injection (注入)
                 case "testParameter": return config.getTestParameter();
                 case "skip": return config.getSkip();
                 case "skipStatic": return config.isSkipStatic();
@@ -890,11 +980,11 @@ public class GuidedParamEditor extends JPanel {
                 case "suffix": return config.getSuffix();
                 case "tamper": return config.getTamper();
                 
-                // Techniques
+                // Techniques (技术)
                 case "technique": return config.getTechnique();
                 case "timeSec": return config.getTimeSec();
                 
-                // Request
+                // Request (请求) - 基础
                 case "method": return config.getMethod();
                 case "data": return config.getData();
                 case "cookie": return config.getCookie();
@@ -911,13 +1001,13 @@ public class GuidedParamEditor extends JPanel {
                 case "forceSSL": return config.isForceSSL();
                 case "skipUrlEncode": return config.isSkipUrlEncode();
                 
-                // Optimization
+                // Optimization (优化)
                 case "optimize": return config.isOptimize();
                 case "keepAlive": return config.isKeepAlive();
                 case "nullConnection": return config.isNullConnection();
                 case "threads": return config.getThreads();
                 
-                // Enumeration
+                // Enumeration (枚举) - 基础
                 case "getBanner": return config.isGetBanner();
                 case "getCurrentUser": return config.isGetCurrentUser();
                 case "getCurrentDb": return config.isGetCurrentDb();
@@ -932,13 +1022,189 @@ public class GuidedParamEditor extends JPanel {
                 case "tbl": return config.getTbl();
                 case "col": return config.getCol();
                 
-                // General
+                // General (通用) - 基础
                 case "batch": return config.isBatch();
                 case "forms": return config.isForms();
                 case "crawlDepth": return config.getCrawlDepth();
                 case "flushSession": return config.isFlushSession();
                 case "freshQueries": return config.isFreshQueries();
                 case "verbose": return config.getVerbose();
+                
+                // Target (目标)
+                case "direct": return config.getDirect();
+                case "logFile": return config.getLogFile();
+                case "bulkFile": return config.getBulkFile();
+                case "sessionFile": return config.getSessionFile();
+                case "googleDork": return config.getGoogleDork();
+                case "configFile": return config.getConfigFile();
+                
+                // General (通用) - 扩展
+                case "trafficFile": return config.getTrafficFile();
+                case "abortOnEmpty": return config.isAbortOnEmpty();
+                case "answers": return config.getAnswers();
+                case "base64Parameter": return config.getBase64Parameter();
+                case "base64Safe": return config.isBase64Safe();
+                case "binaryFields": return config.getBinaryFields();
+                case "charset": return config.getCharset();
+                case "checkInternet": return config.isCheckInternet();
+                case "cleanup": return config.isCleanup();
+                case "crawlExclude": return config.getCrawlExclude();
+                case "csvDel": return config.getCsvDel();
+                case "dumpFile": return config.getDumpFile();
+                case "dumpFormat": return config.getDumpFormat();
+                case "encoding": return config.getEncoding();
+                case "googlePage": return config.getGooglePage();
+                case "harFile": return config.getHarFile();
+                case "hexConvert": return config.isHexConvert();
+                case "outputDir": return config.getOutputDir();
+                case "parseErrors": return config.isParseErrors();
+                case "preprocess": return config.getPreprocess();
+                case "postprocess": return config.getPostprocess();
+                case "repair": return config.isRepair();
+                case "saveConfig": return config.getSaveConfig();
+                case "scope": return config.getScope();
+                case "skipHeuristics": return config.isSkipHeuristics();
+                case "skipWaf": return config.isSkipWaf();
+                case "tablePrefix": return config.getTablePrefix();
+                case "testFilter": return config.getTestFilter();
+                case "testSkip": return config.getTestSkip();
+                case "timeLimit": return config.getTimeLimit();
+                case "unsafeNaming": return config.isUnsafeNaming();
+                case "webRoot": return config.getWebRoot();
+                
+                // Request (请求) - 扩展
+                case "paramDel": return config.getParamDel();
+                case "cookieDel": return config.getCookieDel();
+                case "liveCookies": return config.getLiveCookies();
+                case "loadCookies": return config.getLoadCookies();
+                case "dropSetCookie": return config.isDropSetCookie();
+                case "http2": return config.isHttp2();
+                case "http10": return config.isHttp10();
+                case "mobile": return config.isMobile();
+                case "authType": return config.getAuthType();
+                case "authCred": return config.getAuthCred();
+                case "authFile": return config.getAuthFile();
+                case "abortCode": return config.getAbortCode();
+                case "ignoreCode": return config.getIgnoreCode();
+                case "ignoreProxy": return config.isIgnoreProxy();
+                case "ignoreRedirects": return config.isIgnoreRedirects();
+                case "ignoreTimeouts": return config.isIgnoreTimeouts();
+                case "proxyFile": return config.getProxyFile();
+                case "proxyFreq": return config.getProxyFreq();
+                case "torPort": return config.getTorPort();
+                case "torType": return config.getTorType();
+                case "checkTor": return config.isCheckTor();
+                case "retryOn": return config.getRetryOn();
+                case "rParam": return config.getRParam();
+                case "safeUrl": return config.getSafeUrl();
+                case "safePost": return config.getSafePost();
+                case "safeReqFile": return config.getSafeReqFile();
+                case "safeFreq": return config.getSafeFreq();
+                case "csrfToken": return config.getCsrfToken();
+                case "csrfUrl": return config.getCsrfUrl();
+                case "csrfMethod": return config.getCsrfMethod();
+                case "csrfData": return config.getCsrfData();
+                case "csrfRetries": return config.getCsrfRetries();
+                case "chunked": return config.isChunked();
+                case "hpp": return config.isHpp();
+                case "evalCode": return config.getEvalCode();
+                
+                // Optimization (优化) - 扩展
+                case "predictOutput": return config.isPredictOutput();
+                
+                // Injection (注入) - 扩展
+                case "paramFilter": return config.getParamFilter();
+                case "dbmsCred": return config.getDbmsCred();
+                case "invalidBignum": return config.isInvalidBignum();
+                case "invalidLogical": return config.isInvalidLogical();
+                case "invalidString": return config.isInvalidString();
+                case "noCast": return config.isNoCast();
+                case "noEscape": return config.isNoEscape();
+                
+                // Techniques (技术) - 扩展
+                case "disableStats": return config.isDisableStats();
+                case "uCols": return config.getUCols();
+                case "uChar": return config.getUChar();
+                case "uFrom": return config.getUFrom();
+                case "uValues": return config.getUValues();
+                case "dnsDomain": return config.getDnsDomain();
+                case "secondUrl": return config.getSecondUrl();
+                case "secondReq": return config.getSecondReq();
+                
+                // Fingerprint (指纹识别)
+                case "extensiveFp": return config.isExtensiveFp();
+                
+                // Enumeration (枚举) - 扩展
+                case "getAll": return config.isGetAll();
+                case "getHostname": return config.isGetHostname();
+                case "getPasswords": return config.isGetPasswords();
+                case "getPrivileges": return config.isGetPrivileges();
+                case "getRoles": return config.isGetRoles();
+                case "getSchema": return config.isGetSchema();
+                case "getCount": return config.isGetCount();
+                case "search": return config.isSearch();
+                case "getComments": return config.isGetComments();
+                case "getStatements": return config.isGetStatements();
+                case "exclude": return config.getExclude();
+                case "pivotColumn": return config.getPivotColumn();
+                case "dumpWhere": return config.getDumpWhere();
+                case "user": return config.getUser();
+                case "excludeSysDbs": return config.isExcludeSysDbs();
+                case "limitStart": return config.getLimitStart();
+                case "limitStop": return config.getLimitStop();
+                case "firstChar": return config.getFirstChar();
+                case "lastChar": return config.getLastChar();
+                case "sqlQuery": return config.getSqlQuery();
+                case "sqlShell": return config.isSqlShell();
+                case "sqlFile": return config.getSqlFile();
+                
+                // Brute Force (暴力破解)
+                case "commonTables": return config.isCommonTables();
+                case "commonColumns": return config.isCommonColumns();
+                case "commonFiles": return config.isCommonFiles();
+                
+                // UDF (用户定义函数)
+                case "udfInject": return config.isUdfInject();
+                case "shLib": return config.getShLib();
+                
+                // File System (文件系统)
+                case "fileRead": return config.getFileRead();
+                case "fileWrite": return config.getFileWrite();
+                case "fileDest": return config.getFileDest();
+                
+                // OS Takeover (操作系统接管)
+                case "osCmd": return config.getOsCmd();
+                case "osPwn": return config.isOsPwn();
+                case "osSmb": return config.isOsSmb();
+                case "osBof": return config.isOsBof();
+                case "privEsc": return config.isPrivEsc();
+                case "msfPath": return config.getMsfPath();
+                case "tmpPath": return config.getTmpPath();
+                
+                // Windows Registry (Windows注册表)
+                case "regRead": return config.isRegRead();
+                case "regAdd": return config.isRegAdd();
+                case "regDel": return config.isRegDel();
+                case "regKey": return config.getRegKey();
+                case "regVal": return config.getRegVal();
+                case "regData": return config.getRegData();
+                case "regType": return config.getRegType();
+                
+                // Miscellaneous (其他)
+                case "alert": return config.getAlert();
+                case "beep": return config.isBeep();
+                case "dependencies": return config.isDependencies();
+                case "disableColoring": return config.isDisableColoring();
+                case "disableHashing": return config.isDisableHashing();
+                case "listTampers": return config.isListTampers();
+                case "noLogging": return config.isNoLogging();
+                case "noTruncate": return config.isNoTruncate();
+                case "offline": return config.isOffline();
+                case "purge": return config.isPurge();
+                case "resultsFile": return config.getResultsFile();
+                case "tmpDir": return config.getTmpDir();
+                case "unstable": return config.isUnstable();
+                case "mnemonics": return config.getMnemonics();
                 
                 default: return null;
             }
@@ -1014,7 +1280,7 @@ public class GuidedParamEditor extends JPanel {
                 ParamListItem value, int index, boolean isSelected, boolean cellHasFocus) {
             
             if (value != null) {
-                nameLabel.setText(value.meta.getName());
+                nameLabel.setText(getCliName(value.meta.getName()));
                 descLabel.setText("- " + value.meta.getDescription());
                 
                 if (isSelected) {
@@ -1090,7 +1356,7 @@ public class GuidedParamEditor extends JPanel {
                 SelectedParam value, int index, boolean isSelected, boolean cellHasFocus) {
             
             if (value != null) {
-                nameLabel.setText(value.meta.getName());
+                nameLabel.setText(getCliName(value.meta.getName()));
                 
                 String valueStr = value.value.toString();
                 if (value.meta.isBoolean()) {
@@ -1139,8 +1405,107 @@ public class GuidedParamEditor extends JPanel {
             "getBanner", "getCurrentUser", "getCurrentDb", "isDba", "getUsers", "getDbs",
             "getTables", "getColumns", "dumpTable", "dumpAll", "db", "tbl", "col"
         ));
+        
+        // ==================== 新增分类 ====================
+        
+        // Target 分类
+        CATEGORY_PARAMS.put("Target 目标", Arrays.asList(
+            "direct", "logFile", "bulkFile", "sessionFile", "googleDork", "configFile"
+        ));
+        
+        // Request 扩展分类
+        CATEGORY_PARAMS.put("Request 请求扩展", Arrays.asList(
+            "method", "data", "paramDel", "cookie", "cookieDel",
+            "liveCookies", "loadCookies", "dropSetCookie", "http2", "http10",
+            "mobile", "randomAgent", "host", "referer", "headers",
+            "authType", "authCred", "authFile", "abortCode", "ignoreCode",
+            "ignoreProxy", "ignoreRedirects", "ignoreTimeouts", "proxy", "proxyCred",
+            "proxyFile", "proxyFreq", "tor", "torPort", "torType", "checkTor",
+            "delay", "timeout", "retries", "retryOn", "rParam",
+            "safeUrl", "safePost", "safeReqFile", "safeFreq",
+            "csrfToken", "csrfUrl", "csrfMethod", "csrfData", "csrfRetries",
+            "forceSSL", "chunked", "hpp", "evalCode"
+        ));
+        
+        // Optimization 扩展分类
+        CATEGORY_PARAMS.put("Optimization 优化扩展", Arrays.asList(
+            "predictOutput"
+        ));
+        
+        // Injection 扩展分类
+        CATEGORY_PARAMS.put("Injection 注入扩展", Arrays.asList(
+            "testParameter", "skip", "skipStatic", "paramExclude", "paramFilter",
+            "dbms", "dbmsCred", "os", "invalidBignum", "invalidLogical",
+            "invalidString", "noCast", "noEscape", "prefix", "suffix", "tamper"
+        ));
+        
+        // Techniques 扩展分类
+        CATEGORY_PARAMS.put("Techniques 技术扩展", Arrays.asList(
+            "disableStats", "uCols", "uChar",
+            "uFrom", "uValues", "dnsDomain", "secondUrl", "secondReq"
+        ));
+        
+        // Fingerprint 扩展分类
+        CATEGORY_PARAMS.put("Fingerprint 指纹识别", Arrays.asList(
+            "extensiveFp"
+        ));
+        
+        // Enumeration 扩展分类
+        CATEGORY_PARAMS.put("Enumeration 枚举扩展", Arrays.asList(
+            "getAll", "getHostname",
+            "getPasswords", "getPrivileges", "getRoles",
+            "getSchema", "getCount",
+            "search", "getComments", "getStatements",
+            "exclude", "pivotColumn", "dumpWhere",
+            "user", "excludeSysDbs", "limitStart", "limitStop",
+            "firstChar", "lastChar", "sqlQuery", "sqlShell", "sqlFile"
+        ));
+        
+        // Brute Force 分类
+        CATEGORY_PARAMS.put("Brute Force 暴力破解", Arrays.asList(
+            "commonTables", "commonColumns", "commonFiles"
+        ));
+        
+        // UDF 分类
+        CATEGORY_PARAMS.put("UDF 用户定义函数", Arrays.asList(
+            "udfInject", "shLib"
+        ));
+        
+        // File System 分类
+        CATEGORY_PARAMS.put("File System 文件系统", Arrays.asList(
+            "fileRead", "fileWrite", "fileDest"
+        ));
+        
+        // OS Takeover 分类
+        CATEGORY_PARAMS.put("OS Takeover 操作系统接管", Arrays.asList(
+            "osCmd", "osShell", "osPwn", "osSmb", "osBof",
+            "privEsc", "msfPath", "tmpPath"
+        ));
+        
+        // Windows Registry 分类
+        CATEGORY_PARAMS.put("Windows Registry Windows注册表", Arrays.asList(
+            "regRead", "regAdd", "regDel", "regKey", "regVal",
+            "regData", "regType"
+        ));
+        
+        // General 扩展分类
         CATEGORY_PARAMS.put("General 通用", Arrays.asList(
-            "batch", "forms", "crawlDepth", "flushSession", "freshQueries", "verbose"
+            "batch", "forms", "crawlDepth", "flushSession", "freshQueries", "verbose",
+            "trafficFile", "abortOnEmpty", "answers", "base64Parameter",
+            "base64Safe", "binaryFields", "charset", "checkInternet",
+            "cleanup", "crawlExclude", "csvDel", "dumpFile", "dumpFormat",
+            "encoding", "googlePage", "harFile", "hexConvert",
+            "outputDir", "parseErrors", "preprocess", "postprocess",
+            "repair", "saveConfig", "scope", "skipHeuristics",
+            "skipWaf", "tablePrefix", "testFilter", "testSkip",
+            "timeLimit", "unsafeNaming", "webRoot", "eta"
+        ));
+        
+        // Miscellaneous 分类
+        CATEGORY_PARAMS.put("Miscellaneous 其他", Arrays.asList(
+            "alert", "beep", "dependencies", "disableColoring", "disableHashing",
+            "listTampers", "mnemonics", "noLogging", "noTruncate",
+            "offline", "purge", "resultsFile", "tmpDir", "unstable", "updateAll"
         ));
     }
 }
