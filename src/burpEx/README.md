@@ -6,23 +6,64 @@ Burp Suite 扩展插件，用于将 HTTP 请求发送到 SQLMap WebUI 后端进�
 
 ```
 burpEx/
-├── legacy-api/      # 传统 Burp API 插件 (Java 11)
+├── legacy-api/          # 传统 Burp API 插件 (Java 11)
 │   ├── src/main/java/com/sqlmapwebui/burp/
-│   │   ├── SqlmapWebUIExtension.java    # 插件入口
-│   │   ├── ui/                          # UI 组件
-│   │   ├── config/                      # 配置管理
-│   │   └── http/                        # HTTP 客户端
-│   ├── pom.xml
-│   └── target/                          # 构建输出
-└── montoya-api/     # Montoya API 插件 (Java 17, Burp 2023.1+)
-    ├── src/main/java/com/sqlmapwebui/burp/
-    │   ├── SqlmapWebUIExtension.java    # 插件入口
-    │   ├── ui/                          # UI 组件
-    │   ├── config/                      # 配置管理
-    │   └── http/                        # HTTP 客户端
-    ├── pom.xml
-    └── target/                          # 构建输出
+│   │   ├── BurpExtender.java              # 插件入口 (Legacy API)
+│   │   ├── SqlmapUITab.java               # 主UI标签页
+│   │   ├── panels/                        # UI面板组件
+│   │   ├── dialogs/                       # 对话框组件
+│   │   └── [共享代码文件...]
+│   └── pom.xml
+│
+├── montoya-api/         # Montoya API 插件 (Java 17+, Burp 2023.1+)
+│   ├── src/main/java/com/sqlmapwebui/burp/
+│   │   ├── SqlmapWebUIExtension.java      # 插件入口 (Montoya API)
+│   │   ├── SqlmapContextMenuProvider.java # 右键菜单提供者
+│   │   ├── HttpRequestUtils.java          # UTF-8请求处理
+│   │   ├── util/                          # 工具类
+│   │   ├── SqlmapUITab.java               # 主UI标签页 (与Legacy共享)
+│   │   ├── panels/                        # UI面板组件 (与Legacy共享)
+│   │   ├── dialogs/                       # 对话框组件 (与Legacy共享)
+│   │   └── [共享代码文件...]
+│   └── pom.xml
+│
+├── sync-shared.bat      # Windows 同步脚本
+├── sync-shared.sh       # Linux/Mac 同步脚本
+└── SHARED_FILES.md      # 共享文件文档
 ```
+
+## 双 API 架构
+
+本项目同时支持 Burp Suite 的两种 API：
+
+| 模块 | API 类型 | Java 版本 | 兼容 Burp Suite |
+|------|----------|-----------|----------------|
+| `legacy-api` | Legacy API | Java 11+ | 所有版本 |
+| `montoya-api` | Montoya API | Java 17+ | 2023.1+ |
+
+**共享代码策略：**
+- 两个模块共享 90% 的代码（模型、工具类、UI组件）
+- 使用同步脚本 `sync-shared.bat/sh` 保持代码一致
+- 仅入口点和 API 特定代码独立维护
+
+## 同步脚本使用
+
+当修改 `legacy-api` 中的共享代码后，需要同步到 `montoya-api`：
+
+### Windows
+```batch
+cd src/burpEx
+sync-shared.bat
+```
+
+### Linux/Mac
+```bash
+cd src/burpEx
+chmod +x sync-shared.sh
+./sync-shared.sh
+```
+
+详细说明请查看 [SHARED_FILES.md](./SHARED_FILES.md)
 
 ## 插件功能
 
@@ -32,197 +73,122 @@ burpEx/
 |------|------|
 | **提交扫描任务** | 右键菜单发送 HTTP 请求到后端 |
 | **默认配置管理** | 设置和保存默认扫描参数 |
-| **常用配置管理** | 添加/编辑/删除常用扫描配置 |
+| **常用配置管理** | 添加/编辑/删除常用扫描配置 (SQLite存储) |
 | **历史配置记录** | 查看历史扫描使用的配置 |
-| **引导式编辑器** | 可视化配置 SQLMap 参数 |
+| **引导式编辑器** | 可视化配置 SQLMap 215个参数 |
 | **配置选择** | 提交时可选择默认配置、常用配置或历史记录配置 |
 | **活动日志** | 记录所有操作和发送结果 |
+| **请求过滤** | 自动过滤二进制内容请求 |
+| **请求去重** | 自动去重相同 URL 的请求 |
+| **注入点标记** | 手动标记注入点位置 |
+| **会话Header** | 提交临时会话Header |
+| **Header规则** | 提交持久化Header规则 |
 
 > **注意**: 插件端仅负责发送请求，任务管理和结果查看请使用 Web 前端。
 
 ### 右键菜单
 
-- **Send to SQLMap WebUI** - 使用默认配置直接发送
-- **Send to SQLMap WebUI (选择配置)...** - 弹出配置选择对话框
+- **Send to SQLMap WebUI** - 使用选中的配置直接发送
+- **标记注入点并扫描 (*)** - 标记注入点后发送
+- **Send to SQLMap WebUI (配置扫描)...** - 弹出高级配置对话框
+- **提交会话Header** - 提交临时会话Header (单选时显示)
+- **提交Header规则** - 提交持久化Header规则 (单选时显示)
 
 ### UI 标签页
 
 | 标签页 | 功能 |
 |--------|------|
-| 服务器配置 | 设置后端 URL、测试连接状态 |
-| 默认配置 | 设置 Level、Risk、DBMS、Technique、Batch 等默认参数 |
-| 常用配置 | 管理常用配置列表（添加/编辑/删除），支持引导式编辑 |
-| 历史配置 | 查看历史扫描使用的配置记录 |
-| 活动日志 | 查看操作日志和发送历史 |
+| **后端配置** | 设置后端 URL 和连接状态 |
+| **默认配置** | 设置默认扫描参数 |
+| **常用配置** | 管理常用配置 (CRUD操作) |
+| **历史记录** | 查看历史使用过的配置 |
+| **活动日志** | 查看操作记录和发送结果 |
 
-## 版本选择
+## 构建说明
 
-| Burp Suite 版本 | 推荐插件 | Java 要求 |
-|-----------------|----------|-----------|
-| 2023.1+ | montoya-api | Java 17+ |
-| 较老版本 | legacy-api | Java 11+ |
+### 环境要求
 
-## 构建方式
+- **Legacy API**: JDK 11+
+- **Montoya API**: JDK 17+
+- Maven 3.6+
 
-### Montoya API (推荐)
+### 编译命令
 
 ```bash
-cd montoya-api
+# 编译 Legacy API (兼容 Java 11)
+cd src/burpEx/legacy-api
+mvn clean package -DskipTests
+
+# 编译 Montoya API (需要 Java 17+)
+cd src/burpEx/montoya-api
 mvn clean package -DskipTests
 ```
 
-生成文件: `target/sqlmap-webui-burp-montoya-*.jar`
+### 输出文件
 
-### Legacy API
+- Legacy: `target/sqlmap-webui-burp-legacy-1.8.16-jar-with-dependencies.jar`
+- Montoya: `target/sqlmap-webui-burp-montoya-1.8.16.jar`
 
-```bash
-cd legacy-api
-mvn clean package -DskipTests
-```
+## 安装使用
 
-生成文件: `target/sqlmap-webui-burp-legacy-*-jar-with-dependencies.jar`
+1. 编译生成 JAR 文件
+2. 打开 Burp Suite -> Extensions -> Add
+3. 选择编译好的 JAR 文件
+4. 确保 SQLMap WebUI 后端已启动（默认 http://localhost:8775）
 
-## 安装方式
+## 配置说明
 
-1. 打开 Burp Suite
-2. 进入 **Extender** → **Extensions** 标签页
-3. 点击 **Add** 按钮
-4. 选择对应版本的 JAR 文件
-5. 点击 **Next** 完成安装
+### 后端 URL
 
-## 使用方法
+默认后端地址: `http://localhost:8775`
 
-### 1. 配置服务器
+在 "后端配置" 标签页中修改后端 URL，插件会自动测试连接。
 
-1. 进入插件的「服务器配置」标签页
-2. 设置后端 URL: `http://localhost:8775`
-3. 点击「测试连接」验证连接状态
+### 扫描配置
 
-### 2. 配置默认参数
+支持 215 个 SQLMap 参数，包括但不限于：
+- **目标选项**: URL、日志文件、批量文件等
+- **请求选项**: 方法、数据、Cookie、代理、认证等
+- **优化选项**: 线程、预测输出等
+- **注入选项**: 测试参数、DBMS、Tamper脚本等
+- **检测选项**: Level、Risk、字符串匹配等
+- **技术选项**: 注入技术、时间盲注等
+- **枚举选项**: Banner、表、列、数据导出等
+- **操作系统接管**: 命令执行、Shell等 (高危)
+- **文件系统**: 文件读写 (高危)
 
-在「默认配置」标签页设置：
-- Level: 检测级别 (1-5)
-- Risk: 风险级别 (1-3)
-- DBMS: 数据库类型
-- Technique: 注入技术
-- Batch: 批处理模式
+## 开发说明
 
-### 3. 发送请求
+### 修改共享代码
 
-1. 在 Proxy/Repeater/Target 等位置选中请求
-2. 右键选择 "Send to SQLMap WebUI"
-3. 或选择 "Send to SQLMap WebUI (选择配置)..." 自定义参数
+1. 在 `legacy-api` 中修改文件（保持 Java 11 兼容性）
+2. 运行 `sync-shared.bat` 或 `sync-shared.sh`
+3. 分别编译两个模块验证
 
-### 4. 查看结果
+### 添加新功能
 
-发送后在 Web 前端查看扫描任务和结果。
+- 如果是通用功能：在 `legacy-api` 中实现，然后同步
+- 如果是 API 特定：只在对应模块中实现
 
-## 扫描参数说明
+## 注意事项
 
-### 检测级别 (Level)
+1. **同步方向**: 始终以 `legacy-api` 为源，`montoya-api` 为目标
+2. **兼容性**: 确保共享代码兼容 Java 11
+3. **编译验证**: 每次同步后都应该编译验证
+4. **备份**: 同步脚本会自动创建备份
 
-| 值 | 说明 |
-|----|------|
-| 1 | 默认，测试 GET/POST 参数 |
-| 2 | 同时测试 Cookie |
-| 3 | 同时测试 User-Agent/Referer |
-| 4 | 更多测试向量 |
-| 5 | 最全面的测试 |
+## 版本信息
 
-### 风险级别 (Risk)
+- **版本**: 1.8.16
+- **更新日期**: 2026-02-10
+- **兼容 SQLMap**: 1.9.11.3+
 
-| 值 | 说明 |
-|----|------|
-| 1 | 默认，安全测试 |
-| 2 | 添加基于时间的盲注 |
-| 3 | 添加基于 OR 的盲注（可能影响数据）|
+## 相关链接
 
-### 注入技术代码 (Technique)
+- [共享文件说明](./SHARED_FILES.md)
+- [SQLMap 官方文档](https://sqlmap.org/)
+- [Burp Suite 扩展开发](https://portswigger.net/burp/documentation/desktop/extensions)
 
-| 代码 | 技术 |
-|------|------|
-| B | 布尔盲注 (Boolean-based blind) |
-| E | 报错注入 (Error-based) |
-| U | 联合查询注入 (Union query-based) |
-| S | 堆叠查询 (Stacked queries) |
-| T | 时间盲注 (Time-based blind) |
-| Q | 内联查询 (Inline queries) |
-
-默认: `BEUSTQ` (全部技术)
-
-### 数据库类型 (DBMS)
-
-支持: MySQL, PostgreSQL, Oracle, SQLite, Microsoft SQL Server, IBM DB2 等
-
-留空则自动检测。
-
-## 后端接口
-
-插件需要后端提供以下接口：
-
-| 接口 | 方法 | 说明 |
-|------|------|------|
-| `/api/version` | GET | 获取版本信息（用于测试连接） |
-| `/api/health` | GET | 健康检查 |
-| `/burp/admin/scan` | POST | 提交扫描任务 |
-
-## 依赖项
-
-| 依赖 | 版本 | 用途 |
-|------|------|------|
-| OkHttp | 4.12.0 | HTTP 客户端 |
-| Gson | 2.10.1 | JSON 处理 |
-| SLF4J | 2.0.9 | 日志门面 |
-| Logback | 1.4.11 | 日志实现 |
-
-## 开发指南
-
-### 项目结构说明
-
-```
-src/main/java/com/sqlmapwebui/burp/
-├── SqlmapWebUIExtension.java   # 插件入口，注册菜单和UI
-├── ui/
-│   ├── MainPanel.java          # 主面板（Tab容器）
-│   ├── ServerConfigPanel.java  # 服务器配置面板
-│   ├── DefaultConfigPanel.java # 默认配置面板
-│   ├── PresetConfigPanel.java  # 常用配置面板
-│   ├── HistoryConfigPanel.java # 历史配置面板
-│   ├── GuidedParamEditorDialog.java # 引导式参数编辑器
-│   └── ActivityLogPanel.java   # 活动日志面板
-├── config/
-│   ├── ConfigManager.java      # 配置管理器
-│   └── ScanConfig.java         # 扫描配置模型
-└── http/
-    └── ApiClient.java          # API 客户端
-```
-
-### 添加新配置项
-
-1. 在 `ScanConfig` 中添加字段
-2. 在 `DefaultConfigPanel` 中添加 UI 控件
-3. 在 `ConfigManager` 中添加持久化逻辑
-
-### 调试方法
-
-1. 在 Burp Suite 中加载插件
-2. 查看 Extender → Output 标签页的日志
-3. 使用活动日志面板查看操作记录
-
-## 常见问题
-
-### Q: 插件加载失败？
-A: 检查 Java 版本是否满足要求（Montoya 需要 Java 17+，Legacy 需要 Java 11+）
-
-### Q: 连接测试失败？
-A: 检查后端服务是否运行，URL 是否正确（默认 http://localhost:8775）
-
-### Q: 发送请求后看不到任务？
-A: 在 Web 前端查看任务列表，插件只负责发送，不显示任务
-
-### Q: 如何查看详细错误？
-A: 查看 Burp Suite 的 Extender → Output 标签页
-
-## 许可证
+## License
 
 MIT License
