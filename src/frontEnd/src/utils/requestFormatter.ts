@@ -20,20 +20,33 @@ export function formatHttpRequest(httpInfo: any, task: any): string {
     const urlObj = new URL(url)
     const path = urlObj.pathname + urlObj.search
     lines.push(`${method.toUpperCase()} ${path} ${protocol}`)
-
-    // 2. Host头（如果URL包含域名）
-    lines.push(`Host: ${urlObj.host}`)
   } catch (e) {
     // 如果URL解析失败，直接使用原始URL
     lines.push(`${method.toUpperCase()} ${url} ${protocol}`)
   }
 
-  // 3. 其他请求头 (优先使用httpInfo.headers，其次是task.headers)
+  // 2. 处理请求头
   const headers = httpInfo?.headers || task?.headers
+  let hasHostHeader = false
+  
   if (headers && Array.isArray(headers)) {
     headers.forEach((header: string) => {
+      // 检查是否包含Host头（不区分大小写）
+      if (header && header.toLowerCase().startsWith('host:')) {
+        hasHostHeader = true
+      }
       lines.push(header)
     })
+  }
+  
+  // 3. 如果没有Host头，从URL添加
+  if (!hasHostHeader) {
+    try {
+      const urlObj = new URL(url)
+      lines.push(`Host: ${urlObj.host}`)
+    } catch (e) {
+      // URL解析失败，不添加Host头
+    }
   }
 
   // 4. 内容长度头（如果有请求体）

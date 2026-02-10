@@ -576,18 +576,19 @@ export async function getHttpRequestInfo(taskId: string): Promise<any> {
     })
   }
 
-  // 真实API调用，后端缺少method字段，需要从headers中解析
+  // 真实API调用，后端已经返回method字段
   const response = await request.get<{
     url: string
+    method: string
     headers: string[]
     body: string
   }>('/web/admin/task/getTaskHttpRequestInfoByTaskId', {
     params: { taskId },
   })
   
-  // 从headers[0]解析method（请求行格式如: "GET /path HTTP/1.1"）
-  let method = 'GET'
-  if (response.headers && response.headers.length > 0 && response.headers[0]) {
+  // 优先使用后端返回的method，如果不存在再从headers[0]解析（兼容性考虑）
+  let method = response.method || 'GET'
+  if (!response.method && response.headers && response.headers.length > 0 && response.headers[0]) {
     const requestLine = response.headers[0]
     const match = requestLine.match(/^(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS|TRACE|CONNECT)\s/i)
     if (match && match[1]) {

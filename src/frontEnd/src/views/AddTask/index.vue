@@ -1021,6 +1021,7 @@ async function submitTask() {
     const taskData = {
       scanUrl: requestInfo.url,
       host: requestInfo.host,
+      method: requestInfo.method,
       headers: requestInfo.headers,
       body: requestInfo.body,
       options: getEffectiveOptions()
