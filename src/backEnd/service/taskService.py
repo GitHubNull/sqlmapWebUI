@@ -59,17 +59,17 @@ class TaskService(object):
     def __init__(self):
         pass
 
-    def _create_task_sync(self, remote_addr: str, scanUrl: str, host, headers: list, body: str, options: dict, taskid: str):
+    def _create_task_sync(self, remote_addr: str, scanUrl: str, host, method: str, headers: list, body: str, options: dict, taskid: str):
         """同步创建任务（在线程池中执行）"""
         with DataStore.tasks_lock:
-            DataStore.tasks[taskid] = Task(taskid, remote_addr, scanUrl, host, headers, body)
+            DataStore.tasks[taskid] = Task(taskid, remote_addr, scanUrl, host, method, headers, body)
             for option in options:
                 logger.debug(f"option: {option}, value: {options[option]}")
                 DataStore.tasks[taskid].set_option(option, options[option])
             DataStore.tasks[taskid].status = TaskStatus.Runnable
             return DataStore.tasks[taskid].engine_get_id()
 
-    async def star_task(self, remote_addr: str, scanUrl: str, host, headers: list, body: str, options: dict):
+    async def star_task(self, remote_addr: str, scanUrl: str, host, method: str, headers: list, body: str, options: dict):
         option_check_res = validate_options(options)
         if option_check_res is not None:
             return option_check_res
@@ -81,7 +81,7 @@ class TaskService(object):
             engine_id = await loop.run_in_executor(
                 self._executor,
                 self._create_task_sync,
-                remote_addr, scanUrl, host, headers, body, options, taskid
+                remote_addr, scanUrl, host, method, headers, body, options, taskid
             )
             return BaseResponseMsg(
                 data={"engineid": engine_id, "taskid": taskid},
@@ -528,6 +528,7 @@ class TaskService(object):
             task = DataStore.tasks[taskId]
             http_info = {
                 "url": task.scanUrl,
+                "method": task.method,
                 "headers": task.headers,
                 "body": task.body,
             }

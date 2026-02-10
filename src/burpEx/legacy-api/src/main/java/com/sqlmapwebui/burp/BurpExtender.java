@@ -351,10 +351,20 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
             }
             optionsJson.append("}");
             
+            // 提取HTTP方法（从headers的第一行）
+            String method = "GET";
+            if (headers != null && !headers.isEmpty()) {
+                String firstHeader = headers.get(0);
+                if (firstHeader != null && firstHeader.contains(" ")) {
+                    method = firstHeader.substring(0, firstHeader.indexOf(" "));
+                }
+            }
+            
             String jsonPayload = String.format(
-                "{\"scanUrl\":\"%s\",\"host\":\"%s\",\"headers\":%s,\"body\":\"%s\",\"options\":%s}",
+                "{\"scanUrl\":\"%s\",\"host\":\"%s\",\"method\":\"%s\",\"headers\":%s,\"body\":\"%s\",\"options\":%s}",
                 JsonUtils.escapeJson(url),
                 JsonUtils.escapeJson(requestInfo.getUrl().getHost()),
+                JsonUtils.escapeJson(method),
                 headersJson.toString(),
                 JsonUtils.escapeJson(body),
                 optionsJson.toString()

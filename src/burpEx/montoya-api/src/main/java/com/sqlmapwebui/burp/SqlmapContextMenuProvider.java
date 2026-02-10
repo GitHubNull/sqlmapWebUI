@@ -7,6 +7,7 @@ import burp.api.montoya.ui.contextmenu.ContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
 
 import com.sqlmapwebui.burp.dialogs.*;
+import com.sqlmapwebui.burp.util.PayloadBuilder;
 
 import javax.swing.*;
 import java.awt.*;
@@ -273,32 +274,6 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
                 headersList.add(header.name() + ": " + header.value())
             );
             
-            // 构建JSON payload
-            StringBuilder headersJson = new StringBuilder("[");
-            for (int i = 0; i < headersList.size(); i++) {
-                headersJson.append("\"").append(JsonUtils.escapeJson(headersList.get(i))).append("\"");
-                if (i < headersList.size() - 1) headersJson.append(",");
-            }
-            headersJson.append("]");
-            
-            // 构建options
-            Map<String, Object> options = config.toOptionsMap();
-            StringBuilder optionsJson = new StringBuilder("{");
-            boolean first = true;
-            for (Map.Entry<String, Object> entry : options.entrySet()) {
-                if (!first) optionsJson.append(",");
-                first = false;
-                optionsJson.append("\"").append(entry.getKey()).append("\":");
-                if (entry.getValue() instanceof String) {
-                    optionsJson.append("\"").append(JsonUtils.escapeJson((String)entry.getValue())).append("\"");
-                } else if (entry.getValue() instanceof Boolean) {
-                    optionsJson.append(entry.getValue());
-                } else {
-                    optionsJson.append(entry.getValue());
-                }
-            }
-            optionsJson.append("}");
-            
             // 提取host
             String host = "";
             try {
@@ -308,13 +283,17 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
                 host = "unknown";
             }
             
-            String jsonPayload = String.format(
-                "{\"scanUrl\":\"%s\",\"host\":\"%s\",\"headers\":%s,\"body\":\"%s\",\"options\":%s}",
-                JsonUtils.escapeJson(url),
-                JsonUtils.escapeJson(host),
-                headersJson.toString(),
-                JsonUtils.escapeJson(body),
-                optionsJson.toString()
+            // 构建options
+            Map<String, Object> options = config.toOptionsMap();
+            
+             // 使用 PayloadBuilder 构建JSON
+            String jsonPayload = PayloadBuilder.buildTaskPayload(
+                url,
+                host,
+                request.method(),
+                headersList,
+                body,
+                options
             );
             
             // 异步发送到后端

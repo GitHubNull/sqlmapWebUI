@@ -68,6 +68,7 @@ async def add_task_from_web(
                 remote_addr=remote_ip, 
                 scanUrl=taskAddRequest.scanUrl, 
                 host=taskAddRequest.host, 
+                method=taskAddRequest.method,
                 headers=taskAddRequest.headers, 
                 body=taskAddRequest.body, 
                 options=taskAddRequest.options

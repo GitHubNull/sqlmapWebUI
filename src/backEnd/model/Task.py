@@ -47,13 +47,14 @@ def get_default_http_request_temp_dir():
 
 
 class Task(object):
-    def __init__(self, taskid, remote_addr, scanUrl, host, headers, body):
+    def __init__(self, taskid, remote_addr, scanUrl, host, method, headers, body):
         self.status = TaskStatus.New
         self.create_datetime = datetime.now()  # 任务创建时间 (New状态)
         self.start_datetime = None  # 任务开始执行时间 (Running状态)
         self.taskid = taskid
         self.scanUrl = scanUrl
         self.host = host
+        self.method = method
         self.headers = headers
         self.body = body
         self.remote_addr = remote_addr
@@ -266,8 +267,8 @@ class Task(object):
         if parsed_url.query:
             path += "?" + parsed_url.query
         
-        # 确定请求方法 (如果有body则为POST，否则为GET)
-        method = "POST" if self.body else "GET"
+        # 使用存储的method，如果不存在则根据body推断
+        method = self.method if self.method else ("POST" if self.body else "GET")
         
         # 构建请求行
         request_line = f"{method} {path} HTTP/1.1"
