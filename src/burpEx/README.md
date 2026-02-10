@@ -5,31 +5,30 @@ Burp Suite 扩展插件，用于将 HTTP 请求发送到 SQLMap WebUI 后端进�
 ## 项目结构
 
 ```
-burpEx/
+src/burpEx/
 ├── legacy-api/          # 传统 Burp API 插件 (Java 11)
 │   ├── src/main/java/com/sqlmapwebui/burp/
-│   │   ├── BurpExtender.java              # 插件入口 (Legacy API)
+│   │   ├── BurpExtender.java              # 插件入口
+│   │   ├── ConfigManager.java             # 配置管理
+│   │   ├── SqlmapApiClient.java           # API客户端
 │   │   ├── SqlmapUITab.java               # 主UI标签页
 │   │   ├── panels/                        # UI面板组件
 │   │   ├── dialogs/                       # 对话框组件
-│   │   └── [共享代码文件...]
+│   │   └── ... (共34个文件)
 │   └── pom.xml
 │
-├── montoya-api/         # Montoya API 插件 (Java 17+, Burp 2023.1+)
-│   ├── src/main/java/com/sqlmapwebui/burp/
-│   │   ├── SqlmapWebUIExtension.java      # 插件入口 (Montoya API)
-│   │   ├── SqlmapContextMenuProvider.java # 右键菜单提供者
-│   │   ├── HttpRequestUtils.java          # UTF-8请求处理
-│   │   ├── util/                          # 工具类
-│   │   ├── SqlmapUITab.java               # 主UI标签页 (与Legacy共享)
-│   │   ├── panels/                        # UI面板组件 (与Legacy共享)
-│   │   ├── dialogs/                       # 对话框组件 (与Legacy共享)
-│   │   └── [共享代码文件...]
-│   └── pom.xml
-│
-├── sync-shared.bat      # Windows 同步脚本
-├── sync-shared.sh       # Linux/Mac 同步脚本
-└── SHARED_FILES.md      # 共享文件文档
+└── montoya-api/         # Montoya API 插件 (Java 17+, Burp 2023.1+)
+    ├── src/main/java/com/sqlmapwebui/burp/
+    │   ├── SqlmapWebUIExtension.java      # 插件入口
+    │   ├── SqlmapContextMenuProvider.java # 右键菜单
+    │   ├── HttpRequestUtils.java          # UTF-8工具
+    │   ├── ConfigManager.java             # 配置管理
+    │   ├── SqlmapApiClient.java           # API客户端
+    │   ├── SqlmapUITab.java               # 主UI标签页
+    │   ├── panels/                        # UI面板组件
+    │   ├── dialogs/                       # 对话框组件
+    │   └── ... (共37个文件)
+    └── pom.xml
 ```
 
 ## 双 API 架构
@@ -41,29 +40,13 @@ burpEx/
 | `legacy-api` | Legacy API | Java 11+ | 所有版本 |
 | `montoya-api` | Montoya API | Java 17+ | 2023.1+ |
 
-**共享代码策略：**
-- 两个模块共享 90% 的代码（模型、工具类、UI组件）
-- 使用同步脚本 `sync-shared.bat/sh` 保持代码一致
-- 仅入口点和 API 特定代码独立维护
+**重要说明**: 两个模块使用**不同的 Burp API**，因此代码**不能共享**：
+- Legacy API: `import burp.IBurpExtenderCallbacks`
+- Montoya API: `import burp.api.montoya.MontoyaApi`
 
-## 同步脚本使用
+虽然业务逻辑完全相同，但必须独立维护两套代码。
 
-当修改 `legacy-api` 中的共享代码后，需要同步到 `montoya-api`：
-
-### Windows
-```batch
-cd src/burpEx
-sync-shared.bat
-```
-
-### Linux/Mac
-```bash
-cd src/burpEx
-chmod +x sync-shared.sh
-./sync-shared.sh
-```
-
-详细说明请查看 [SHARED_FILES.md](./SHARED_FILES.md)
+详细说明请查看 [ARCHITECTURE.md](./ARCHITECTURE.md)
 
 ## 插件功能
 
@@ -159,23 +142,24 @@ mvn clean package -DskipTests
 
 ## 开发说明
 
-### 修改共享代码
+### 修改代码
 
-1. 在 `legacy-api` 中修改文件（保持 Java 11 兼容性）
-2. 运行 `sync-shared.bat` 或 `sync-shared.sh`
-3. 分别编译两个模块验证
+由于两个 API 不兼容，需要**分别修改**：
 
-### 添加新功能
+1. 先在 `legacy-api` 中修改（使用 Legacy API）
+2. 参考修改内容，在 `montoya-api` 中做对应修改（使用 Montoya API）
+3. 分别编译验证
 
-- 如果是通用功能：在 `legacy-api` 中实现，然后同步
-- 如果是 API 特定：只在对应模块中实现
+### 为什么不能共享代码？
 
-## 注意事项
+尝试过提取共享模块，但发现：
+1. UI 组件依赖 Burp API
+2. ConfigManager 需要适配不同 API
+3. Import 语句完全不同
+4. 需要修改 100+ 个文件
+5. 风险高，容易引入 bug
 
-1. **同步方向**: 始终以 `legacy-api` 为源，`montoya-api` 为目标
-2. **兼容性**: 确保共享代码兼容 Java 11
-3. **编译验证**: 每次同步后都应该编译验证
-4. **备份**: 同步脚本会自动创建备份
+**结论**: 当前独立维护的方式虽然重复代码多，但是最稳定和可维护的方案。
 
 ## 版本信息
 
@@ -185,7 +169,7 @@ mvn clean package -DskipTests
 
 ## 相关链接
 
-- [共享文件说明](./SHARED_FILES.md)
+- [架构说明](./ARCHITECTURE.md)
 - [SQLMap 官方文档](https://sqlmap.org/)
 - [Burp Suite 扩展开发](https://portswigger.net/burp/documentation/desktop/extensions)
 
