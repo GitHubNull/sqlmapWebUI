@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.sqlmapwebui</groupId>
+    <artifactId>sqlmap-webui-burp-parent</artifactId>
+    <version>1.8.16</version>
+    <packaging>pom</packaging>
+
+    <name>SQLMap WebUI Burp Extension - Parent Project</name>
+    <description>Parent POM for SQLMap WebUI Burp Extension modules</description>
+
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <montoya.version>2023.12.1</montoya.version>
+    </properties>
+
+    <modules>
+        <module>shared</module>
+        <module>legacy-api</module>
+        <module>montoya-api</module>
+    </modules>
+</project>
