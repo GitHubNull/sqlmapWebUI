@@ -59,17 +59,17 @@ class TaskService(object):
     def __init__(self):
         pass
 
-    def _create_task_sync(self, remote_addr: str, scanUrl: str, host, headers: list, body: str, options: dict, taskid: str):
+    def _create_task_sync(self, remote_addr: str, scanUrl: str, host, method: str, headers: list, body: str, options: dict, taskid: str):
         """同步创建任务（在线程池中执行）"""
         with DataStore.tasks_lock:
-            DataStore.tasks[taskid] = Task(taskid, remote_addr, scanUrl, host, headers, body)
+            DataStore.tasks[taskid] = Task(taskid, remote_addr, scanUrl, host, method, headers, body)
             for option in options:
                 logger.debug(f"option: {option}, value: {options[option]}")
                 DataStore.tasks[taskid].set_option(option, options[option])
             DataStore.tasks[taskid].status = TaskStatus.Runnable
             return DataStore.tasks[taskid].engine_get_id()
 
-    async def star_task(self, remote_addr: str, scanUrl: str, host, headers: list, body: str, options: dict):
+    async def star_task(self, remote_addr: str, scanUrl: str, host, method: str, headers: list, body: str, options: dict):
         option_check_res = validate_options(options)
         if option_check_res is not None:
             return option_check_res
@@ -81,7 +81,7 @@ class TaskService(object):
             engine_id = await loop.run_in_executor(
                 self._executor,
                 self._create_task_sync,
-                remote_addr, scanUrl, host, headers, body, options, taskid
+                remote_addr, scanUrl, host, method, headers, body, options, taskid
             )
             return BaseResponseMsg(
                 data={"engineid": engine_id, "taskid": taskid},
@@ -528,6 +528,7 @@ class TaskService(object):
             task = DataStore.tasks[taskId]
             http_info = {
                 "url": task.scanUrl,
+                "method": task.method,
                 "headers": task.headers,
                 "body": task.body,
             }
@@ -550,7 +551,9 @@ class TaskService(object):
                 return (None, False, "task not found", status.HTTP_404_NOT_FOUND)
             task = DataStore.tasks[taskId]
             task_options = task.get_options()
+            user_set_options = task.get_user_set_options()  # 获取用户显式设置的参数
             res_options = []
+            
             for option in task_options:
                 # 跳过内部选项
                 if option in INTERNAL_OPTIONS:
@@ -560,7 +563,12 @@ class TaskService(object):
                 if option_value is None:
                     continue
                 
-                # 跳过与 SQLMap 默认值相同的选项（用户没有显式设置的）
+                # 用户显式设置的参数，无论值是什么都显示
+                if option in user_set_options:
+                    res_options.append({"option": option, "value": option_value})
+                    continue
+                
+                # 非用户设置的参数，跳过与 SQLMap 默认值相同的选项
                 default_value = SQLMAP_DEFAULTS.get(option)
                 if default_value is not None and option_value == default_value:
                     continue

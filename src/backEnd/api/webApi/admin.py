@@ -31,6 +31,7 @@ async def add_task(taskAddRequest: TaskAddRequest, request: Request, current_use
             remote_addr=remote_ip,
             scanUrl=taskAddRequest.scanUrl,
             host=taskAddRequest.host,
+            method=taskAddRequest.method,
             headers=taskAddRequest.headers,
             body=taskAddRequest.body,
             options=taskAddRequest.options

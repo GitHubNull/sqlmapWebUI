@@ -32,12 +32,26 @@ public class ParamMeta {
     /** 有效值集合 (枚举类型) */
     private final Set<String> validValues;
     
+    /** 是否被 SQLMap RESTAPI 限制 */
+    private final boolean restApiRestricted;
+    
+    /** 限制原因描述 */
+    private final String restrictionReason;
+    
+    /** 是否为危险参数 */
+    private final boolean dangerous;
+    
+    /** 危险级别描述 */
+    private final String dangerLevel;
+    
     /**
-     * 构造函数
+     * 构造函数（带 RESTAPI 限制和安全标记）
      */
-    public ParamMeta(String name, String description, Class<?> type, 
+    public ParamMeta(String name, String description, Class<?> type,
                     Object defaultValue, Number minValue, Number maxValue,
-                    Set<String> validValues) {
+                    Set<String> validValues,
+                    boolean restApiRestricted, String restrictionReason,
+                    boolean dangerous, String dangerLevel) {
         this.name = name;
         this.description = description;
         this.type = type;
@@ -45,6 +59,20 @@ public class ParamMeta {
         this.minValue = minValue;
         this.maxValue = maxValue;
         this.validValues = validValues;
+        this.restApiRestricted = restApiRestricted;
+        this.restrictionReason = restrictionReason;
+        this.dangerous = dangerous;
+        this.dangerLevel = dangerLevel;
+    }
+    
+    /**
+     * 构造函数（简化版本，用于向后兼容）
+     */
+    public ParamMeta(String name, String description, Class<?> type,
+                    Object defaultValue, Number minValue, Number maxValue,
+                    Set<String> validValues) {
+        this(name, description, type, defaultValue, minValue, maxValue, validValues,
+           false, null, false, null);
     }
     
     // ==================== Getters ====================
@@ -128,6 +156,34 @@ public class ParamMeta {
         return !isBoolean();
     }
     
+    /**
+     * 是否被 SQLMap RESTAPI 限制
+     */
+    public boolean isRestApiRestricted() {
+        return restApiRestricted;
+    }
+    
+    /**
+     * 获取限制原因描述
+     */
+    public String getRestrictionReason() {
+        return restrictionReason;
+    }
+    
+    /**
+     * 是否为危险参数
+     */
+    public boolean isDangerous() {
+        return dangerous;
+    }
+    
+    /**
+     * 获取危险级别描述
+     */
+    public String getDangerLevel() {
+        return dangerLevel;
+    }
+    
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -143,5 +199,19 @@ public class ParamMeta {
             sb.append(" {").append(String.join(",", validValues)).append("}");
         }
         return sb.toString();
+    }
+    
+    /**
+     * 获取完整描述（包含安全提示）
+     */
+    public String getFullDescription() {
+        StringBuilder desc = new StringBuilder(description);
+        if (restApiRestricted && restrictionReason != null) {
+            desc.append(" | 🚫 ").append(restrictionReason);
+        }
+        if (dangerous && dangerLevel != null) {
+            desc.append(" | ⚠️ ").append(dangerLevel);
+        }
+        return desc.toString();
     }
 }

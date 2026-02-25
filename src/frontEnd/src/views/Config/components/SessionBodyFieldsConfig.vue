@@ -745,6 +745,9 @@ function confirmDelete(field: SessionBodyField) {
     message: `确定要删除字段 "${field.field_name}" 吗？`,
     header: '删除确认',
     icon: 'pi pi-exclamation-triangle',
+    acceptLabel: '删除',
+    rejectLabel: '取消',
+    rejectClass: 'p-button-secondary p-button-outlined',
     acceptClass: 'p-button-danger',
     accept: async () => {
       try {
@@ -773,6 +776,9 @@ function confirmClearAll() {
     message: '确定要清除所有Body字段规则吗？此操作不可恢复。',
     header: '清除确认',
     icon: 'pi pi-exclamation-triangle',
+    acceptLabel: '清除',
+    rejectLabel: '取消',
+    rejectClass: 'p-button-secondary p-button-outlined',
     acceptClass: 'p-button-danger',
     accept: async () => {
       try {
@@ -801,6 +807,9 @@ function confirmBatchDelete() {
     message: `确定要删除选中的 ${selectedFields.value.length} 个字段规则吗？`,
     header: '批量删除确认',
     icon: 'pi pi-exclamation-triangle',
+    acceptLabel: '删除',
+    rejectLabel: '取消',
+    rejectClass: 'p-button-secondary p-button-outlined',
     acceptClass: 'p-button-danger',
     accept: async () => {
       try {

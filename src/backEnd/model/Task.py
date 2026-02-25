@@ -47,13 +47,14 @@ def get_default_http_request_temp_dir():
 
 
 class Task(object):
-    def __init__(self, taskid, remote_addr, scanUrl, host, headers, body):
+    def __init__(self, taskid, remote_addr, scanUrl, host, method, headers, body):
         self.status = TaskStatus.New
         self.create_datetime = datetime.now()  # 任务创建时间 (New状态)
         self.start_datetime = None  # 任务开始执行时间 (Running状态)
         self.taskid = taskid
         self.scanUrl = scanUrl
         self.host = host
+        self.method = method
         self.headers = headers
         self.body = body
         self.remote_addr = remote_addr
@@ -61,6 +62,7 @@ class Task(object):
         self.output_directory = None
         self.options = None
         self._original_options = None
+        self._user_set_options = set()  # 跟踪用户显式设置的参数
         self._header_rules_applied = False  # 标记是否已应用请求头规则
         self._body_field_rules_applied = False  # 标记是否已应用Body字段规则
         self._request_file_path = None  # HTTP原始报文文件路径
@@ -97,12 +99,17 @@ class Task(object):
 
     def set_option(self, option, value):
         self.options[option] = value  # type: ignore
+        self._user_set_options.add(option)  # 记录用户显式设置的参数
 
     def get_option(self, option):
         return self.options[option]  # type: ignore
 
     def get_options(self):
         return self.options
+
+    def get_user_set_options(self):
+        """获取用户显式设置的参数名集合"""
+        return self._user_set_options
 
     def reset_options(self):
         self.options = AttribDict(self._original_options)
@@ -266,8 +273,8 @@ class Task(object):
         if parsed_url.query:
             path += "?" + parsed_url.query
         
-        # 确定请求方法 (如果有body则为POST，否则为GET)
-        method = "POST" if self.body else "GET"
+        # 使用存储的method，如果不存在则根据body推断
+        method = self.method if self.method else ("POST" if self.body else "GET")
         
         # 构建请求行
         request_line = f"{method} {path} HTTP/1.1"

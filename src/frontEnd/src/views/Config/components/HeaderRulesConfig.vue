@@ -809,6 +809,8 @@ function confirmDelete(rule: PersistentHeaderRule) {
     icon: 'pi pi-exclamation-triangle',
     acceptLabel: '删除',
     rejectLabel: '取消',
+    rejectClass: 'p-button-secondary p-button-outlined',
+    acceptClass: 'p-button-danger',
     accept: () => deleteRule(rule.id),
   })
 }

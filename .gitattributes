@@ -1,0 +1,33 @@
+# 自动处理行尾符
+* text=auto
+
+# Java 和 XML 文件使用 LF 行尾符
+*.java text eol=lf
+*.xml text eol=lf
+
+# Vue 和 TypeScript 文件使用 LF
+*.vue text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+
+# Python 文件使用 LF
+*.py text eol=lf
+
+# 配置文件使用 LF
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.properties text eol=lf
+
+# 确保二进制文件不被修改
+*.jar binary
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary

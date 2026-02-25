@@ -26,7 +26,7 @@ async def add_task(taskAddRequest: TaskAddRequest, request: Request, current_use
             logger.info(f"request.client: {request.client}")
             remote_ip = request.client.host
             # pdb.set_trace()
-            res = await taskService.star_task(remote_addr=remote_ip, scanUrl=taskAddRequest.scanUrl, host=taskAddRequest.host, headers=taskAddRequest.headers, body=taskAddRequest.body, options=taskAddRequest.options)
+            res = await taskService.star_task(remote_addr=remote_ip, scanUrl=taskAddRequest.scanUrl, host=taskAddRequest.host, method=taskAddRequest.method, headers=taskAddRequest.headers, body=taskAddRequest.body, options=taskAddRequest.options)
             return res
         else:
             remote_ip = None
