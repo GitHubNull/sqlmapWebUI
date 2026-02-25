@@ -21,7 +21,6 @@
     </properties>
 
     <modules>
-        <module>shared</module>
         <module>legacy-api</module>
         <module>montoya-api</module>
     </modules>

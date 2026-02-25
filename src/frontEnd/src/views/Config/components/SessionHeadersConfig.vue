@@ -772,6 +772,8 @@ function confirmClearAll() {
     icon: 'pi pi-exclamation-triangle',
     acceptLabel: '清除',
     rejectLabel: '取消',
+    rejectClass: 'p-button-secondary p-button-outlined',
+    acceptClass: 'p-button-warning',
     accept: async () => {
       try {
         await clearSessionHeaders()
@@ -802,6 +804,8 @@ function confirmDelete(header: SessionHeader) {
     icon: 'pi pi-exclamation-triangle',
     acceptLabel: '删除',
     rejectLabel: '取消',
+    rejectClass: 'p-button-secondary p-button-outlined',
+    acceptClass: 'p-button-danger',
     accept: () => deleteHeader(header.header_name),
   })
 }
@@ -880,6 +884,7 @@ function confirmBatchDeleteHeaders() {
     header: '批量删除确认',
     icon: 'pi pi-exclamation-triangle',
     rejectLabel: '取消',
+    rejectClass: 'p-button-secondary p-button-outlined',
     acceptLabel: '删除',
     acceptClass: 'p-button-danger',
     accept: batchDeleteHeaders,

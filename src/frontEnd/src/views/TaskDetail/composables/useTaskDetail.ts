@@ -643,6 +643,7 @@ export function useTaskDetail() {
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: '停止',
       rejectLabel: '取消',
+      rejectClass: 'p-button-secondary p-button-outlined',
       acceptClass: 'p-button-warning',
       accept: async () => {
         try {
@@ -677,6 +678,7 @@ export function useTaskDetail() {
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: '删除',
       rejectLabel: '取消',
+      rejectClass: 'p-button-secondary p-button-outlined',
       acceptClass: 'p-button-danger',
       accept: async () => {
         try {

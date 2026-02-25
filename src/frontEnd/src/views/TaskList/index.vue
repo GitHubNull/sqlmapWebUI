@@ -400,6 +400,7 @@ function confirmStopTask(taskId: string) {
     icon: 'pi pi-exclamation-triangle',
     acceptLabel: '停止',
     rejectLabel: '取消',
+    rejectClass: 'p-button-secondary p-button-outlined',
     acceptClass: 'p-button-warning',
     accept: async () => {
       try {
@@ -430,6 +431,7 @@ function confirmDeleteTask(taskId: string) {
     icon: 'pi pi-exclamation-triangle',
     acceptLabel: '删除',
     rejectLabel: '取消',
+    rejectClass: 'p-button-secondary p-button-outlined',
     acceptClass: 'p-button-danger',
     accept: async () => {
       try {
@@ -501,6 +503,7 @@ function confirmBatchStop() {
     icon: 'pi pi-exclamation-triangle',
     acceptLabel: '停止',
     rejectLabel: '取消',
+    rejectClass: 'p-button-secondary p-button-outlined',
     acceptClass: 'p-button-warning',
     accept: async () => {
       try {
@@ -555,6 +558,7 @@ function confirmBatchDelete() {
     icon: 'pi pi-exclamation-triangle',
     acceptLabel: '删除',
     rejectLabel: '取消',
+    rejectClass: 'p-button-secondary p-button-outlined',
     acceptClass: 'p-button-danger',
     accept: async () => {
       try {
@@ -598,11 +602,12 @@ function confirmDeleteAll() {
 
 此操作不可恢复，所有扫描结果和日志将永久丢失！
 
-请输入“删除全部”以确认此操作`,
+请输入"删除全部"以确认此操作`,
     header: '危险操作！删除所有任务',
     icon: 'pi pi-exclamation-circle',
     acceptLabel: '确认删除',
     rejectLabel: '取消',
+    rejectClass: 'p-button-secondary p-button-outlined',
     acceptClass: 'p-button-danger',
     accept: async () => {
       try {
