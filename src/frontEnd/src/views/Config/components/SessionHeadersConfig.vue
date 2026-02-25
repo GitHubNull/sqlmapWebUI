@@ -979,5 +979,5 @@ function truncate(text: string, length: number) {
 </script>
 
 <style scoped lang="scss">
-@import './SessionHeaders/session-headers.scss';
+@use './SessionHeaders/session-headers.scss' as *;
 </style>

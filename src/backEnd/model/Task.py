@@ -62,6 +62,7 @@ class Task(object):
         self.output_directory = None
         self.options = None
         self._original_options = None
+        self._user_set_options = set()  # 跟踪用户显式设置的参数
         self._header_rules_applied = False  # 标记是否已应用请求头规则
         self._body_field_rules_applied = False  # 标记是否已应用Body字段规则
         self._request_file_path = None  # HTTP原始报文文件路径
@@ -98,12 +99,17 @@ class Task(object):
 
     def set_option(self, option, value):
         self.options[option] = value  # type: ignore
+        self._user_set_options.add(option)  # 记录用户显式设置的参数
 
     def get_option(self, option):
         return self.options[option]  # type: ignore
 
     def get_options(self):
         return self.options
+
+    def get_user_set_options(self):
+        """获取用户显式设置的参数名集合"""
+        return self._user_set_options
 
     def reset_options(self):
         self.options = AttribDict(self._original_options)

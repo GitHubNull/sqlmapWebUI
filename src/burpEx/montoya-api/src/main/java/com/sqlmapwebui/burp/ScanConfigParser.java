@@ -892,12 +892,16 @@ public class ScanConfigParser {
     /**
      * 分词为参数数组
      * 支持带引号的字符串
+     * 
+     * 修复：对于 --param=value 格式，只在参数名后的第一个等号处分割，
+     * 值中的等号将被保留（如 --answers=crack=N,dict=N）
      */
     private static String[] tokenize(String input) {
         List<String> tokens = new ArrayList<>();
         StringBuilder current = new StringBuilder();
         boolean inQuote = false;
         char quoteChar = 0;
+        boolean inValue = false;  // 标记是否正在解析参数值
         
         for (int i = 0; i < input.length(); i++) {
             char c = input.charAt(i);
@@ -917,10 +921,21 @@ public class ScanConfigParser {
                         tokens.add(current.toString());
                         current = new StringBuilder();
                     }
+                    inValue = false;  // 空格后重置，下一个可能是新参数
                 } else if (c == '=') {
-                    if (current.length() > 0) {
-                        tokens.add(current.toString());
-                        current = new StringBuilder();
+                    // 只有当当前token是参数名（以-开头）时，等号才作为分隔符
+                    // 否则等号是值的一部分
+                    String currentStr = current.toString();
+                    if (currentStr.startsWith("-") && !inValue) {
+                        // 这是参数名后的第一个等号，作为分隔符
+                        if (current.length() > 0) {
+                            tokens.add(currentStr);
+                            current = new StringBuilder();
+                        }
+                        inValue = true;  // 标记现在开始解析值
+                    } else {
+                        // 值中的等号，保留
+                        current.append(c);
                     }
                 } else {
                     current.append(c);
