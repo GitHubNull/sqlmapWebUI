@@ -1558,10 +1558,9 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: linear-gradient(135deg, var(--p-primary-50) 0%, var(--p-primary-100) 100%);
-  border: 2px solid var(--p-primary-200);
+  background: var(--p-surface-100);
+  border: 2px solid var(--p-surface-border);
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
   margin-bottom: 1rem;
 }
 
@@ -1571,7 +1570,6 @@ onMounted(async () => {
   background: var(--p-content-background);
   padding: 4px;
   border-radius: 10px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .mode-tab {
@@ -1601,7 +1599,6 @@ onMounted(async () => {
 .mode-tab.active {
   background: var(--p-primary-color);
   color: white;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
 }
 
 .mode-tab.active i {
@@ -1676,20 +1673,20 @@ onMounted(async () => {
 
 /* 默认配置背景 - 绿色色调 */
 .preset-list-container.preset-default {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.03) 100%);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 /* 常用配置背景 - 蓝色色调 */
 .preset-list-container.preset-common {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(99, 102, 241, 0.03) 100%);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.3);
 }
 
 /* 历史配置背景 - 橙色色调 */
 .preset-list-container.preset-history {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.03) 100%);
-  border: 1px solid rgba(245, 158, 11, 0.2);
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 /* 预设列表头部 */
@@ -1743,13 +1740,11 @@ onMounted(async () => {
   border: 1px solid var(--surface-border);
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
   background: var(--surface-card);
 }
 
 .preset-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: var(--p-primary-color);
 }
 
 /* 默认配置卡片 */
@@ -1765,7 +1760,6 @@ onMounted(async () => {
 .preset-card-default.selected {
   border-color: #10b981;
   background: rgba(16, 185, 129, 0.1);
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
 }
 
 /* 常用配置卡片 */
@@ -1781,7 +1775,6 @@ onMounted(async () => {
 .preset-card-common.selected {
   border-color: #6366f1;
   background: rgba(99, 102, 241, 0.1);
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
 }
 
 /* 历史配置卡片 */
@@ -1797,7 +1790,6 @@ onMounted(async () => {
 .preset-card-history.selected {
   border-color: #f59e0b;
   background: rgba(245, 158, 11, 0.1);
-  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
 }
 
 .preset-card-header {
@@ -1847,7 +1839,7 @@ onMounted(async () => {
   padding: 1rem;
   color: var(--text-color-secondary);
   font-size: 0.85rem;
-  background: var(--surface-50);
+  background: var(--surface-100);
   border-radius: 6px;
   border: 1px dashed var(--surface-border);
 }

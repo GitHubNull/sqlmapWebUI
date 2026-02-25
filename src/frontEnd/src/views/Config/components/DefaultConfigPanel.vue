@@ -296,8 +296,8 @@ onMounted(async () => {
 }
 
 .left-panel, .right-panel {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.7) 100%);
-  border: 1px solid rgba(226, 232, 240, 0.5);
+  background: var(--p-surface-card);
+  border: 1px solid var(--p-surface-border);
   border-radius: var(--p-border-radius);
   padding: 16px;
 }
@@ -361,7 +361,7 @@ onMounted(async () => {
 }
 
 .technique-display {
-  background: #f1f5f9 !important;
+  background: var(--p-surface-200) !important;
 }
 
 .technique-checkboxes {

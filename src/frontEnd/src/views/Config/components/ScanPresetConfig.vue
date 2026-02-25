@@ -150,7 +150,7 @@ async function copyCommand() {
 
 :deep(.preset-tabs) {
   .p-tablist {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.6) 100%);
+    background: var(--p-surface-card);
     border-radius: var(--p-border-radius);
     padding: 4px 8px;
     gap: 8px;

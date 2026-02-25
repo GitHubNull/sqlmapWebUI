@@ -141,32 +141,10 @@ defineProps<Props>()
 <style scoped lang="scss">
 .task-summary {
   padding: 24px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+  background: var(--p-surface-0);
   border-radius: 16px;
-  border: 2px solid rgba(99, 102, 241, 0.1);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--p-surface-200);
   margin: 20px 0;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background:
-      radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
-      radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.03) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  > * {
-    position: relative;
-    z-index: 1;
-  }
 }
 
 .summary-title {
@@ -176,15 +154,11 @@ defineProps<Props>()
   margin-bottom: 24px;
   font-size: 20px;
   font-weight: 700;
-  color: #1f2937;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  color: var(--p-text-color);
 
   i {
     font-size: 24px;
-    background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--p-primary-color);
   }
 }
 
@@ -201,11 +175,11 @@ defineProps<Props>()
     margin-bottom: 16px;
     font-size: 16px;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--p-text-muted-color);
 
     i {
       font-size: 18px;
-      color: #6366f1;
+      color: var(--p-primary-color);
     }
   }
 }
@@ -221,20 +195,13 @@ defineProps<Props>()
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%);
+  background: var(--p-surface-100);
   border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  }
+  border: 1px solid var(--p-surface-border);
 
   &.total {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
-    border: 2px solid rgba(99, 102, 241, 0.2);
+    background: var(--p-surface-100);
+    border: 2px solid var(--p-primary-color);
     padding: 20px;
   }
 }
@@ -246,77 +213,59 @@ defineProps<Props>()
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--p-surface-200);
   flex-shrink: 0;
 
   i {
     font-size: 20px;
-    color: #6b7280;
+    color: var(--p-text-muted-color);
   }
 
   // 状态颜色
   &.pending {
-    background: rgba(59, 130, 246, 0.1);
-    i {
-      color: #3b82f6;
-    }
+    background: rgba(59, 130, 246, 0.15);
+    i { color: #3b82f6; }
   }
 
   &.running {
-    background: rgba(99, 102, 241, 0.1);
-    i {
-      color: #6366f1;
-    }
+    background: rgba(99, 102, 241, 0.15);
+    i { color: var(--p-primary-color); }
   }
 
   &.success {
-    background: rgba(16, 185, 129, 0.1);
-    i {
-      color: #10b981;
-    }
+    background: rgba(34, 197, 94, 0.15);
+    i { color: #22c55e; }
   }
 
   &.failed {
-    background: rgba(239, 68, 68, 0.1);
-    i {
-      color: #ef4444;
-    }
+    background: rgba(239, 68, 68, 0.15);
+    i { color: #ef4444; }
   }
 
   &.stopped {
-    background: rgba(245, 158, 11, 0.1);
-    i {
-      color: #f59e0b;
-    }
+    background: rgba(249, 115, 22, 0.15);
+    i { color: #f97316; }
   }
 
   &.terminated {
-    background: rgba(107, 114, 128, 0.1);
-    i {
-      color: #6b7280;
-    }
+    background: var(--p-surface-200);
+    i { color: var(--p-surface-500); }
   }
 
   // 注入状态颜色
   &.injectable {
-    background: rgba(239, 68, 68, 0.1);
-    i {
-      color: #ef4444;
-    }
+    background: rgba(239, 68, 68, 0.15);
+    i { color: #ef4444; }
   }
 
   &.non-injectable {
-    background: rgba(16, 185, 129, 0.1);
-    i {
-      color: #10b981;
-    }
+    background: rgba(34, 197, 94, 0.15);
+    i { color: #22c55e; }
   }
 
   &.unknown {
-    background: rgba(156, 163, 175, 0.1);
-    i {
-      color: #9ca3af;
-    }
+    background: var(--p-surface-200);
+    i { color: var(--p-surface-400); }
   }
 }
 
@@ -327,7 +276,7 @@ defineProps<Props>()
 
 .summary-label {
   font-size: 14px;
-  color: #6b7280;
+  color: var(--p-text-muted-color);
   margin-bottom: 4px;
   white-space: nowrap;
 }
@@ -335,15 +284,12 @@ defineProps<Props>()
 .summary-value {
   font-size: 24px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--p-text-color);
   line-height: 1;
 
   .total & {
     font-size: 32px;
-    background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--p-primary-color);
   }
 }
 

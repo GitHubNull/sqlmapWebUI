@@ -565,7 +565,7 @@ defineExpose({
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.05) 100%);
+  background: var(--p-surface-50);
   border-bottom: 1px solid var(--surface-border);
   flex-wrap: wrap;
   
@@ -643,7 +643,6 @@ defineExpose({
   display: flex;
   gap: 2px;
   opacity: 0.5;
-  transition: opacity 0.2s;
   background: var(--surface-card);
   border: 1px solid var(--surface-border);
   border-radius: 4px;

@@ -45,8 +45,8 @@ defineProps<Props>()
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
-  background: var(--p-primary-50);
-  border: 1px solid var(--p-primary-200);
+  background: var(--p-surface-100);
+  border: 1px solid var(--p-surface-border);
   border-radius: var(--p-border-radius);
   margin-bottom: 1rem;
 }

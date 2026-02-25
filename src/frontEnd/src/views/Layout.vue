@@ -84,6 +84,7 @@ import { useTaskStore } from '@/stores/task'
 import { useConfigStore } from '@/stores/config'
 import { useRouter, useRoute } from 'vue-router'
 import { wsService } from '@/utils/useWebSocket'
+import ToggleSwitch from 'primevue/toggleswitch'
 
 const authStore = useAuthStore()
 const taskStore = useTaskStore()
@@ -278,11 +279,11 @@ onUnmounted(() => {
 
 .nav-item.active {
   color: var(--p-primary-color);
-  background: var(--p-primary-50);
+  background: var(--p-surface-100);
 }
 
 :deep(.app-dark) .nav-item.active {
-  background: var(--p-primary-900);
+  background: var(--p-surface-800);
 }
 
 /* 路由过渡动画 */

@@ -140,3 +140,73 @@ a:hover {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 13px;
 }
+
+/* DatePicker 暗色模式样式 - 面板是 teleport 到 body 的 */
+.app-dark .p-datepicker {
+  background: var(--p-surface-900);
+  border-color: var(--p-surface-700);
+}
+
+.app-dark .p-datepicker-panel {
+  background: var(--p-surface-900);
+  border-color: var(--p-surface-700);
+}
+
+.app-dark .p-datepicker-header {
+  background: var(--p-surface-900);
+  border-color: var(--p-surface-700);
+}
+
+.app-dark .p-datepicker-title {
+  color: var(--p-surface-0);
+}
+
+.app-dark .p-datepicker-day-view th {
+  color: var(--p-text-muted-color);
+}
+
+.app-dark .p-datepicker-day-cell {
+  color: var(--p-surface-0);
+}
+
+.app-dark .p-datepicker-day-cell:hover {
+  background: var(--p-surface-800);
+}
+
+.app-dark .p-datepicker-day-cell.p-datepicker-today {
+  background: var(--p-primary-color);
+  color: var(--p-primary-contrast-color);
+}
+
+.app-dark .p-datepicker-day-cell.p-datepicker-selected {
+  background: var(--p-primary-color);
+  color: var(--p-primary-contrast-color);
+}
+
+.app-dark .p-timepicker {
+  border-color: var(--p-surface-700);
+}
+
+.app-dark .p-timepicker button {
+  color: var(--p-surface-0);
+}
+
+.app-dark .p-datepicker-buttonbar {
+  border-color: var(--p-surface-700);
+}
+
+.app-dark .p-datepicker-month-view .p-datepicker-month,
+.app-dark .p-datepicker-year-view .p-datepicker-year {
+  color: var(--p-surface-0);
+}
+
+.app-dark .p-datepicker-month-view .p-datepicker-month:hover,
+.app-dark .p-datepicker-year-view .p-datepicker-year:hover {
+  background: var(--p-surface-800);
+}
+
+.app-dark .p-datepicker-month-view .p-datepicker-month.p-datepicker-selected,
+.app-dark .p-datepicker-year-view .p-datepicker-year.p-datepicker-selected {
+  background: var(--p-primary-color);
+  color: var(--p-primary-contrast-color);
+}

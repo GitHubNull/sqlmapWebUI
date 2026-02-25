@@ -309,7 +309,6 @@ function copyErrorsToClipboard() {
   background: var(--p-content-background);
   border-radius: 8px;
   border: 1px solid var(--p-content-border-color);
-  backdrop-filter: blur(5px);
   padding: 16px;
 
   .search-main {
@@ -411,26 +410,25 @@ function copyErrorsToClipboard() {
   max-height: calc(100vh - 500px);
   min-height: 200px;
   overflow-y: auto;
-  border: 2px solid rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--p-red-200);
   border-radius: 8px;
-  background: linear-gradient(135deg, #fef2f2 0%, #fff5f5 100%);
-  box-shadow: inset 0 2px 8px rgba(239, 68, 68, 0.05);
+  background: var(--p-red-50);
 
   &::-webkit-scrollbar {
     width: 8px;
   }
 
   &::-webkit-scrollbar-track {
-    background: rgba(239, 68, 68, 0.05);
+    background: var(--p-surface-100);
     border-radius: 4px;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: rgba(239, 68, 68, 0.3);
+    background: var(--p-red-300);
     border-radius: 4px;
 
     &:hover {
-      background: rgba(239, 68, 68, 0.5);
+      background: var(--p-red-400);
     }
   }
 }
@@ -439,11 +437,10 @@ function copyErrorsToClipboard() {
   display: flex;
   align-items: flex-start;
   padding: 12px 16px;
-  border-bottom: 1px solid rgba(239, 68, 68, 0.1);
-  transition: background-color 0.2s ease;
+  border-bottom: 1px solid var(--p-red-100);
 
   &:hover {
-    background: rgba(239, 68, 68, 0.05);
+    background: var(--p-red-100);
   }
 
   &:last-child {

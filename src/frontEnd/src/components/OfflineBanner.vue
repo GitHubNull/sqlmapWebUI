@@ -63,10 +63,9 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   z-index: 999;
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  color: #78350f;
+  background: var(--p-yellow-500);
+  color: var(--p-yellow-900);
   padding: 12px 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .banner-content {

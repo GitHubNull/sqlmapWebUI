@@ -125,16 +125,16 @@ function copyToClipboard(text: string) {
   }
 
   &::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.05);
+    background: var(--p-surface-100);
     border-radius: 3px;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: rgba(99, 102, 241, 0.3);
+    background: var(--p-surface-300);
     border-radius: 3px;
 
     &:hover {
-      background: rgba(99, 102, 241, 0.5);
+      background: var(--p-surface-400);
     }
   }
 
@@ -149,18 +149,9 @@ function copyToClipboard(text: string) {
   flex-direction: column;
   gap: 10px;
   padding: 16px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(248, 250, 252, 0.5) 100%);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow:
-      0 4px 8px rgba(0, 0, 0, 0.1),
-      inset 0 1px 2px rgba(255, 255, 255, 0.6);
-  }
+  background: var(--p-surface-50);
+  border-radius: 8px;
+  border: 1px solid var(--p-surface-200);
 
   &.full-width {
     grid-column: 1 / -1;
@@ -169,14 +160,14 @@ function copyToClipboard(text: string) {
   label {
     font-size: 14px;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--p-text-muted-color);
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
 
   .value {
     font-size: 14px;
-    color: #1f2937;
+    color: var(--p-text-color);
     word-break: break-all;
     font-weight: 500;
 
@@ -186,7 +177,7 @@ function copyToClipboard(text: string) {
   }
 
   .text-muted {
-    color: #9ca3af;
+    color: var(--p-text-muted-color);
     font-style: italic;
   }
 }
@@ -196,20 +187,19 @@ function copyToClipboard(text: string) {
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%);
-  border-radius: 10px;
-  border: 2px solid rgba(99, 102, 241, 0.1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background: var(--p-surface-100);
+  border-radius: 8px;
+  border: 1px solid var(--p-surface-200);
 
   .value.url {
     flex: 1;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     font-size: 14px;
-    color: #1f2937;
+    color: var(--p-text-color);
     padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.7);
+    background: var(--p-surface-0);
     border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--p-surface-200);
   }
 }
 </style>

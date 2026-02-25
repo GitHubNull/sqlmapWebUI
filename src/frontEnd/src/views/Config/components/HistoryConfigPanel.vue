@@ -271,8 +271,8 @@ onMounted(() => {
 }
 
 .search-section {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.7) 100%);
-  border: 1px solid rgba(226, 232, 240, 0.5);
+  background: var(--p-surface-card);
+  border: 1px solid var(--p-surface-border);
   border-radius: var(--p-border-radius);
   padding: 12px;
   
@@ -320,8 +320,8 @@ onMounted(() => {
 }
 
 .table-section {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.7) 100%);
-  border: 1px solid rgba(226, 232, 240, 0.5);
+  background: var(--p-surface-card);
+  border: 1px solid var(--p-surface-border);
   border-radius: var(--p-border-radius);
   padding: 12px;
   flex: 1;
@@ -339,8 +339,8 @@ onMounted(() => {
 .param-code {
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 12px;
-  color: #334155;
-  background: #f1f5f9;
+  color: var(--p-text-color);
+  background: var(--p-surface-200);
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -350,7 +350,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 10px 12px;
-  background: rgba(248, 250, 252, 0.5);
+  background: var(--p-surface-200);
   border-radius: var(--p-border-radius);
   
   .left-buttons, .right-buttons {

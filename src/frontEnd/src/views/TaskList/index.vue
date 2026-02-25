@@ -636,30 +636,9 @@ function confirmDeleteAll() {
 @use '@/assets/styles/variables.scss' as *;
 
 .task-list-page {
-  width: 100%;  // 占满主内容区域，不限制最大宽度
+  width: 100%;
   margin: 0;
   padding: 0;
-  position: relative;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background:
-      radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
-      radial-gradient(circle at 75% 75%, rgba(16, 185, 129, 0.03) 0%, transparent 50%),
-      url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23f1f5f9' fill-opacity='0.2'%3E%3Cpath d='M20 20.5V18H0v-2h20v2.5zm0 2.5v2.5H0V23h20zm2 0h18v2H22v-2zm0-2.5h18V18H22v2.5z'/%3E%3C/g%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  > * {
-    position: relative;
-    z-index: 1;
-  }
 }
 
 .flex-between {
@@ -674,30 +653,10 @@ function confirmDeleteAll() {
   justify-content: space-between;
   align-items: center;
   padding: 12px 20px;
-  background:
-    linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+  background: var(--p-surface-100);
   border-radius: $border-radius-lg;
-  border: 2px solid rgba(99, 102, 241, 0.1);
-  box-shadow:
-    $shadow-raised,
-    inset 0 1px 2px rgba(255, 255, 255, 0.4);
+  border: 1px solid var(--p-surface-200);
   margin-bottom: 16px;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.2) 50%,
-      transparent 100%);
-    animation: shimmer-batch 3s ease-in-out infinite;
-  }
 
   @media (max-width: 768px) {
     flex-direction: column;
@@ -707,43 +666,22 @@ function confirmDeleteAll() {
   }
 }
 
-@keyframes shimmer-batch {
-  0%, 100% {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  50% {
-    transform: translateX(200%);
-    opacity: 1;
-  }
-}
-
 .batch-info {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: $primary-color;
+  color: var(--p-primary-color);
   font-weight: $font-weight-semibold;
   font-size: 16px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  position: relative;
-  z-index: 2;
 
   i {
     font-size: 20px;
-    background: $gradient-primary;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
   }
 }
 
 .batch-buttons {
   display: flex;
   gap: 12px;
-  position: relative;
-  z-index: 2;
 
   @media (max-width: 768px) {
     flex-direction: column;
@@ -759,31 +697,15 @@ function confirmDeleteAll() {
   padding: 4px 8px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 13px;
-  transition: $transition-base;
-
-  &:hover {
-    background: rgba(99, 102, 241, 0.05);
-  }
 }
 
-// 可点击URL样式
 .clickable-url {
   cursor: pointer;
-  color: #6366f1;
+  color: var(--p-primary-color);
   text-decoration: none;
-  transition: all 0.2s ease;
 
   &:hover {
-    color: #4f46e5;
-    background: rgba(99, 102, 241, 0.1);
     text-decoration: underline;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
-    border-radius: 4px;
-  }
-
-  &:active {
-    transform: translateY(0);
   }
 }
 
@@ -793,21 +715,12 @@ function confirmDeleteAll() {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 13px;
   font-weight: 600;
-  color: #6366f1;
+  color: var(--p-primary-color);
   border-radius: 4px;
-  transition: all 0.3s ease;
   display: inline-block;
 
   &:hover {
-    background: rgba(99, 102, 241, 0.1);
-    color: #4f46e5;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(99, 102, 241, 0.2);
+    background: var(--p-surface-100);
   }
 }
 
@@ -819,93 +732,35 @@ function confirmDeleteAll() {
   padding: 0;
 }
 
-// 可点击Tag样式
 .clickable-tag {
   cursor: pointer;
-  transition: all 0.2s ease;
 
   &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    filter: brightness(1.1);
-  }
-
-  &:active {
-    transform: translateY(0);
+    opacity: 0.9;
   }
 }
 
-// ==================== DataTable 3D增强 ====================
+// DataTable 样式
 :deep(.p-datatable) {
   border-radius: $border-radius-lg;
   overflow: hidden;
-  box-shadow: $shadow-elevated;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%);
 
   .p-datatable-wrapper {
     overflow-x: auto;
     border-radius: inherit;
   }
 
-  // 表头3D效果
   .p-datatable-thead > tr > th {
     position: sticky;
     top: 0;
     z-index: 10;
-    background:
-      linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
-    backdrop-filter: blur(10px);
-    border-bottom: 2px solid rgba(99, 102, 241, 0.2);
-    box-shadow:
-      inset 0 1px 2px rgba(255, 255, 255, 0.4),
-      0 2px 4px rgba(0, 0, 0, 0.1);
-    color: $text-color;
     font-weight: $font-weight-semibold;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    transition: $transition-base;
-
-    &:hover {
-      background:
-        linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
-      transform: translateY(-1px);
-      box-shadow:
-        inset 0 1px 2px rgba(255, 255, 255, 0.5),
-        0 4px 8px rgba(0, 0, 0, 0.15);
-    }
   }
 
-  // 表格行3D效果
   .p-datatable-tbody > tr {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    transition: $transition-base;
-
-    &:hover {
-      background:
-        linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(59, 130, 246, 0.02) 100%);
-      box-shadow:
-        0 1px 4px rgba(0, 0, 0, 0.08),
-        inset 0 1px 2px rgba(255, 255, 255, 0.3);
-    }
-
     td {
-      border-bottom: none;
       padding: 8px 10px;
       vertical-align: middle;
-    }
-  }
-
-  // 选中行效果
-  .p-datatable-tbody > tr.p-selected {
-    background:
-      linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
-    box-shadow:
-      inset 0 2px 4px rgba(99, 102, 241, 0.1),
-      0 2px 8px rgba(99, 102, 241, 0.2);
-
-    &:hover {
-      background:
-        linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
     }
   }
 
@@ -914,61 +769,6 @@ function confirmDeleteAll() {
     font-size: 15px;
   }
 
-  // 复选框简洁样式（无3D效果）
-  .p-checkbox {
-    width: 18px;
-    height: 18px;
-    margin: 0 auto;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-
-    .p-checkbox-box {
-      background: #ffffff;
-      border: 2px solid #cbd5e1;
-      border-radius: 4px;
-      width: 18px;
-      height: 18px;
-      display: inline-flex !important;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-      position: relative;
-
-      &:hover {
-        border-color: #94a3b8;
-        background: #f8fafc;
-      }
-
-      &.p-highlight {
-        background: #6366f1 !important;
-        border-color: #6366f1 !important;
-      }
-
-      &:has(.p-checkbox-icon) {
-        background: #6366f1 !important;
-        border-color: #6366f1 !important;
-      }
-
-      .p-checkbox-icon {
-        color: white !important;
-        font-size: 12px;
-        display: block;
-      }
-
-      &.p-focus {
-        outline: 2px solid rgba(99, 102, 241, 0.2);
-        outline-offset: 2px;
-      }
-    }
-
-    input {
-      opacity: 0;
-      position: absolute;
-    }
-  }
-
-  // 选择列单元格居中
   .p-datatable-thead > tr > th:first-child,
   .p-datatable-tbody > tr > td:first-child {
     text-align: center;
@@ -980,7 +780,7 @@ function confirmDeleteAll() {
   }
 }
 
-// ==================== 固定分页器样式 ====================
+// 固定分页器样式
 :deep(.fixed-paginator-table) {
   display: flex;
   flex-direction: column;
@@ -994,7 +794,6 @@ function confirmDeleteAll() {
     min-height: 160px;
   }
 
-  // 空数据提示
   .empty-table-message {
     display: flex;
     flex-direction: column;
@@ -1002,40 +801,39 @@ function confirmDeleteAll() {
     justify-content: center;
     padding: 2rem 1.5rem;
     min-height: 150px;
-    color: var(--text-color-secondary);
+    color: var(--p-text-muted-color);
 
     i {
       font-size: 4rem;
       margin-bottom: 1rem;
-      color: var(--surface-400);
+      color: var(--p-surface-400);
     }
 
     p {
       font-size: 1.25rem;
       font-weight: 500;
       margin: 0 0 0.5rem 0;
-      color: var(--text-color);
+      color: var(--p-text-color);
     }
 
     small {
       font-size: 0.875rem;
-      color: var(--text-color-secondary);
+      color: var(--p-text-muted-color);
     }
   }
 
-  // 加载中提示
   .loading-table-message {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 4rem 2rem;
-    color: var(--text-color-secondary);
+    color: var(--p-text-muted-color);
 
     i {
       font-size: 3rem;
       margin-bottom: 1rem;
-      color: var(--primary-color);
+      color: var(--p-primary-color);
     }
 
     p {
@@ -1048,53 +846,23 @@ function confirmDeleteAll() {
     position: sticky;
     bottom: 0;
     z-index: 5;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow:
-      0 -2px 8px rgba(0, 0, 0, 0.08),
-      inset 0 1px 2px rgba(255, 255, 255, 0.4);
-    border-top: 2px solid rgba(99, 102, 241, 0.1);
     padding: 12px 16px;
     margin: 0;
   }
 
-  // 汇总统计行样式
   .p-datatable-tfoot {
-    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #ddd6fe 100%);
-    border-top: 3px solid #22c55e;
-    border-bottom: 3px solid #22c55e;
-    box-shadow: 
-      inset 0 2px 4px rgba(34, 197, 94, 0.15),
-      0 -2px 8px rgba(34, 197, 94, 0.1),
-      0 2px 8px rgba(34, 197, 94, 0.1);
-    
     td {
       padding: 14px 8px;
       font-weight: 700;
-      color: #1e1b4b;
-      border-bottom: none;
-      
-      &:first-child {
-        border-left: 3px solid #22c55e;
-      }
-      
-      &:last-child {
-        border-right: 3px solid #22c55e;
-      }
     }
 
     tr {
       background: transparent;
-
-      &:hover {
-        background: transparent;
-      }
     }
   }
 }
 
-// ==================== 汇总单元格样式 ====================
+// 汇总单元格样式
 .summary-cell {
   display: flex;
   flex-wrap: nowrap;
@@ -1112,28 +880,20 @@ function confirmDeleteAll() {
     height: 24px;
     padding: 0;
     border-radius: 50%;
-    background: rgba(99, 102, 241, 0.1);
-    color: #6366f1;
-    transition: all 0.2s ease;
-
-    &:hover {
-      background: rgba(99, 102, 241, 0.2);
-      transform: scale(1.1);
-    }
   }
 }
 
-// ==================== Popover 统计弹出框样式 ====================
+// Popover 统计弹出框样式
 .popover-stats {
   padding: 8px;
   min-width: 180px;
 
   .popover-title {
     font-weight: 600;
-    color: #374151;
+    color: var(--p-text-color);
     margin-bottom: 12px;
     padding-bottom: 8px;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--p-surface-200);
     font-size: 14px;
   }
 
@@ -1151,24 +911,13 @@ function confirmDeleteAll() {
 }
 </style>
 
-<!-- 全局样式 - 统一 Popover 弹出方向 -->
+<!-- 全局样式 -->
 <style lang="scss">
 .stats-popover.p-popover {
-  // 统一弹出框样式
-  box-shadow: 
-    0 10px 25px rgba(0, 0, 0, 0.15),
-    0 4px 10px rgba(0, 0, 0, 0.1);
   border-radius: 12px;
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
 
   .p-popover-content {
     padding: 12px;
-  }
-
-  // 箭头样式
-  &::before, &::after {
-    border-color: transparent;
   }
 }
 </style>

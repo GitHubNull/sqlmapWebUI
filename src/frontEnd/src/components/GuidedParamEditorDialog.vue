@@ -142,8 +142,8 @@ defineExpose({
 }
 
 .preset-info-form {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  background: var(--p-surface-100);
+  border: 1px solid var(--p-surface-border);
   border-radius: 8px;
   padding: 12px 16px;
   margin-bottom: 16px;

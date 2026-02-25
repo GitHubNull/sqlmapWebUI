@@ -276,6 +276,9 @@ import { ref, computed, onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 
+// PrimeVue 组件
+import Select from 'primevue/select'
+
 // 子组件
 import { 
   TextImportDialog, 

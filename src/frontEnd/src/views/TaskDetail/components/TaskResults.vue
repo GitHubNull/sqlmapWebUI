@@ -642,9 +642,9 @@ function copyVerificationUrl(point: InjectionPoint) {
 
 // 目标信息卡片
 .target-card {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  border-radius: 12px;
+  background: var(--p-surface-50);
+  border: 1px solid var(--p-surface-200);
+  border-radius: 8px;
   overflow: hidden;
 
   .card-header {
@@ -652,10 +652,10 @@ function copyVerificationUrl(point: InjectionPoint) {
     align-items: center;
     gap: 8px;
     padding: 12px 16px;
-    background: rgba(59, 130, 246, 0.1);
-    border-bottom: 1px solid rgba(59, 130, 246, 0.15);
+    background: var(--p-surface-100);
+    border-bottom: 1px solid var(--p-surface-200);
     font-weight: 600;
-    color: #1e40af;
+    color: var(--p-primary-color);
 
     i { font-size: 16px; }
   }
@@ -677,7 +677,7 @@ function copyVerificationUrl(point: InjectionPoint) {
 
     label {
       font-size: 12px;
-      color: #6b7280;
+      color: var(--p-text-muted-color);
       font-weight: 500;
     }
 
@@ -690,16 +690,16 @@ function copyVerificationUrl(point: InjectionPoint) {
     .value {
       font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
       font-size: 13px;
-      color: #1f2937;
+      color: var(--p-text-color);
       word-break: break-all;
     }
 
     .url-value {
-      color: #2563eb;
+      color: var(--p-primary-color);
     }
 
     .param-value {
-      background: rgba(0, 0, 0, 0.05);
+      background: var(--p-surface-100);
       padding: 4px 8px;
       border-radius: 4px;
     }
@@ -732,19 +732,18 @@ function copyVerificationUrl(point: InjectionPoint) {
 }
 
 .injection-card {
-  background: #fff;
-  border: 1px solid rgba(220, 38, 38, 0.2);
-  border-radius: 12px;
+  background: var(--p-surface-0);
+  border: 1px solid var(--p-red-200);
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.08);
 
   .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 12px 16px;
-    background: linear-gradient(135deg, rgba(220, 38, 38, 0.08) 0%, rgba(251, 146, 60, 0.05) 100%);
-    border-bottom: 1px solid rgba(220, 38, 38, 0.15);
+    background: var(--p-red-50);
+    border-bottom: 1px solid var(--p-red-200);
 
     .header-left {
       display: flex;
@@ -753,7 +752,7 @@ function copyVerificationUrl(point: InjectionPoint) {
 
       .param-name {
         font-size: 14px;
-        color: #374151;
+        color: var(--p-text-color);
       }
     }
   }
@@ -782,8 +781,8 @@ function copyVerificationUrl(point: InjectionPoint) {
 }
 
 .technique-item {
-  background: rgba(251, 191, 36, 0.05);
-  border: 1px solid rgba(251, 191, 36, 0.2);
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
   border-radius: 8px;
   padding: 12px;
 
@@ -796,7 +795,7 @@ function copyVerificationUrl(point: InjectionPoint) {
     .technique-title {
       font-size: 13px;
       font-weight: 500;
-      color: #374151;
+      color: var(--p-text-color);
     }
   }
 
@@ -813,13 +812,13 @@ function copyVerificationUrl(point: InjectionPoint) {
     font-size: 12px;
 
     label {
-      color: #6b7280;
+      color: var(--p-text-muted-color);
       min-width: 70px;
       flex-shrink: 0;
     }
 
     .detail-value {
-      color: #374151;
+      color: var(--p-text-color);
     }
   }
 
@@ -829,15 +828,15 @@ function copyVerificationUrl(point: InjectionPoint) {
       align-items: center;
       gap: 8px;
       flex: 1;
-      background: rgba(0, 0, 0, 0.03);
+      background: var(--p-surface-100);
       padding: 6px 10px;
       border-radius: 6px;
-      border: 1px solid rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--p-surface-200);
 
       .payload-code {
         font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
         font-size: 13px;
-        color: #dc2626;
+        color: var(--p-red-600);
         word-break: break-all;
         flex: 1;
       }
@@ -875,9 +874,9 @@ function copyVerificationUrl(point: InjectionPoint) {
   align-items: center;
   gap: 8px;
   padding: 16px;
-  background: rgba(156, 163, 175, 0.1);
+  background: var(--p-surface-100);
   border-radius: 8px;
-  color: #6b7280;
+  color: var(--p-text-muted-color);
   font-size: 13px;
 
   i { font-size: 16px; }
@@ -905,9 +904,9 @@ function copyVerificationUrl(point: InjectionPoint) {
 }
 
 .other-data-card {
-  background: linear-gradient(135deg, rgba(5, 150, 105, 0.08) 0%, rgba(16, 185, 129, 0.05) 100%);
-  border: 1px solid rgba(5, 150, 105, 0.2);
-  border-radius: 10px;
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 8px;
   overflow: hidden;
 
   .card-header {
@@ -915,11 +914,11 @@ function copyVerificationUrl(point: InjectionPoint) {
     align-items: center;
     gap: 8px;
     padding: 10px 14px;
-    background: rgba(5, 150, 105, 0.1);
-    border-bottom: 1px solid rgba(5, 150, 105, 0.15);
+    background: rgba(34, 197, 94, 0.15);
+    border-bottom: 1px solid rgba(34, 197, 94, 0.3);
     font-weight: 500;
     font-size: 13px;
-    color: #047857;
+    color: var(--p-green-700);
 
     i { font-size: 14px; }
 
@@ -936,13 +935,13 @@ function copyVerificationUrl(point: InjectionPoint) {
     .data-content {
       font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
       font-size: 12px;
-      color: #374151;
+      color: var(--p-text-color);
       margin: 0;
       white-space: pre-wrap;
       word-break: break-all;
       max-height: 150px;
       overflow: auto;
-      background: rgba(0, 0, 0, 0.02);
+      background: var(--p-surface-50);
       padding: 8px;
       border-radius: 6px;
     }
@@ -1008,88 +1007,10 @@ function copyVerificationUrl(point: InjectionPoint) {
 
 // DataTable样式增强
 :deep(.result-table) {
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(99, 102, 241, 0.1);
-
-  .p-datatable-thead > tr > th {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
-    color: #1f2937;
-    font-weight: 600;
-  }
-
-  .p-datatable-tbody > tr:hover {
-    background: rgba(99, 102, 241, 0.05);
-  }
+  border: 1px solid var(--p-surface-200);
 }
 
-// 暗色主题适配
-:root[data-theme='dark'] {
-  .target-card {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(99, 102, 241, 0.1) 100%);
-    border-color: rgba(59, 130, 246, 0.3);
-
-    .card-header {
-      background: rgba(59, 130, 246, 0.2);
-      color: #93c5fd;
-    }
-  }
-
-  .target-info-grid .info-item {
-    .value { color: #e5e7eb; }
-    .url-value { color: #60a5fa; }
-    .param-value { background: rgba(255, 255, 255, 0.1); }
-  }
-
-  .injection-card {
-    background: #1f2937;
-    border-color: rgba(220, 38, 38, 0.3);
-
-    .card-header {
-      background: linear-gradient(135deg, rgba(220, 38, 38, 0.15) 0%, rgba(251, 146, 60, 0.1) 100%);
-    }
-  }
-
-  .technique-item {
-    background: rgba(251, 191, 36, 0.1);
-    border-color: rgba(251, 191, 36, 0.3);
-
-    .technique-title { color: #e5e7eb; }
-    .detail-row .detail-value { color: #d1d5db; }
-    
-    .payload-row .payload-container {
-      background: rgba(0, 0, 0, 0.2);
-      border-color: rgba(255, 255, 255, 0.1);
-    }
-  }
-
-  .no-techniques {
-    background: rgba(107, 114, 128, 0.2);
-    color: #9ca3af;
-  }
-
-  .other-data-card {
-    background: linear-gradient(135deg, rgba(5, 150, 105, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%);
-    border-color: rgba(5, 150, 105, 0.3);
-
-    .card-header {
-      background: rgba(5, 150, 105, 0.2);
-      color: #6ee7b7;
-    }
-
-    .card-body .data-content {
-      color: #d1d5db;
-      background: rgba(0, 0, 0, 0.2);
-    }
-  }
-
-  .empty-state {
-    .empty-subtext { color: #6b7280; }
-  }
-
-  .raw-data-section .raw-value {
-    color: #d1d5db;
-  }
-}
+// 暗色主题适配由PrimeVue主题系统自动处理
 </style>

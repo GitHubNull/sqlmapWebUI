@@ -254,17 +254,13 @@ function resetFilters() {
 
 <style scoped lang="scss">
 @use '@/assets/styles/variables.scss' as *;
-@use '@/assets/styles/index.scss' as *;
 
 .task-filter {
   margin-bottom: 12px;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(248, 250, 252, 0.7) 100%);
+  background: var(--p-surface-0);
   border-radius: $border-radius-lg;
-  border: 1px solid rgba(226, 232, 240, 0.6);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--p-surface-200);
   padding: 12px 16px;
-  position: relative;
 }
 
 // 行布局
@@ -350,13 +346,13 @@ function resetFilters() {
   display: flex;
   justify-content: flex-end;
   padding: 8px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--p-surface-200);
 }
 
 .filter-label {
   font-size: 12px;
   font-weight: $font-weight-medium;
-  color: #64748b;
+  color: var(--p-text-muted-color);
   margin-bottom: 0;
 }
 
@@ -366,30 +362,18 @@ function resetFilters() {
   gap: 8px;
   height: 36px;
   padding: 4px 12px;
-  background: #ffffff;
+  background: var(--p-surface-0);
   border-radius: $border-radius;
-  border: 1px solid #e2e8f0;
-  box-shadow: none;
-  transition: all 0.2s ease;
+  border: 1px solid var(--p-surface-200);
   cursor: pointer;
-
-  &:hover {
-    border-color: #cbd5e1;
-    background: #f8fafc;
-  }
 }
 
 .checkbox-label {
   font-size: 13px;
-  color: $text-color;
+  color: var(--p-text-color);
   font-weight: $font-weight-medium;
   cursor: pointer;
   user-select: none;
-  transition: color 0.2s ease;
-
-  .checkbox-wrapper:hover & {
-    color: $primary-color;
-  }
 }
 
 .filter-summary {
@@ -397,8 +381,8 @@ function resetFilters() {
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  background: rgba(99, 102, 241, 0.08);
-  color: $primary-color;
+  background: var(--p-surface-100);
+  color: var(--p-primary-color);
   border-radius: $border-radius;
   font-size: 12px;
   font-weight: $font-weight-medium;
@@ -412,78 +396,29 @@ function resetFilters() {
   width: 100%;
 }
 
-// ==================== PrimeVue表单控件 Normal 尺寸 ====================
+// PrimeVue 表单控件尺寸调整
 :deep(.p-inputtext),
 :deep(.p-select) {
-  @include input-3d();
   font-size: 13px;
   padding: 6px 10px;
   height: 36px;
-  transition: $transition-base;
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow:
-      $shadow-inset-dark,
-      $shadow-raised;
-  }
-
-  &:focus {
-    border-color: $primary-color;
-    box-shadow:
-      $shadow-inset-dark,
-      $shadow-glow;
-    transform: translateY(-1px);
-  }
 }
 
-// DatePicker 特殊处理：只样式化输入框
+// DatePicker 输入框
 :deep(.p-datepicker) {
   input.p-datepicker-input {
-    @include input-3d();
     font-size: 13px;
     padding: 6px 10px;
     height: 36px;
-    transition: $transition-base;
-
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow:
-        $shadow-inset-dark,
-        $shadow-raised;
-    }
-
-    &:focus {
-      border-color: $primary-color;
-      box-shadow:
-        $shadow-inset-dark,
-        $shadow-glow;
-      transform: translateY(-1px);
-    }
   }
 
   .p-datepicker-dropdown {
-    background: $gradient-primary;
-    border: none;
-    color: white;
     width: 36px;
     border-radius: 0 $border-radius $border-radius 0;
-    transition: $transition-base;
-
-    &:hover {
-      background: $gradient-secondary;
-      transform: scale(1.02);
-    }
-
-    .p-icon {
-      color: white;
-      width: 14px;
-      height: 14px;
-    }
   }
 }
 
-// 复选框简洁扁平样式
+// 复选框样式
 :deep(.p-checkbox) {
   .p-checkbox-box {
     width: 16px;
@@ -491,106 +426,18 @@ function resetFilters() {
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
     border-radius: 3px;
-    box-shadow: none;
-    transition: all 0.2s ease;
-
-    &:hover {
-      border-color: #94a3b8;
-      background: #f8fafc;
-    }
   }
 
-  // PrimeVue v4 使用 .p-checkbox-checked 类
   &.p-checkbox-checked .p-checkbox-box {
-    background: #6366f1 !important;
-    border-color: #6366f1 !important;
-
     .p-checkbox-icon {
-      color: white !important;
-      display: block !important;
       font-size: 10px;
-      filter: none;
-    }
-
-    &:hover {
-      background: #4f46e5 !important;
     }
   }
 
-  // 兼容旧版 .p-highlight 类
   .p-checkbox-box.p-highlight {
-    background: #6366f1 !important;
-    border-color: #6366f1 !important;
-
     .p-checkbox-icon {
-      color: white !important;
       font-size: 10px;
-      display: block !important;
-      filter: none;
-    }
-
-    &:hover {
-      background: #4f46e5 !important;
-    }
-  }
-
-  .p-checkbox-box.p-focus {
-    outline: 2px solid rgba(99, 102, 241, 0.2);
-    outline-offset: 1px;
-  }
-}
-
-// 下拉面板3D效果
-:deep(.p-select-overlay) {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: $border-radius-lg;
-  box-shadow: $shadow-floating;
-
-  .p-select-option {
-    transition: $transition-base;
-
-    &:hover {
-      background: $gradient-primary;
-      color: white;
-      transform: translateX(4px);
-    }
-
-    &.p-selected {
-      background: rgba(99, 102, 241, 0.1);
-      color: $primary-color;
-    }
-  }
-}
-
-// 日期选择器面板3D效果
-:deep(.p-datepicker-panel) {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: $border-radius-lg;
-  box-shadow: $shadow-floating;
-
-  .p-datepicker-calendar {
-    td > span {
-      transition: $transition-base;
-
-      &:hover {
-        background: $gradient-primary;
-        color: white;
-        transform: scale(1.1);
-        border-radius: $border-radius;
-      }
-
-      &.p-selected {
-        background: $gradient-primary;
-        transform: scale(1.05);
-        box-shadow: $shadow-raised;
-      }
     }
   }
 }

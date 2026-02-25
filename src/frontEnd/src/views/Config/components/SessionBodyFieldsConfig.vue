@@ -1020,9 +1020,7 @@ function getPrioritySeverity(priority: number | undefined): string {
             padding-left: 2.5rem !important;
             padding-right: 0.75rem !important;
             font-size: 14px !important;
-            background: #ffffff !important;
-            transition: all 0.2s ease;
-            box-sizing: border-box;
+            background: var(--p-surface-card, #ffffff) !important;
 
             &:focus {
               border-color: var(--p-primary-color, #6366f1) !important;
@@ -1063,7 +1061,7 @@ function getPrioritySeverity(priority: number | undefined): string {
             width: 140px !important;
             border-radius: 6px !important;
             border: 1px solid var(--p-surface-300, #cbd5e1) !important;
-            background: #ffffff !important;
+            background: var(--p-surface-card, #ffffff) !important;
 
             &:hover:not(.p-disabled) {
               border-color: var(--p-primary-color, #6366f1) !important;
@@ -1628,8 +1626,8 @@ function getPrioritySeverity(priority: number | undefined): string {
 // PrimeVue 4使用 --p- 前缀的CSS变量
 // Select下拉面板样式 - 修复透明背景问题
 .p-select-overlay {
-  background-color: #ffffff !important;
-  background: #ffffff !important;
+  background-color: var(--p-surface-card, #ffffff) !important;
+  background: var(--p-surface-card, #ffffff) !important;
   border: 1px solid var(--p-surface-200, #e2e8f0) !important;
   border-radius: 8px !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
@@ -1641,19 +1639,19 @@ function getPrioritySeverity(priority: number | undefined): string {
   .p-select-list-container {
     max-height: 300px;
     overflow-y: auto;
-    background: #ffffff !important;
+    background: var(--p-surface-card, #ffffff) !important;
   }
 
   .p-select-list {
     padding: 0.5rem 0;
-    background: #ffffff !important;
+    background: var(--p-surface-card, #ffffff) !important;
   }
 
   .p-select-option {
     padding: 0.75rem 1rem !important;
     font-size: 14px !important;
     color: var(--p-text-color, #1e293b) !important;
-    background: #ffffff !important;
+    background: var(--p-surface-card, #ffffff) !important;
     transition: all 0.15s ease !important;
     cursor: pointer !important;
 
@@ -1678,8 +1676,8 @@ function getPrioritySeverity(priority: number | undefined): string {
 
 // MultiSelect下拉面板样式 - 修复透明背景问题
 .p-multiselect-overlay {
-  background-color: #ffffff !important;
-  background: #ffffff !important;
+  background-color: var(--p-surface-card, #ffffff) !important;
+  background: var(--p-surface-card, #ffffff) !important;
   border: 1px solid var(--p-surface-200, #e2e8f0) !important;
   border-radius: 8px !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
@@ -1690,23 +1688,23 @@ function getPrioritySeverity(priority: number | undefined): string {
   .p-multiselect-header {
     padding: 0.75rem 1rem;
     border-bottom: 1px solid var(--p-surface-200, #e2e8f0);
-    background: #ffffff !important;
+    background: var(--p-surface-card, #ffffff) !important;
   }
 
   .p-multiselect-list-container {
-    background: #ffffff !important;
+    background: var(--p-surface-card, #ffffff) !important;
   }
 
   .p-multiselect-list {
     padding: 0.5rem 0;
-    background: #ffffff !important;
+    background: var(--p-surface-card, #ffffff) !important;
   }
 
   .p-multiselect-option {
     padding: 0.75rem 1rem !important;
     font-size: 14px !important;
     color: var(--p-text-color, #1e293b) !important;
-    background: #ffffff !important;
+    background: var(--p-surface-card, #ffffff) !important;
     transition: all 0.15s ease !important;
 
     &:hover {

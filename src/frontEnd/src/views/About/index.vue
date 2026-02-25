@@ -339,7 +339,6 @@ function openLink(url: string) {
     width: 80px;
     height: 80px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
   }
   
   .app-details {

@@ -1507,9 +1507,7 @@ async function batchDeleteRules() {
             padding-left: 2.5rem !important;
             padding-right: 0.75rem !important;
             font-size: 14px !important;
-            background: #ffffff !important;
-            transition: all 0.2s ease;
-            box-sizing: border-box;
+            background: var(--p-surface-card, #ffffff) !important;
 
             &:focus {
               border-color: var(--p-primary-color, #6366f1) !important;
@@ -1549,7 +1547,7 @@ async function batchDeleteRules() {
             min-width: 120px !important;
             border-radius: 6px !important;
             border: 1px solid var(--p-surface-300, #cbd5e1) !important;
-            background: #ffffff !important;
+            background: var(--p-surface-card, #ffffff) !important;
 
             &:hover:not(.p-disabled) {
               border-color: var(--p-primary-color, #6366f1) !important;

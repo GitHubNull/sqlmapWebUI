@@ -390,10 +390,9 @@ const copyHttpRequest = async () => {
   min-height: 0;
   overflow-y: auto;
   overflow-x: auto;
-  border: 2px solid rgba(99, 102, 241, 0.1);
+  border: 1px solid var(--p-surface-200);
   border-radius: 8px;
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+  background: var(--p-surface-900);
   line-height: 0.9;
 
   &::-webkit-scrollbar {
@@ -402,17 +401,16 @@ const copyHttpRequest = async () => {
   }
 
   &::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--p-surface-800);
     border-radius: 4px;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: rgba(99, 102, 241, 0.5);
+    background: var(--p-surface-600);
     border-radius: 4px;
-    border: 1px solid rgba(0, 0, 0, 0.3);
 
     &:hover {
-      background: rgba(99, 102, 241, 0.7);
+      background: var(--p-surface-500);
     }
   }
 

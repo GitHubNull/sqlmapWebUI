@@ -119,6 +119,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import ToggleSwitch from 'primevue/toggleswitch'
+import Select from 'primevue/select'
 import ScopeConfigPanel from '../ScopeConfigPanel.vue'
 import type { HeaderScope } from '@/types/headerRule'
 import { ReplaceStrategy } from '@/types/headerRule'

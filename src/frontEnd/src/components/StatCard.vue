@@ -36,12 +36,6 @@ defineEmits<{
 <style scoped>
 .stat-card {
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .stat-content {
@@ -59,7 +53,7 @@ defineEmits<{
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background: var(--p-primary-50);
+  background: var(--p-surface-100);
   color: var(--p-primary-color);
 }
 
@@ -82,7 +76,7 @@ defineEmits<{
 
 /* Severity variants */
 .severity-primary .stat-content > i {
-  background: var(--p-primary-50);
+  background: var(--p-surface-100);
   color: var(--p-primary-color);
 }
 
@@ -92,23 +86,23 @@ defineEmits<{
 }
 
 .severity-success .stat-content > i {
-  background: var(--p-green-50);
-  color: var(--p-green-500);
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
 }
 
 .severity-info .stat-content > i {
-  background: var(--p-blue-50);
-  color: var(--p-blue-500);
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
 }
 
 .severity-warn .stat-content > i {
-  background: var(--p-orange-50);
-  color: var(--p-orange-500);
+  background: rgba(249, 115, 22, 0.15);
+  color: #f97316;
 }
 
 .severity-danger .stat-content > i {
-  background: var(--p-red-50);
-  color: var(--p-red-500);
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
 }
 
 :deep(.app-dark) .severity-primary .stat-content > i {

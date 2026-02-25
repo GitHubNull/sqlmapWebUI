@@ -654,7 +654,7 @@ defineExpose({
 
           &.active {
             border-color: var(--primary-color);
-            background: linear-gradient(135deg, var(--primary-50) 0%, var(--primary-100) 100%);
+            background: var(--primary-100);
           }
 
           .template-header {
@@ -693,9 +693,7 @@ defineExpose({
   // 示例消息样式
   .examples-message {
     :deep(.p-message-wrapper) {
-      background: linear-gradient(135deg,
-        var(--green-50) 0%,
-        var(--green-100) 100%);
+      background: var(--green-50);
       border-left: 4px solid var(--green-500);
     }
 
@@ -826,9 +824,7 @@ defineExpose({
     }
 
     &.p-message-info .p-message-wrapper {
-      background: linear-gradient(135deg,
-        var(--blue-50) 0%,
-        var(--blue-100) 100%);
+      background: var(--blue-50);
       border-left: 4px solid var(--blue-500);
     }
   }
