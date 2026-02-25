@@ -80,7 +80,7 @@
 
 .loading-text {
   margin-top: 16px;
-  color: #6366f1;
+  color: var(--p-primary-color);
   font-size: 16px;
   font-weight: 500;
 }
@@ -114,7 +114,7 @@
 
   i {
     font-size: 18px;
-    color: #6366f1;
+    color: var(--p-primary-color);
     transition: all 0.3s ease;
   }
 
@@ -143,7 +143,7 @@
     flex: 0 0 auto;
     border: none;
     border-top: 3px solid transparent;
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.6) 100%);
+    background: var(--p-surface-0);
     border-radius: 10px 10px 0 0;
     padding: 14px 28px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -154,14 +154,14 @@
     gap: 8px;
 
     &:hover {
-      background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.8) 100%);
+      background: var(--p-surface-50);
       transform: translateY(-3px);
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-      border-top: 3px solid rgba(99, 102, 241, 0.3);
+      border-top: 3px solid color-mix(in srgb, var(--p-primary-color) 30%, transparent);
     }
 
     span {
-      color: #4b5563;
+      color: var(--p-text-muted-color);
       font-weight: 600;
       transition: all 0.3s ease;
       line-height: 1;
@@ -182,25 +182,24 @@
     transform: translateY(-4px);
 
     span {
-      color: white !important;
+      color: var(--p-primary-contrast-color) !important;
       font-weight: 700;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 
     i {
-      color: white !important;
+      color: var(--p-primary-contrast-color) !important;
       filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
     }
   }
 
   :deep(.p-tabpanels) {
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.85) 100%);
-    border: 2px solid rgba(255, 255, 255, 0.4);
+    background: var(--p-content-background);
+    border: 1px solid var(--p-content-border-color);
     border-radius: 0 0 16px 16px;
     box-shadow:
       0 8px 12px -2px rgba(0, 0, 0, 0.1),
-      0 4px 6px -2px rgba(0, 0, 0, 0.05),
-      inset 0 1px 2px rgba(255, 255, 255, 0.6);
+      0 4px 6px -2px rgba(0, 0, 0, 0.05);
     // 左右无内边距，与标签栏对齐
     padding: 32px 0;
     margin-top: -4px;
@@ -264,7 +263,7 @@
 }
 
 // 暗黑模式Tab样式
-.dark-mode {
+.app-dark {
   .detail-tabs {
     :deep(.p-tab) {
       background: linear-gradient(145deg, rgba(51, 65, 85, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%);

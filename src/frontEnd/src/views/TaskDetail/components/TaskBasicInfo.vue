@@ -149,9 +149,9 @@ function copyToClipboard(text: string) {
   flex-direction: column;
   gap: 10px;
   padding: 16px;
-  background: var(--p-surface-50);
+  background: var(--p-content-background);
   border-radius: 8px;
-  border: 1px solid var(--p-surface-200);
+  border: 1px solid var(--p-content-border-color);
 
   &.full-width {
     grid-column: 1 / -1;
@@ -187,9 +187,9 @@ function copyToClipboard(text: string) {
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background: var(--p-surface-100);
+  background: var(--p-surface-ground);
   border-radius: 8px;
-  border: 1px solid var(--p-surface-200);
+  border: 1px solid var(--p-content-border-color);
 
   .value.url {
     flex: 1;
@@ -197,9 +197,9 @@ function copyToClipboard(text: string) {
     font-size: 14px;
     color: var(--p-text-color);
     padding: 8px 12px;
-    background: var(--p-surface-0);
+    background: var(--p-content-background);
     border-radius: 6px;
-    border: 1px solid var(--p-surface-200);
+    border: 1px solid var(--p-content-border-color);
   }
 }
 </style>

@@ -309,7 +309,7 @@ onMounted(() => {
     
     .options-label {
       font-size: 13px;
-      color: var(--p-text-color)-secondary;
+      color: var(--p-text-muted-color);
     }
     
     .checkbox-text {
@@ -340,7 +340,7 @@ onMounted(() => {
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 12px;
   color: var(--p-text-color);
-  background: var(--p-surface-200);
+  background: var(--p-surface-section);
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -350,7 +350,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 10px 12px;
-  background: var(--p-surface-200);
+  background: var(--p-surface-section);
   border-radius: var(--p-border-radius);
   
   .left-buttons, .right-buttons {
@@ -360,7 +360,7 @@ onMounted(() => {
   
   .status-text {
     font-size: 13px;
-    color: var(--p-text-color)-secondary;
+    color: var(--p-text-muted-color);
   }
 }
 </style>

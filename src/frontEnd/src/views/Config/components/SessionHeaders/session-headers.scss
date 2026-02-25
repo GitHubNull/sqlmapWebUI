@@ -241,7 +241,7 @@
   .p-dialog-footer {
     padding: 1.5rem 2rem 2rem 2rem !important;
     border-top: 1px solid var(--surface-border);
-    background: var(--surface-50);
+    background: var(--p-surface-ground);
     display: flex;
     gap: 0.75rem;
     justify-content: flex-end;
@@ -465,14 +465,14 @@
 
   .info-card {
     .format-code {
-      background: var(--blue-50);
-      color: var(--blue-700);
+      background: color-mix(in srgb, var(--p-primary-color) 10%, transparent);
+      color: var(--p-primary-color);
       padding: 0.25rem 0.5rem;
       border-radius: 4px;
       font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
       font-size: 0.875rem;
       font-weight: 500;
-      border: 1px solid var(--blue-200);
+      border: 1px solid color-mix(in srgb, var(--p-primary-color) 30%, transparent);
     }
 
     ul {

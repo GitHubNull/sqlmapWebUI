@@ -362,7 +362,7 @@ function copyLogsToClipboard() {
 }
 
 .text-muted {
-  color: #9ca3af;
+  color: var(--p-text-muted-color);
   font-style: italic;
   text-align: center;
   padding: 20px;
@@ -420,11 +420,11 @@ function copyLogsToClipboard() {
   }
 
   .advanced-search-panel {
-    background: var(--p-surface-100);
+    background: var(--p-content-background);
     border-radius: 6px;
     padding: 16px;
     margin-bottom: 12px;
-    border: 1px solid var(--p-surface-200);
+    border: 1px solid var(--p-content-border-color);
 
     .filter-row {
       display: flex;

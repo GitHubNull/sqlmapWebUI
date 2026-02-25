@@ -260,7 +260,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.375rem;
   padding: 0.5rem 1rem;
   color: var(--p-text-secondary-color);
 }

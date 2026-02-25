@@ -245,7 +245,7 @@ const copyHttpRequest = async () => {
 }
 
 .text-muted {
-  color: #9ca3af;
+  color: var(--p-text-muted-color);
   font-style: italic;
   text-align: center;
   padding: 20px;
@@ -340,8 +340,8 @@ const copyHttpRequest = async () => {
   align-items: center;
   gap: 16px;
   padding: 10px 12px;
-  background: var(--p-surface-100);
-  border: 1px solid var(--p-surface-200);
+  background: var(--p-content-background);
+  border: 1px solid var(--p-content-border-color);
   border-radius: 6px;
 
   .advanced-options {

@@ -292,7 +292,7 @@ function copyErrorsToClipboard() {
 }
 
 .text-muted {
-  color: #9ca3af;
+  color: var(--p-text-muted-color);
   font-style: italic;
   text-align: center;
   padding: 20px;
@@ -347,11 +347,11 @@ function copyErrorsToClipboard() {
   }
 
   .advanced-search-panel {
-    background: var(--p-surface-100);
+    background: var(--p-content-background);
     border-radius: 6px;
     padding: 16px;
     margin-bottom: 12px;
-    border: 1px solid var(--p-surface-200);
+    border: 1px solid var(--p-content-border-color);
 
     .filter-row {
       display: flex;
@@ -400,7 +400,7 @@ function copyErrorsToClipboard() {
 
       i {
         font-size: 14px;
-        color: #ef4444;
+        color: var(--p-red-500);
       }
     }
   }
@@ -452,7 +452,7 @@ function copyErrorsToClipboard() {
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     font-size: 12px;
     font-weight: 600;
-    color: #ef4444;
+    color: var(--p-red-500);
     text-align: right;
     padding-right: 12px;
     user-select: none;
@@ -468,20 +468,20 @@ function copyErrorsToClipboard() {
     .error-icon {
       flex-shrink: 0;
       font-size: 14px;
-      color: #ef4444;
+      color: var(--p-red-500);
       margin-top: 2px;
     }
 
     .error-text {
       font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
       font-size: 13px;
-      color: #991b1b;
+      color: var(--p-red-700);
       line-height: 1.5;
       word-break: break-word;
 
       :deep(.search-highlight) {
-        background: #fef08a;
-        color: #92400e;
+        background: var(--p-yellow-200);
+        color: var(--p-yellow-800);
         padding: 1px 3px;
         border-radius: 2px;
         font-weight: 600;

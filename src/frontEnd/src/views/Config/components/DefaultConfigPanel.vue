@@ -338,7 +338,7 @@ onMounted(async () => {
   
   .param-desc {
     font-size: 12px;
-    color: var(--p-text-color)-secondary;
+    color: var(--p-text-muted-color);
   }
   
   .checkbox-label {
@@ -361,7 +361,7 @@ onMounted(async () => {
 }
 
 .technique-display {
-  background: var(--p-surface-200) !important;
+  background: var(--p-surface-section) !important;
 }
 
 .technique-checkboxes {
@@ -402,7 +402,7 @@ onMounted(async () => {
 
 .source-desc {
   font-size: 12px;
-  color: var(--p-text-color)-secondary;
+  color: var(--p-text-muted-color);
   margin-left: 28px;
   margin-bottom: 8px;
 }
@@ -431,7 +431,7 @@ onMounted(async () => {
   
   .option-desc {
     font-size: 12px;
-    color: var(--p-text-color)-secondary;
+    color: var(--p-text-muted-color);
     margin-left: 28px;
     margin-top: 4px;
   }
@@ -443,7 +443,7 @@ onMounted(async () => {
   justify-content: center;
   gap: 16px;
   padding: 12px;
-  background: rgba(248, 250, 252, 0.5);
+  background: var(--p-surface-section);
   border-radius: var(--p-border-radius);
   
   .persist-option {
@@ -458,16 +458,16 @@ onMounted(async () => {
 }
 
 .preview-section {
-  background: #1e1e1e;
+  background: var(--p-surface-900);
   border-radius: var(--p-border-radius);
   overflow: hidden;
   
   .section-title {
-    color: #d4d4d4;
-    background: #2d2d2d;
+    color: var(--p-surface-0);
+    background: var(--p-surface-800);
     margin: 0;
     padding: 12px 16px;
-    border-bottom: 1px solid #3d3d3d;
+    border-bottom: 1px solid var(--p-surface-700);
   }
   
   .command-preview {
@@ -475,26 +475,26 @@ onMounted(async () => {
     font-family: 'Consolas', 'Monaco', monospace;
     font-size: 13px;
     line-height: 1.8;
-    color: #d4d4d4;
+    color: var(--p-surface-0);
     min-height: 60px;
     
     :deep(.param) {
-      color: #2980b9;
+      color: var(--p-blue-400);
       font-weight: bold;
     }
     
     :deep(.value) {
-      color: #27ae60;
+      color: var(--p-green-400);
       font-weight: bold;
     }
     
     :deep(.flag) {
-      color: #8e44ad;
+      color: var(--p-purple-400);
       font-weight: bold;
     }
     
     :deep(.empty) {
-      color: #888;
+      color: var(--p-surface-400);
     }
   }
 }

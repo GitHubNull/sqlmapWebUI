@@ -162,21 +162,37 @@ defineExpose({
       gap: 6px;
       min-width: 100px;
       font-size: 13px;
-      color: var(--text-color-secondary);
+      color: var(--p-text-muted-color);
       
       i {
-        color: var(--primary-color);
+        color: var(--p-primary-color);
         font-size: 14px;
       }
       
       .required {
-        color: #ef4444;
+        color: var(--p-red-500);
       }
     }
     
     .name-input, .desc-input {
       flex: 1;
       font-size: 13px;
+    }
+  }
+}
+
+// 暗色模式适配
+:global(.app-dark) .preset-info-form {
+  background: var(--p-surface-800);
+  border-color: var(--p-surface-700);
+  
+  :deep(.p-inputtext) {
+    background: var(--p-surface-900) !important;
+    border-color: var(--p-surface-600) !important;
+    color: var(--p-surface-0) !important;
+    
+    &::placeholder {
+      color: var(--p-surface-400) !important;
     }
   }
 }

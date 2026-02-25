@@ -543,7 +543,7 @@ onMounted(() => {
   flex-wrap: wrap;
   
   .separator {
-    color: #ccc;
+    color: var(--p-surface-400);
     margin: 0 4px;
   }
 }
@@ -568,7 +568,7 @@ onMounted(() => {
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 12px;
   color: var(--p-text-color);
-  background: var(--p-surface-200);
+  background: var(--p-surface-section);
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -577,7 +577,7 @@ onMounted(() => {
   font-size: 13px;
   color: var(--p-text-muted-color);
   padding: 8px 12px;
-  background: var(--p-surface-200);
+  background: var(--p-surface-section);
   border-radius: var(--p-border-radius);
 }
 
@@ -594,7 +594,7 @@ onMounted(() => {
     label {
       font-size: 13px;
       font-weight: 500;
-      color: var(--p-text-color)-secondary;
+      color: var(--p-text-muted-color);
     }
   }
 }

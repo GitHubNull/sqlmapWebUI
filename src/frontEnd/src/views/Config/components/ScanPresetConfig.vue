@@ -171,16 +171,16 @@ async function copyCommand() {
     }
 
     &:hover {
-      background: rgba(99, 102, 241, 0.1);
+      background: color-mix(in srgb, var(--p-primary-color) 10%, transparent);
     }
   }
 
   .p-tab[data-p-active="true"] {
     background: var(--p-primary-color);
-    color: white;
+    color: var(--p-primary-contrast-color);
 
     i {
-      color: white;
+      color: var(--p-primary-contrast-color);
     }
   }
 
@@ -192,8 +192,8 @@ async function copyCommand() {
 
 .preview-content {
   .command-preview {
-    background: #1e1e1e;
-    color: #d4d4d4;
+    background: var(--p-surface-900);
+    color: var(--p-surface-0);
     padding: 16px;
     border-radius: var(--p-border-radius);
     font-family: 'Consolas', 'Monaco', monospace;

@@ -642,8 +642,8 @@ function copyVerificationUrl(point: InjectionPoint) {
 
 // 目标信息卡片
 .target-card {
-  background: var(--p-surface-50);
-  border: 1px solid var(--p-surface-200);
+  background: var(--p-content-background);
+  border: 1px solid var(--p-content-border-color);
   border-radius: 8px;
   overflow: hidden;
 
@@ -652,8 +652,8 @@ function copyVerificationUrl(point: InjectionPoint) {
     align-items: center;
     gap: 8px;
     padding: 12px 16px;
-    background: var(--p-surface-100);
-    border-bottom: 1px solid var(--p-surface-200);
+    background: var(--p-surface-ground);
+    border-bottom: 1px solid var(--p-content-border-color);
     font-weight: 600;
     color: var(--p-primary-color);
 
@@ -699,7 +699,7 @@ function copyVerificationUrl(point: InjectionPoint) {
     }
 
     .param-value {
-      background: var(--p-surface-100);
+      background: var(--p-surface-ground);
       padding: 4px 8px;
       border-radius: 4px;
     }
@@ -714,7 +714,7 @@ function copyVerificationUrl(point: InjectionPoint) {
     gap: 10px;
     padding: 12px 0;
     font-weight: 600;
-    color: #dc2626;
+    color: var(--p-red-500);
     font-size: 15px;
 
     i { font-size: 18px; }
@@ -732,8 +732,8 @@ function copyVerificationUrl(point: InjectionPoint) {
 }
 
 .injection-card {
-  background: var(--p-surface-0);
-  border: 1px solid var(--p-red-200);
+  background: var(--p-content-background);
+  border: 1px solid var(--p-red-300);
   border-radius: 8px;
   overflow: hidden;
 
@@ -742,8 +742,8 @@ function copyVerificationUrl(point: InjectionPoint) {
     justify-content: space-between;
     align-items: center;
     padding: 12px 16px;
-    background: var(--p-red-50);
-    border-bottom: 1px solid var(--p-red-200);
+    background: color-mix(in srgb, var(--p-red-500) 10%, var(--p-content-background));
+    border-bottom: 1px solid var(--p-red-300);
 
     .header-left {
       display: flex;
@@ -767,10 +767,10 @@ function copyVerificationUrl(point: InjectionPoint) {
   .techniques-header {
     font-size: 13px;
     font-weight: 600;
-    color: #4b5563;
+    color: var(--p-text-muted-color);
     margin-bottom: 12px;
     padding-bottom: 8px;
-    border-bottom: 1px dashed #e5e7eb;
+    border-bottom: 1px dashed var(--p-surface-border);
   }
 }
 
@@ -781,8 +781,8 @@ function copyVerificationUrl(point: InjectionPoint) {
 }
 
 .technique-item {
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: color-mix(in srgb, var(--p-yellow-500) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--p-yellow-500) 30%, transparent);
   border-radius: 8px;
   padding: 12px;
 
@@ -828,10 +828,10 @@ function copyVerificationUrl(point: InjectionPoint) {
       align-items: center;
       gap: 8px;
       flex: 1;
-      background: var(--p-surface-100);
+      background: var(--p-surface-ground);
       padding: 6px 10px;
       border-radius: 6px;
-      border: 1px solid var(--p-surface-200);
+      border: 1px solid var(--p-content-border-color);
 
       .payload-code {
         font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
@@ -865,7 +865,7 @@ function copyVerificationUrl(point: InjectionPoint) {
   gap: 10px;
   margin-top: 16px;
   padding-top: 12px;
-  border-top: 1px dashed #e5e7eb;
+  border-top: 1px dashed var(--p-surface-border);
 }
 
 // 无技术详情提示
@@ -874,7 +874,7 @@ function copyVerificationUrl(point: InjectionPoint) {
   align-items: center;
   gap: 8px;
   padding: 16px;
-  background: var(--p-surface-100);
+  background: var(--p-surface-ground);
   border-radius: 8px;
   color: var(--p-text-muted-color);
   font-size: 13px;
@@ -890,7 +890,7 @@ function copyVerificationUrl(point: InjectionPoint) {
     gap: 8px;
     padding: 12px 0;
     font-weight: 600;
-    color: #059669;
+    color: var(--p-green-500);
     font-size: 15px;
 
     i { font-size: 18px; }
@@ -904,8 +904,8 @@ function copyVerificationUrl(point: InjectionPoint) {
 }
 
 .other-data-card {
-  background: rgba(34, 197, 94, 0.08);
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  background: color-mix(in srgb, var(--p-green-500) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--p-green-500) 30%, transparent);
   border-radius: 8px;
   overflow: hidden;
 
@@ -914,11 +914,11 @@ function copyVerificationUrl(point: InjectionPoint) {
     align-items: center;
     gap: 8px;
     padding: 10px 14px;
-    background: rgba(34, 197, 94, 0.15);
-    border-bottom: 1px solid rgba(34, 197, 94, 0.3);
+    background: color-mix(in srgb, var(--p-green-500) 15%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--p-green-500) 30%, transparent);
     font-weight: 500;
     font-size: 13px;
-    color: var(--p-green-700);
+    color: var(--p-green-600);
 
     i { font-size: 14px; }
 
@@ -941,7 +941,7 @@ function copyVerificationUrl(point: InjectionPoint) {
       word-break: break-all;
       max-height: 150px;
       overflow: auto;
-      background: var(--p-surface-50);
+      background: var(--p-surface-ground);
       padding: 8px;
       border-radius: 6px;
     }
@@ -962,7 +962,7 @@ function copyVerificationUrl(point: InjectionPoint) {
     gap: 8px;
     padding: 12px 0;
     font-weight: 600;
-    color: #4b5563;
+    color: var(--p-text-muted-color);
 
     i { font-size: 16px; }
   }
@@ -988,20 +988,20 @@ function copyVerificationUrl(point: InjectionPoint) {
 
   .empty-icon {
     font-size: 48px;
-    color: #22c55e;
+    color: var(--p-green-500);
     margin-bottom: 16px;
   }
 
   .empty-text {
     font-size: 16px;
     font-weight: 600;
-    color: #22c55e;
+    color: var(--p-green-500);
     margin-bottom: 8px;
   }
 
   .empty-subtext {
     font-size: 13px;
-    color: #9ca3af;
+    color: var(--p-text-muted-color);
   }
 }
 
