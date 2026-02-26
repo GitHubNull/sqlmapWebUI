@@ -390,7 +390,7 @@ const copyHttpRequest = async () => {
   min-height: 0;
   overflow-y: auto;
   overflow-x: auto;
-  border: 1px solid var(--p-surface-200);
+  border: 1px solid var(--p-content-border-color);
   border-radius: 8px;
   background: var(--p-surface-900);
   line-height: 0.9;

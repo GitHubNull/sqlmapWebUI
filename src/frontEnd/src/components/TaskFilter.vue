@@ -404,6 +404,14 @@ function resetFilters() {
   height: 36px;
 }
 
+// Select 组件内部 label 样式调整，防止文字被截断
+:deep(.p-select .p-select-label) {
+  padding: 4px 8px;
+  line-height: 20px;
+  display: flex;
+  align-items: center;
+}
+
 // DatePicker 输入框
 :deep(.p-datepicker) {
   input.p-datepicker-input {

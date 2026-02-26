@@ -263,6 +263,9 @@ onUnmounted(() => {
   gap: 0.375rem;
   padding: 0.5rem 1rem;
   color: var(--p-text-secondary-color);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
 }
 
 .nav-item i {
@@ -277,13 +280,85 @@ onUnmounted(() => {
   color: var(--p-primary-color);
 }
 
+/* 科幻蓝选中效果 */
 .nav-item.active {
-  color: var(--p-primary-color);
-  background: var(--p-surface-100);
+  color: #fff;
+  background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 50%, #6366f1 100%);
+  box-shadow:
+    0 0 20px rgba(59, 130, 246, 0.5),
+    0 0 40px rgba(59, 130, 246, 0.3),
+    0 0 60px rgba(59, 130, 246, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* 跑马灯边框效果 - 从左上角单向射线式 */
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  padding: 2px;
+  background: conic-gradient(from 0deg at 0% 0%, transparent 0deg, #60a5fa 30deg, #a78bfa 60deg, #60a5fa 90deg, transparent 120deg, transparent 360deg);
+  animation: borderGlowRay 2s linear infinite;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* 内部光效 */
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%, rgba(255,255,255,0.1) 100%);
+  pointer-events: none;
+}
+
+@keyframes borderGlowRay {
+  0% {
+    background: conic-gradient(from 0deg at 0% 0%, transparent 0deg, transparent 360deg);
+  }
+  10% {
+    background: conic-gradient(from 0deg at 0% 0%, transparent 0deg, #60a5fa 10deg, #a78bfa 30deg, #60a5fa 50deg, transparent 70deg, transparent 360deg);
+  }
+  30% {
+    background: conic-gradient(from 0deg at 0% 0%, transparent 0deg, transparent 20deg, #60a5fa 40deg, #a78bfa 70deg, #60a5fa 100deg, transparent 130deg, transparent 360deg);
+  }
+  50% {
+    background: conic-gradient(from 0deg at 0% 0%, transparent 0deg, transparent 50deg, #60a5fa 80deg, #a78bfa 110deg, #60a5fa 140deg, transparent 170deg, transparent 360deg);
+  }
+  70% {
+    background: conic-gradient(from 0deg at 0% 0%, transparent 0deg, transparent 80deg, #60a5fa 110deg, #a78bfa 140deg, #60a5fa 170deg, transparent 200deg, transparent 360deg);
+  }
+  90% {
+    background: conic-gradient(from 0deg at 0% 0%, transparent 0deg, transparent 110deg, #60a5fa 140deg, #a78bfa 170deg, #60a5fa 200deg, transparent 230deg, transparent 360deg);
+  }
+  100% {
+    background: conic-gradient(from 0deg at 0% 0%, transparent 0deg, transparent 360deg);
+  }
+}
+
+/* 暗色模式科幻效果 */
 :deep(.app-dark) .nav-item.active {
-  background: var(--p-surface-800);
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #4f46e5 100%);
+  box-shadow:
+    0 0 30px rgba(37, 99, 235, 0.6),
+    0 0 60px rgba(37, 99, 235, 0.4),
+    0 0 90px rgba(37, 99, 235, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+:deep(.app-dark) .nav-item.active::before {
+  background: linear-gradient(90deg, transparent, #3b82f6, #8b5cf6, #3b82f6, transparent);
+  background-size: 200% 100%;
 }
 
 /* 路由过渡动画 */

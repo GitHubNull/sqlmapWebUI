@@ -40,6 +40,8 @@
         :value="filteredOptions"
         striped-rows
         show-gridlines
+        scrollable
+        scroll-height="flex"
         class="options-table"
       >
         <Column field="name" header="配置项" sortable />
@@ -162,6 +164,8 @@ function getOptionDescription(name: string): string {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  height: 100%;
+  overflow: hidden;
 }
 
 .view-toggle {
@@ -173,6 +177,7 @@ function getOptionDescription(name: string): string {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  padding: 0 1rem;
 }
 
 .search-bar :deep(.p-icon-field) {
@@ -181,6 +186,8 @@ function getOptionDescription(name: string): string {
 
 .options-table {
   margin-top: 0.5rem;
+  flex: 1;
+  min-height: 0;
 }
 
 .empty-state {

@@ -40,13 +40,41 @@ const highlightedCommand = computed(() => {
   if (!props.highlight) {
     return props.command
   }
-  
-  // 简单的语法高亮
-  return props.command
-    .replace(/(--[a-zA-Z0-9-]+)/g, '<span class="param">$1</span>')
-    .replace(/(-[a-zA-Z0-9])/g, '<span class="flag">$1</span>')
-    .replace(/(".*?")/g, '<span class="string">$1</span>')
-    .replace(/(\d+)/g, '<span class="number">$1</span>')
+
+  const escapeHtml = (str: string) =>
+    str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+  // 单次扫描正则：按优先级匹配各类 token，避免级联替换污染
+  const tokenRegex = /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(--[a-zA-Z][a-zA-Z0-9-]*)|(?<=\s|^)(-[a-zA-Z0-9])(?=\s|=|$)|(?<=[\s=])(\d+)(?=[\s,]|$)/g
+
+  const cmd = props.command
+  let result = ''
+  let lastIndex = 0
+
+  let match: RegExpExecArray | null
+  while ((match = tokenRegex.exec(cmd)) !== null) {
+    if (match.index > lastIndex) {
+      result += escapeHtml(cmd.slice(lastIndex, match.index))
+    }
+
+    if (match[1]) {
+      result += `<span class="string">${escapeHtml(match[1])}</span>`
+    } else if (match[2]) {
+      result += `<span class="param">${escapeHtml(match[2])}</span>`
+    } else if (match[3]) {
+      result += `<span class="flag">${escapeHtml(match[3])}</span>`
+    } else if (match[4]) {
+      result += `<span class="number">${escapeHtml(match[4])}</span>`
+    }
+
+    lastIndex = match.index + match[0].length
+  }
+
+  if (lastIndex < cmd.length) {
+    result += escapeHtml(cmd.slice(lastIndex))
+  }
+
+  return result
 })
 
 async function copyCommand() {
