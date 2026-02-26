@@ -1,5 +1,5 @@
 ---
-type: project_command
 description: 提交代码变更,并打一个标签,然后push到GitHub上
 ---
 提交当前代码变更到git,并添加一个git的tag(注意别打错tag版本),然后依次把他们都push到github
+**注意:** 垃圾问题,重定向日志文件或者错误重定向文件不能提交,截图文件也不能提交,总之不能一股脑提交.
