@@ -82,8 +82,8 @@ function getArgClass(arg: string): string {
   justify-content: space-between;
   gap: 1.5rem;
   padding: 1rem 1.25rem;
-  background: var(--p-surface-50);
-  border: 1px solid var(--surface-border);
+  background: var(--p-surface-card);
+  border: 1px solid var(--p-surface-border);
   border-radius: 10px;
   margin-top: 0.5rem;
 }
