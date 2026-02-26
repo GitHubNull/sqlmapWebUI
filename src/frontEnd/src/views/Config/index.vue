@@ -112,8 +112,9 @@ async function handleSliderEnd() {
 
 <style scoped>
 .config-page {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .config-section {

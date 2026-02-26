@@ -131,8 +131,9 @@ function navigateToTasks(filterType: FilterType) {
 
 <style scoped>
 .home-page {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .page-header {
