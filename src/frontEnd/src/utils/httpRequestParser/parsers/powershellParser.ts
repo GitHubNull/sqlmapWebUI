@@ -191,12 +191,14 @@ export function parsePowerShell(input: string): ParsedHttpRequest | null {
     // 如果有 body 但没有明确指定方法，默认为 POST
     const finalMethod = (body && !hasExplicitMethod) ? 'POST' : method
     
-    const { host, path, protocol } = parseUrl(url)
+    const { host, hostWithPort, port, path, protocol } = parseUrl(url)
     
     return {
       method: finalMethod,
       url,
       host,
+      hostWithPort,
+      port,
       path,
       headers,
       body,

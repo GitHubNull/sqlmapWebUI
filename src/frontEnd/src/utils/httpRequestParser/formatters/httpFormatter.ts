@@ -32,10 +32,10 @@ export function toRawHttpRequest(request: ParsedHttpRequest): string {
   // 请求行
   lines.push(`${request.method} ${request.path} HTTP/1.1`)
   
-  // 确保Host头存在
+  // 确保Host头存在（使用带端口的host，如存在非默认端口）
   const headers = { ...request.headers }
   if (!headers['Host'] && !headers['host']) {
-    headers['Host'] = request.host
+    headers['Host'] = request.hostWithPort || request.host
   }
   
   // Headers

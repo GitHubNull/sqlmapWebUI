@@ -73,12 +73,14 @@ function parseCurlWithLib(normalizedInput: string): ParsedHttpRequest | null {
     // 库在解析包含引号的 body 时有 bug，需要自己重新提取
     const body = extractBody(normalizedInput)
     
-    const { host, path, protocol } = parseUrl(result.url)
+    const { host, hostWithPort, port, path, protocol } = parseUrl(result.url)
     
     return {
       method,
       url: result.url,
       host,
+      hostWithPort,
+      port,
       path,
       headers,
       body,

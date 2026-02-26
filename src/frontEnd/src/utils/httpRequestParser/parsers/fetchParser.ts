@@ -311,12 +311,14 @@ export function parseFetch(input: string): ParsedHttpRequest | null {
       body = extractBody(optionsStr)
     }
     
-    const { host, path, protocol } = parseUrl(url)
+    const { host, hostWithPort, port, path, protocol } = parseUrl(url)
     
     return {
       method,
       url,
       host,
+      hostWithPort,
+      port,
       path,
       headers,
       body,

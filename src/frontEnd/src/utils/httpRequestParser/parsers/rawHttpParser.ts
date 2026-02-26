@@ -128,19 +128,26 @@ export function parseRawHttp(input: string): ParsedHttpRequest | null {
       body = lines.slice(bodyStartIndex).join('\n')
     }
     
-    // 从Host header提取host
-    const host = extractHost(headers)
+    // 从Host header提取host（可能包含端口）
+    const hostWithPort = extractHost(headers)
+    
+    // 分离host和端口
+    const hostParts = hostWithPort.split(':')
+    const host = hostParts[0] || ''
+    const port = hostParts[1] || ''
     
     // 协议默认http（无法从原始报文中确定）
     const protocol = 'http'
     
     // 构建URL
-    const url = host ? `${protocol}://${host}${path}` : path
+    const url = host ? `${protocol}://${hostWithPort}${path}` : path
     
     return {
       method,
       url,
       host,
+      hostWithPort,
+      port,
       path,
       headers,
       body,

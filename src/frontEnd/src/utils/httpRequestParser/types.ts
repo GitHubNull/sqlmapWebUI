@@ -14,6 +14,10 @@ export interface ParsedHttpRequest {
   url: string
   /** 主机名（不含端口） */
   host: string
+  /** 主机名（含端口，如存在非默认端口） */
+  hostWithPort: string
+  /** 端口号 */
+  port: string
   /** 请求路径（包含查询字符串和hash） */
   path: string
   /** HTTP头部 */

@@ -7,6 +7,10 @@
 export interface UrlParseResult {
   /** 主机名（不含端口） */
   host: string
+  /** 主机名（含端口，如存在非默认端口） */
+  hostWithPort: string
+  /** 端口号 */
+  port: string
   /** 请求路径 */
   path: string
   /** 协议 */
@@ -25,7 +29,7 @@ export interface UrlParseResult {
  */
 export function parseUrl(urlStr: string): UrlParseResult {
   // 默认返回值
-  const defaultResult: UrlParseResult = { host: '', path: '/', protocol: 'http' }
+  const defaultResult: UrlParseResult = { host: '', hostWithPort: '', port: '', path: '/', protocol: 'http' }
   
   if (!urlStr || typeof urlStr !== 'string') {
     return defaultResult
@@ -36,8 +40,14 @@ export function parseUrl(urlStr: string): UrlParseResult {
     const url = new URL(urlStr)
     const path = url.pathname + url.search + url.hash
     
+    // 判断是否为默认端口
+    const isDefaultPort = (url.protocol === 'http:' && url.port === '80') ||
+                          (url.protocol === 'https:' && url.port === '443')
+    
     return {
-      host: url.hostname,  // 使用 hostname 而不是 host，不包含端口
+      host: url.hostname,
+      hostWithPort: isDefaultPort ? url.hostname : (url.host || url.hostname),
+      port: url.port || (url.protocol === 'https:' ? '443' : '80'),
       path: path || '/',
       protocol: url.protocol.replace(':', '')
     }
@@ -51,16 +61,29 @@ export function parseUrl(urlStr: string): UrlParseResult {
  * 手动解析URL（当原生URL API失败时的备选方案）
  */
 function parseUrlManually(urlStr: string): UrlParseResult | null {
-  const match = urlStr.match(/^(https?):\/\/([^\/:]+)(?::\d+)?(\/.*)?$/)
+  const match = urlStr.match(/^(https?):\/\/([^\/:]+)(?::(\d+))?(\/.*)?$/)
   
   if (!match) {
     return null
   }
   
+  const protocol = match[1] || 'http'
+  const hostname = match[2] || ''
+  const port = match[3]
+  const path = match[4] || '/'
+  
+  // 判断是否为默认端口
+  const isDefaultPort = (protocol === 'http' && port === '80') ||
+                        (protocol === 'https' && port === '443')
+  
+  const hostWithPort = port && !isDefaultPort ? `${hostname}:${port}` : hostname
+  
   return {
-    protocol: match[1] || 'http',
-    host: match[2] || '',  // 只取主机名，不含端口
-    path: match[3] || '/'
+    protocol,
+    host: hostname,
+    hostWithPort,
+    port: port || (protocol === 'https' ? '443' : '80'),
+    path
   }
 }
 
