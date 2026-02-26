@@ -17,14 +17,42 @@
             <TabPanel value="0">
               <div class="config-section">
                 <label>自动刷新间隔 ({{ configStore.autoRefreshInterval }} 分钟)</label>
-                <Slider
-                  v-model="sliderValue"
-                  :min="1"
-                  :max="60"
-                  :step="1"
-                  @slideend="handleSliderEnd"
-                  :disabled="isSaving"
-                />
+                <div class="slider-container">
+                  <Slider
+                    v-model="sliderValue"
+                    :min="1"
+                    :max="60"
+                    :step="1"
+                    @slideend="handleSliderEnd"
+                    :disabled="isSaving"
+                  />
+                  <!-- 刻度标记 -->
+                  <div class="slider-ticks">
+                    <!-- 次刻度（每1分钟）-->
+                    <span
+                      v-for="tick in minorTicks"
+                      :key="'minor-' + tick"
+                      class="tick tick-minor"
+                      :style="{ left: getTickPosition(tick) }"
+                    ></span>
+                    <!-- 主刻度（每5分钟）-->
+                    <span
+                      v-for="tick in majorTicks"
+                      :key="'major-' + tick"
+                      class="tick tick-major"
+                      :style="{ left: getTickPosition(tick) }"
+                    ></span>
+                  </div>
+                  <!-- 主刻度标签 -->
+                  <div class="slider-labels">
+                    <span
+                      v-for="tick in majorTicks"
+                      :key="'label-' + tick"
+                      class="tick-label"
+                      :style="{ left: getTickPosition(tick) }"
+                    >{{ tick }}</span>
+                  </div>
+                </div>
                 
                 <small class="help-text">
                   设置任务列表页面的自动刷新间隔，范围为 1-60 分钟
@@ -85,6 +113,22 @@ const sliderValue = computed({
   }
 })
 
+// 刻度配置
+const MIN_VALUE = 1
+const MAX_VALUE = 60
+
+// 主刻度：每5分钟（5, 10, 15, ..., 60）
+const majorTicks = Array.from({ length: 12 }, (_, i) => (i + 1) * 5)
+
+// 次刻度：每1分钟（排除主刻度位置）
+const minorTicks = Array.from({ length: MAX_VALUE - MIN_VALUE + 1 }, (_, i) => i + MIN_VALUE)
+  .filter(tick => tick % 5 !== 0)
+
+// 计算刻度位置百分比
+function getTickPosition(value: number): string {
+  return `${((value - MIN_VALUE) / (MAX_VALUE - MIN_VALUE)) * 100}%`
+}
+
 async function handleSliderEnd() {
   isSaving.value = true
   try {
@@ -125,6 +169,50 @@ async function handleSliderEnd() {
   display: block;
   margin-bottom: 0.75rem;
   font-weight: 500;
+}
+
+.slider-container {
+  position: relative;
+  padding: 0.5rem 0;
+}
+
+.slider-ticks {
+  position: relative;
+  height: 8px;
+  margin-top: 4px;
+}
+
+.tick {
+  position: absolute;
+  width: 1px;
+  transform: translateX(-50%);
+  background-color: var(--p-surface-border);
+}
+
+.tick-minor {
+  height: 8px;
+  width: 1px;
+  background-color: var(--p-text-secondary-color);
+  opacity: 0.7;
+}
+
+.tick-major {
+  height: 16px;
+  width: 2px;
+  background-color: var(--p-text-secondary-color);
+}
+
+.slider-labels {
+  position: relative;
+  height: 20px;
+  margin-top: 2px;
+}
+
+.tick-label {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: var(--p-text-secondary-color);
 }
 
 .help-text {
