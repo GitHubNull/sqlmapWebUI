@@ -84,6 +84,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import CommandLinePreview from '@/components/CommandLinePreview.vue'
+import { getParamDefinition, convertOptionToCliArg, camelToKebab } from '@/utils/paramDefinitions'
 
 interface Props {
   task: Task | null
@@ -102,11 +103,14 @@ const viewOptions = [
 
 const optionsList = computed(() => {
   if (!props.task?.options) return []
-  return Object.entries(props.task.options).map(([name, value]) => ({
-    name,
-    value,
-    description: getOptionDescription(name)
-  }))
+  return Object.entries(props.task.options).map(([name, value]) => {
+    const paramDef = getParamDefinition(name)
+    return {
+      name: paramDef?.cliName || ('--' + camelToKebab(name)),
+      value,
+      description: paramDef?.description || getOptionDescription(name)
+    }
+  })
 })
 
 const filteredOptions = computed(() => {
@@ -119,16 +123,17 @@ const filteredOptions = computed(() => {
 })
 
 const commandLine = computed(() => {
-  if (!props.task?.options) return 'sqlmap'
-  
-  const args = Object.entries(props.task.options)
-    .filter(([_, value]) => value !== false && value !== undefined && value !== null)
-    .map(([key, value]) => {
-      if (value === true) return `--${key}`
-      return `--${key}=${value}`
-    })
-  
-  return `sqlmap ${args.join(' ')}`
+  if (!props.task?.options) return 'python sqlmap.py'
+
+  const args: string[] = []
+  for (const [key, value] of Object.entries(props.task.options)) {
+    const arg = convertOptionToCliArg(key, value)
+    if (arg) {
+      args.push(arg)
+    }
+  }
+
+  return `python sqlmap.py ${args.join(' ')}`
 })
 
 function getOptionDescription(name: string): string {

@@ -70,8 +70,9 @@ class Task(object):
         
         logger.debug(f"[{self.taskid}] Task initialized with {len(self.headers) if self.headers else 0} headers")
         
-        # 在任务创建时就处理请求头，确保请求头规则立即生效
-        self.apply_header_rules()
+        # 注意：不在这里调用 apply_header_rules()
+        # 因为此时 randomAgent 等参数还未设置
+        # apply_header_rules() 会在 engine_start() 中被调用
         
         logger.debug(f"[{self.taskid}] Task initialization completed")
 
@@ -161,13 +162,26 @@ class Task(object):
             # 更新请求头
             if processed_headers != self.headers:
                 self.headers = processed_headers
-                # 将处理后的请求头设置到SQLMap配置中
-                # SQLMap期望headers是一个换行符分隔的字符串
-                self.options.headers = "\n".join(processed_headers)
+                
+            # 如果启用了randomAgent，从headers中移除User-Agent
+            # 这样SQLMap的_setHTTPUserAgent()会添加随机UA
+            logger.debug(f"[{self.taskid}] Checking randomAgent: {self.options.randomAgent}")
+            if self.options.randomAgent:
+                original_count = len(self.headers)
+                self.headers = [h for h in self.headers 
+                               if not h.lower().startswith("user-agent:")]
+                if len(self.headers) < original_count:
+                    logger.info(f"[{self.taskid}] Removed User-Agent from headers due to randomAgent=True")
+                else:
+                    logger.debug(f"[{self.taskid}] No User-Agent header found to remove")
+            
+            # 将请求头设置到SQLMap配置中
+            # SQLMap期望headers是一个换行符分隔的字符串
+            self.options.headers = "\n".join(self.headers)
+            
+            if applied_rules:
                 logger.info(f"[{self.taskid}] Applied {len(applied_rules)} header rules: {', '.join(applied_rules)}")
-                logger.debug(f"[{self.taskid}] Set headers option for SQLMap: {self.options.headers}")
-            else:
-                logger.debug(f"[{self.taskid}] No header changes applied")
+            logger.debug(f"[{self.taskid}] Set headers option for SQLMap: {self.options.headers}")
                 
             # 标记请求头规则已应用
             self._header_rules_applied = True
@@ -284,6 +298,11 @@ class Task(object):
         if self.headers:
             for header in self.headers:
                 if header and ":" in header:
+                    # 如果启用了randomAgent，跳过原始User-Agent头
+                    # 让SQLMap的_setHTTPUserAgent()添加随机UA
+                    if self.options.randomAgent and header.lower().startswith("user-agent:"):
+                        logger.debug(f"[{self.taskid}] Skipping original User-Agent header due to randomAgent=True")
+                        continue
                     headers_list.append(header)
         
         # 确保Host头存在

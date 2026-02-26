@@ -1140,7 +1140,7 @@ public class ScanConfig {
         // Enumeration Extended
         if (getAll) options.put("getAll", true);
         if (getHostname) options.put("getHostname", true);
-        if (getPasswords) options.put("getPasswords", true);
+        if (getPasswords) options.put("getPasswordHashes", true);
         if (getPrivileges) options.put("getPrivileges", true);
         if (getRoles) options.put("getRoles", true);
         if (getSchema) options.put("getSchema", true);
