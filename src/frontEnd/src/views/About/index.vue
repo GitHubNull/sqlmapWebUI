@@ -310,8 +310,8 @@ function openLink(url: string) {
 <style scoped lang="scss">
 .about-container {
   width: 100%;
-  max-width: 1000px;
-  margin: 0 auto;
+  margin: 0;
+  padding: 0;
 }
 
 .page-title {

@@ -57,6 +57,16 @@ defineEmits<{
   color: var(--p-primary-color);
 }
 
+/* 修复旋转动画：只旋转图标本身，不旋转容器 */
+.stat-content > i.pi-spin {
+  animation: none;
+}
+
+.stat-content > i.pi-spin::before {
+  display: inline-block;
+  animation: fa-spin 2s linear infinite;
+}
+
 .stat-info {
   display: flex;
   flex-direction: column;
