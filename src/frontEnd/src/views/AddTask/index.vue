@@ -1,258 +1,301 @@
 <template>
   <div class="add-task-container">
-    <div class="page-header">
-      <h2>添加扫描任务</h2>
-      <p class="subtitle">从浏览器DevTools复制HTTP请求报文，转换后提交扫描</p>
-    </div>
+    <Card>
+      <template #title>
+        <div class="page-title-row">
+          <span>添加扫描任务</span>
+        </div>
+      </template>
+      <template #content>
+        <p class="subtitle">从浏览器DevTools复制HTTP请求报文，转换后提交扫描</p>
 
-    <div class="content-wrapper">
-      <!-- 左侧：报文输入和编辑 -->
-      <div class="left-panel">
-        <!-- 格式输入区域 -->
-        <Card class="input-card">
-          <template #title>
-            <div class="card-title-row">
-              <span>报文输入</span>
-              <div class="format-indicator" v-if="detectedFormat !== 'unknown'">
-                <Tag :severity="formatSeverity">{{ formatDisplayName }}</Tag>
-              </div>
+        <!-- 报文输入区 -->
+        <div class="input-section">
+          <div class="section-header">
+            <span>报文输入</span>
+            <div class="format-indicator" v-if="detectedFormat !== 'unknown'">
+              <Tag :severity="formatSeverity">{{ formatDisplayName }}</Tag>
             </div>
-          </template>
-          <template #content>
-            <HttpCodeEditor
-              v-model="inputContent"
-              :placeholder="inputPlaceholder"
-              min-height="100px"
-              max-height="none"
-              class="flex-editor"
-              @change="onInputChange"
+          </div>
+          <HttpCodeEditor
+            v-model="inputContent"
+            :placeholder="inputPlaceholder"
+            min-height="120px"
+            max-height="260px"
+            @change="onInputChange"
+          />
+          <div class="input-actions">
+            <Button 
+              label="解析转换" 
+              icon="pi pi-sync" 
+              @click="parseInput"
+              :disabled="!inputContent.trim()"
             />
-            <div class="input-actions">
-              <Button 
-                label="解析转换" 
-                icon="pi pi-sync" 
-                @click="parseInput"
-                :disabled="!inputContent.trim()"
-              />
-              <Button 
-                label="清空" 
-                icon="pi pi-trash" 
-                severity="secondary"
-                @click="clearInput"
-              />
-            </div>
-          </template>
-        </Card>
+            <Button 
+              label="清空" 
+              icon="pi pi-trash" 
+              severity="secondary"
+              @click="clearInput"
+            />
+          </div>
+        </div>
 
-        <!-- HTTP报文编辑器 -->
-        <Card class="editor-card">
-          <template #title>
-            <div class="card-title-row">
-              <span>HTTP报文编辑</span>
-              <Tag severity="info" v-tooltip="'在参数值中添加 * 标记注入点'">
-                <i class="pi pi-info-circle"></i> 使用 * 标记注入点
-              </Tag>
+        <!-- HTTP报文编辑区 -->
+        <div class="editor-section">
+          <div class="section-header">
+            <span>HTTP报文编辑</span>
+            <Tag severity="info" v-tooltip="'在参数值中添加 * 标记注入点'">
+              <i class="pi pi-info-circle"></i> 使用 * 标记注入点
+            </Tag>
+          </div>
+          <HttpCodeEditor
+            v-model="rawHttpContent"
+            :placeholder="httpPlaceholder"
+            min-height="120px"
+            max-height="260px"
+          />
+          <div class="editor-status" v-if="parsedRequest">
+            <span class="status-item">
+              <i class="pi pi-globe"></i>
+              {{ parsedRequest.method }} {{ parsedRequest.host }}
+            </span>
+            <span class="status-item">
+              <i class="pi pi-link"></i>
+              {{ parsedRequest.path }}
+            </span>
+          </div>
+        </div>
+
+        <!-- 配置触发区 -->
+        <div class="config-trigger-section">
+          <div class="config-summary">
+            <div class="config-summary-left">
+              <i class="pi pi-sliders-h"></i>
+              <span class="config-status-label">当前配置:</span>
+              <span class="config-status-text">{{ configStatusText }}</span>
             </div>
-          </template>
-          <template #content>
-            <HttpCodeEditor
-              v-model="rawHttpContent"
-              :placeholder="httpPlaceholder"
-              min-height="100px"
-              max-height="none"
-              class="flex-editor"
+            <div class="cmdline-preview-inline" v-if="cmdlineArgs.length > 0">
+              <span class="cmdline-prefix-inline">sqlmap</span>
+              <span 
+                v-for="(arg, index) in cmdlineArgs.slice(0, 6)" 
+                :key="index" 
+                class="cmdline-arg-inline"
+                :class="getArgClass(arg)"
+              >{{ arg }}</span>
+              <span v-if="cmdlineArgs.length > 6" class="cmdline-more">... (+{{ cmdlineArgs.length - 6 }})</span>
+            </div>
+            <div class="cmdline-preview-inline cmdline-default-inline" v-else>
+              <span class="cmdline-prefix-inline">sqlmap</span>
+              <span class="cmdline-hint">(默认参数)</span>
+            </div>
+          </div>
+          <div class="config-trigger-actions">
+            <Button 
+              label="配置扫描参数" 
+              icon="pi pi-cog" 
+              severity="secondary"
+              outlined
+              @click="configDialogVisible = true"
             />
-            <div class="editor-status" v-if="parsedRequest">
-              <span class="status-item">
-                <i class="pi pi-globe"></i>
-                {{ parsedRequest.method }} {{ parsedRequest.host }}
-              </span>
-              <span class="status-item">
-                <i class="pi pi-link"></i>
-                {{ parsedRequest.path }}
-              </span>
-            </div>
-          </template>
-        </Card>
+            <Button 
+              label="提交扫描任务" 
+              icon="pi pi-send" 
+              :loading="submitting"
+              :disabled="!canSubmit"
+              @click="submitTask"
+              v-tooltip.top="!canSubmit ? submitDisabledReason : ''"
+            />
+          </div>
+        </div>
+        <small class="submit-hint" v-if="!canSubmit && (rawHttpContent.trim() || parsedRequest)">
+          {{ submitDisabledReason }}
+        </small>
+      </template>
+    </Card>
+
+    <!-- 扫描配置 Dialog -->
+    <Dialog 
+      v-model:visible="configDialogVisible"
+      header="扫描配置"
+      :modal="true"
+      :maximizable="true"
+      :blockScroll="true"
+      :dismissableMask="false"
+      :draggable="false"
+      :closable="true"
+      :style="{ width: '90vw' }"
+      :breakpoints="{ '1400px': '95vw', '768px': '98vw' }"
+      :contentStyle="{ padding: '1.25rem', overflowY: 'auto', maxHeight: 'calc(90vh - 8rem)' }"
+      class="config-dialog"
+    >
+      <!-- 模式切换栏 -->
+      <div class="config-mode-switch-bar">
+        <div class="mode-switch-tabs">
+          <button
+            class="mode-tab"
+            :class="{ active: configMode === 'preset' }"
+            @click="configMode = 'preset'"
+          >
+            <i class="pi pi-bookmark"></i>
+            <span>使用预设</span>
+          </button>
+          <button
+            class="mode-tab"
+            :class="{ active: configMode === 'custom' }"
+            @click="configMode = 'custom'"
+          >
+            <i class="pi pi-sliders-h"></i>
+            <span>自定义配置</span>
+          </button>
+        </div>
+        <div class="mode-switch-right">
+          <div class="mode-switch-hint">
+            <i class="pi pi-info-circle"></i>
+            <span>{{ configMode === 'preset' ? '选择一个预设配置' : '手动配置扫描参数' }}</span>
+          </div>
+          <Button 
+            icon="pi pi-refresh" 
+            severity="secondary" 
+            text 
+            rounded 
+            size="small"
+            @click="resetConfig"
+            v-tooltip="'重置配置'"
+          />
+        </div>
       </div>
 
-      <!-- 右侧：扫描配置 -->
-      <div class="right-panel">
-        <!-- 配置预设选择 -->
-        <Card class="config-card">
-          <template #title>
-            <div class="card-title-row">
-              <span>扫描配置</span>
-              <Button 
-                icon="pi pi-refresh" 
-                severity="secondary" 
-                text 
-                rounded 
-                size="small"
-                @click="resetConfig"
-                v-tooltip="'重置配置'"
-              />
-            </div>
-          </template>
-          <template #content>
-            <!-- 上中下布局容器 -->
-            <div class="config-layout">
-              <!-- 上部：切换区域 + 配置显示区域 -->
-              <div class="config-top-section">
-                <!-- 上上：模式切换按钮 -->
-                <div class="config-mode-switch-bar">
-                  <div class="mode-switch-tabs">
-                    <button
-                      class="mode-tab"
-                      :class="{ active: configMode === 'preset' }"
-                      @click="configMode = 'preset'"
-                    >
-                      <i class="pi pi-bookmark"></i>
-                      <span>使用预设</span>
-                    </button>
-                    <button
-                      class="mode-tab"
-                      :class="{ active: configMode === 'custom' }"
-                      @click="configMode = 'custom'"
-                    >
-                      <i class="pi pi-sliders-h"></i>
-                      <span>自定义配置</span>
-                    </button>
-                  </div>
-                  <div class="mode-switch-hint">
-                    <i class="pi pi-info-circle"></i>
-                    <span>{{ configMode === 'preset' ? '选择一个预设配置' : '手动配置扫描参数' }}</span>
-                  </div>
+      <!-- 配置内容区 -->
+      <div class="config-content-area">
+        <!-- 预设模式 -->
+        <div v-if="configMode === 'preset'" class="preset-mode-content">
+          <!-- 预设类型选择器 -->
+          <div class="preset-category-selector">
+            <label class="selector-label">选择预设类型</label>
+            <Select
+              v-model="presetCategory"
+              :options="PRESET_CATEGORY_OPTIONS"
+              optionLabel="label"
+              optionValue="value"
+              class="w-full preset-category-select"
+              style="max-width: 300px;"
+            >
+              <template #value="slotProps">
+                <div v-if="slotProps.value" class="preset-category-item">
+                  <i :class="PRESET_CATEGORY_OPTIONS.find(o => o.value === slotProps.value)?.icon"></i>
+                  <span>{{ PRESET_CATEGORY_OPTIONS.find(o => o.value === slotProps.value)?.label }}</span>
                 </div>
+                <span v-else>选择预设类型</span>
+              </template>
+              <template #option="slotProps">
+                <div class="preset-category-item">
+                  <i :class="slotProps.option.icon" :style="{ color: slotProps.option.color }"></i>
+                  <span>{{ slotProps.option.label }}</span>
+                </div>
+              </template>
+            </Select>
+          </div>
 
-                <!-- 上下：配置显示区域（独立滚动） -->
-                <div class="config-content-area">
-            <div v-if="configMode === 'preset'" class="preset-mode-content">
-              <!-- 预设类型选择器 -->
-              <div class="preset-category-selector">
-                <label class="selector-label">选择预设类型</label>
-                <Select
-                  v-model="presetCategory"
-                  :options="PRESET_CATEGORY_OPTIONS"
-                  optionLabel="label"
-                  optionValue="value"
-                  class="w-full preset-category-select"
+          <!-- 预设列表显示区域 -->
+          <div class="preset-list-area">
+            <!-- 默认配置 -->
+            <div v-if="presetCategory === 'default'" class="preset-list-container preset-default">
+              <div class="preset-list-header">
+                <i class="pi pi-star"></i>
+                <span>默认配置</span>
+                <span class="preset-count">{{ presetStore.defaultPreset ? 1 : 0 }} 项</span>
+              </div>
+              <div class="preset-list-content preset-grid">
+                <div 
+                  v-if="presetStore.defaultPreset"
+                  class="preset-card preset-card-default"
+                  :class="{ selected: selectedPresetId === presetStore.defaultPreset.id }"
+                  @click="selectPreset(presetStore.defaultPreset)"
                 >
-                  <template #value="slotProps">
-                    <div v-if="slotProps.value" class="preset-category-item">
-                      <i :class="PRESET_CATEGORY_OPTIONS.find(o => o.value === slotProps.value)?.icon"></i>
-                      <span>{{ PRESET_CATEGORY_OPTIONS.find(o => o.value === slotProps.value)?.label }}</span>
-                    </div>
-                    <span v-else>选择预设类型</span>
-                  </template>
-                  <template #option="slotProps">
-                    <div class="preset-category-item">
-                      <i :class="slotProps.option.icon" :style="{ color: slotProps.option.color }"></i>
-                      <span>{{ slotProps.option.label }}</span>
-                    </div>
-                  </template>
-                </Select>
-              </div>
-
-              <!-- 预设列表显示区域 -->
-              <div class="preset-list-area">
-                <!-- 默认配置 -->
-                <div v-if="presetCategory === 'default'" class="preset-list-container preset-default">
-                  <div class="preset-list-header">
-                    <i class="pi pi-star"></i>
-                    <span>默认配置</span>
-                    <span class="preset-count">{{ presetStore.defaultPreset ? 1 : 0 }} 项</span>
+                  <div class="preset-card-header">
+                    <span class="preset-name">{{ presetStore.defaultPreset.name }}</span>
+                    <Tag severity="success" value="默认" />
                   </div>
-                  <div class="preset-list-content">
-                    <div 
-                      v-if="presetStore.defaultPreset"
-                      class="preset-card preset-card-default"
-                      :class="{ selected: selectedPresetId === presetStore.defaultPreset.id }"
-                      @click="selectPreset(presetStore.defaultPreset)"
-                    >
-                      <div class="preset-card-header">
-                        <span class="preset-name">{{ presetStore.defaultPreset.name }}</span>
-                        <Tag severity="success" value="默认" />
-                      </div>
-                      <div class="preset-card-desc">{{ presetStore.defaultPreset.description || '系统默认扫描配置' }}</div>
-                      <div class="preset-card-params">
-                        <code v-if="presetStore.defaultPreset.parameter_string">{{ presetStore.defaultPreset.parameter_string.substring(0, 80) }}{{ presetStore.defaultPreset.parameter_string.length > 80 ? '...' : '' }}</code>
-                        <span v-else class="default-params-hint">--batch (使用默认参数)</span>
-                      </div>
-                    </div>
-                    <div v-else class="preset-empty-hint">
-                      <i class="pi pi-info-circle"></i>
-                      <span>暂无默认配置</span>
-                    </div>
+                  <div class="preset-card-desc">{{ presetStore.defaultPreset.description || '系统默认扫描配置' }}</div>
+                  <div class="preset-card-params">
+                    <code v-if="presetStore.defaultPreset.parameter_string">{{ presetStore.defaultPreset.parameter_string.substring(0, 80) }}{{ presetStore.defaultPreset.parameter_string.length > 80 ? '...' : '' }}</code>
+                    <span v-else class="default-params-hint">--batch (使用默认参数)</span>
                   </div>
                 </div>
-
-                <!-- 常用配置 -->
-                <div v-else-if="presetCategory === 'common'" class="preset-list-container preset-common">
-                  <div class="preset-list-header">
-                    <i class="pi pi-bookmark"></i>
-                    <span>常用配置</span>
-                    <span class="preset-count">{{ presetStore.presetConfigs.length }} 项</span>
-                  </div>
-                  <div class="preset-list-content">
-                    <div 
-                      v-for="preset in presetStore.presetConfigs" 
-                      :key="preset.id"
-                      class="preset-card preset-card-common"
-                      :class="{ selected: selectedPresetId === preset.id }"
-                      @click="selectPreset(preset)"
-                    >
-                      <div class="preset-card-header">
-                        <span class="preset-name">{{ preset.name }}</span>
-                      </div>
-                      <div class="preset-card-desc">{{ preset.description || '暂无描述' }}</div>
-                      <div class="preset-card-params">
-                        <code v-if="preset.parameter_string">{{ preset.parameter_string.substring(0, 80) }}{{ preset.parameter_string.length > 80 ? '...' : '' }}</code>
-                        <span v-else class="default-params-hint">--batch (使用默认参数)</span>
-                      </div>
-                    </div>
-                    <div v-if="presetStore.presetConfigs.length === 0" class="preset-empty-hint">
-                      <i class="pi pi-inbox"></i>
-                      <span>暂无常用配置，您可以在自定义配置后保存为预设</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 历史配置 -->
-                <div v-else-if="presetCategory === 'history'" class="preset-list-container preset-history">
-                  <div class="preset-list-header">
-                    <i class="pi pi-history"></i>
-                    <span>历史配置</span>
-                    <span class="preset-count">{{ presetStore.historyConfigs.length }} 项</span>
-                  </div>
-                  <div class="preset-list-content">
-                    <div 
-                      v-for="preset in presetStore.historyConfigs.slice(0, 10)" 
-                      :key="preset.id"
-                      class="preset-card preset-card-history"
-                      :class="{ selected: selectedPresetId === preset.id }"
-                      @click="selectPreset(preset)"
-                    >
-                      <div class="preset-card-header">
-                        <span class="preset-name">{{ preset.name }}</span>
-                        <Tag severity="warn" value="历史" />
-                      </div>
-                      <div class="preset-card-params">
-                        <code v-if="preset.parameter_string">{{ preset.parameter_string.substring(0, 80) }}{{ preset.parameter_string.length > 80 ? '...' : '' }}</code>
-                        <span v-else class="default-params-hint">--batch (使用默认参数)</span>
-                      </div>
-                    </div>
-                    <div v-if="presetStore.historyConfigs.length === 0" class="preset-empty-hint">
-                      <i class="pi pi-clock"></i>
-                      <span>暂无历史配置记录</span>
-                    </div>
-                  </div>
+                <div v-else class="preset-empty-hint">
+                  <i class="pi pi-info-circle"></i>
+                  <span>暂无默认配置</span>
                 </div>
               </div>
             </div>
 
-            <!-- 自定义配置模式界面 -->
-            <div v-else class="custom-mode-content">
+            <!-- 常用配置 -->
+            <div v-else-if="presetCategory === 'common'" class="preset-list-container preset-common">
+              <div class="preset-list-header">
+                <i class="pi pi-bookmark"></i>
+                <span>常用配置</span>
+                <span class="preset-count">{{ presetStore.presetConfigs.length }} 项</span>
+              </div>
+              <div class="preset-list-content preset-grid">
+                <div 
+                  v-for="preset in presetStore.presetConfigs" 
+                  :key="preset.id"
+                  class="preset-card preset-card-common"
+                  :class="{ selected: selectedPresetId === preset.id }"
+                  @click="selectPreset(preset)"
+                >
+                  <div class="preset-card-header">
+                    <span class="preset-name">{{ preset.name }}</span>
+                  </div>
+                  <div class="preset-card-desc">{{ preset.description || '暂无描述' }}</div>
+                  <div class="preset-card-params">
+                    <code v-if="preset.parameter_string">{{ preset.parameter_string.substring(0, 80) }}{{ preset.parameter_string.length > 80 ? '...' : '' }}</code>
+                    <span v-else class="default-params-hint">--batch (使用默认参数)</span>
+                  </div>
+                </div>
+                <div v-if="presetStore.presetConfigs.length === 0" class="preset-empty-hint">
+                  <i class="pi pi-inbox"></i>
+                  <span>暂无常用配置，您可以在自定义配置后保存为预设</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 历史配置 -->
+            <div v-else-if="presetCategory === 'history'" class="preset-list-container preset-history">
+              <div class="preset-list-header">
+                <i class="pi pi-history"></i>
+                <span>历史配置</span>
+                <span class="preset-count">{{ presetStore.historyConfigs.length }} 项</span>
+              </div>
+              <div class="preset-list-content preset-grid">
+                <div 
+                  v-for="preset in presetStore.historyConfigs.slice(0, 10)" 
+                  :key="preset.id"
+                  class="preset-card preset-card-history"
+                  :class="{ selected: selectedPresetId === preset.id }"
+                  @click="selectPreset(preset)"
+                >
+                  <div class="preset-card-header">
+                    <span class="preset-name">{{ preset.name }}</span>
+                    <Tag severity="warn" value="历史" />
+                  </div>
+                  <div class="preset-card-params">
+                    <code v-if="preset.parameter_string">{{ preset.parameter_string.substring(0, 80) }}{{ preset.parameter_string.length > 80 ? '...' : '' }}</code>
+                    <span v-else class="default-params-hint">--batch (使用默认参数)</span>
+                  </div>
+                </div>
+                <div v-if="presetStore.historyConfigs.length === 0" class="preset-empty-hint">
+                  <i class="pi pi-clock"></i>
+                  <span>暂无历史配置记录</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 自定义配置模式 -->
+        <div v-else class="custom-mode-content">
+          <div class="fieldset-grid">
             <Fieldset legend="检测选项" :toggleable="true" :collapsed="false" class="config-fieldset">
               <div class="config-grid">
                 <div class="config-item">
@@ -278,18 +321,17 @@
               </div>
               <div class="config-grid">
                 <div class="config-item checkbox-item">
-                  <Checkbox v-model="currentOptions.smart" inputId="smart" binary />
-                  <label for="smart">智能检测 (--smart)</label>
+                  <Checkbox v-model="currentOptions.smart" inputId="dlg-smart" binary />
+                  <label for="dlg-smart">智能检测 (--smart)</label>
                 </div>
                 <div class="config-item checkbox-item">
-                  <Checkbox v-model="currentOptions.textOnly" inputId="textOnly" binary />
-                  <label for="textOnly">仅文本比较 (--text-only)</label>
+                  <Checkbox v-model="currentOptions.textOnly" inputId="dlg-textOnly" binary />
+                  <label for="dlg-textOnly">仅文本比较 (--text-only)</label>
                 </div>
               </div>
             </Fieldset>
 
-            <!-- Injection 注入选项 -->
-            <Fieldset legend="注入选项" :toggleable="true" :collapsed="true" class="config-fieldset">
+            <Fieldset legend="注入选项" :toggleable="true" :collapsed="false" class="config-fieldset">
               <div class="config-grid">
                 <div class="config-item">
                   <label>目标数据库 (DBMS)</label>
@@ -360,18 +402,17 @@
               </div>
             </Fieldset>
 
-            <!-- Techniques 技术选项 -->
-            <Fieldset legend="技术选项" :toggleable="true" :collapsed="true" class="config-fieldset">
+            <Fieldset legend="技术选项" :toggleable="true" :collapsed="false" class="config-fieldset">
               <div class="config-item full-width">
                 <label>注入技术 (--technique)</label>
                 <div class="technique-checkboxes">
                   <div v-for="tech in TECHNIQUE_ITEMS" :key="tech.value" class="technique-item">
                     <Checkbox 
                       v-model="selectedTechniques" 
-                      :inputId="'tech-' + tech.value" 
+                      :inputId="'dlg-tech-' + tech.value" 
                       :value="tech.value" 
                     />
-                    <label :for="'tech-' + tech.value">{{ tech.label }}</label>
+                    <label :for="'dlg-tech-' + tech.value">{{ tech.label }}</label>
                   </div>
                 </div>
               </div>
@@ -388,8 +429,7 @@
               </div>
             </Fieldset>
 
-            <!-- Request 请求选项 -->
-            <Fieldset legend="请求选项" :toggleable="true" :collapsed="true" class="config-fieldset">
+            <Fieldset legend="请求选项" :toggleable="true" :collapsed="false" class="config-fieldset">
               <div class="config-grid">
                 <div class="config-item">
                   <label>线程数 (--threads)</label>
@@ -438,12 +478,12 @@
               </div>
               <div class="config-grid">
                 <div class="config-item checkbox-item">
-                  <Checkbox v-model="currentOptions.randomAgent" inputId="randomAgent" binary />
-                  <label for="randomAgent">随机User-Agent</label>
+                  <Checkbox v-model="currentOptions.randomAgent" inputId="dlg-randomAgent" binary />
+                  <label for="dlg-randomAgent">随机User-Agent</label>
                 </div>
                 <div class="config-item checkbox-item">
-                  <Checkbox v-model="currentOptions.tor" inputId="tor" binary />
-                  <label for="tor">使用Tor代理</label>
+                  <Checkbox v-model="currentOptions.tor" inputId="dlg-tor" binary />
+                  <label for="dlg-tor">使用Tor代理</label>
                 </div>
               </div>
               <div class="config-item full-width">
@@ -456,62 +496,60 @@
               </div>
             </Fieldset>
 
-            <!-- Enumeration 枚举选项 -->
-            <Fieldset legend="枚举选项" :toggleable="true" :collapsed="true" class="config-fieldset">
+            <Fieldset legend="枚举选项" :toggleable="true" :collapsed="false" class="config-fieldset">
               <div class="enum-checkboxes">
                 <div class="config-item checkbox-item">
-                  <Checkbox v-model="currentOptions.getBanner" inputId="getBanner" binary />
-                  <label for="getBanner">获取Banner (--banner)</label>
+                  <Checkbox v-model="currentOptions.getBanner" inputId="dlg-getBanner" binary />
+                  <label for="dlg-getBanner">获取Banner (--banner)</label>
                 </div>
                 <div class="config-item checkbox-item">
-                  <Checkbox v-model="currentOptions.getCurrentUser" inputId="getCurrentUser" binary />
-                  <label for="getCurrentUser">当前用户 (--current-user)</label>
+                  <Checkbox v-model="currentOptions.getCurrentUser" inputId="dlg-getCurrentUser" binary />
+                  <label for="dlg-getCurrentUser">当前用户 (--current-user)</label>
                 </div>
                 <div class="config-item checkbox-item">
-                  <Checkbox v-model="currentOptions.getCurrentDb" inputId="getCurrentDb" binary />
-                  <label for="getCurrentDb">当前数据库 (--current-db)</label>
+                  <Checkbox v-model="currentOptions.getCurrentDb" inputId="dlg-getCurrentDb" binary />
+                  <label for="dlg-getCurrentDb">当前数据库 (--current-db)</label>
                 </div>
                 <div class="config-item checkbox-item">
-                  <Checkbox v-model="currentOptions.isDba" inputId="isDba" binary />
-                  <label for="isDba">是否DBA (--is-dba)</label>
+                  <Checkbox v-model="currentOptions.isDba" inputId="dlg-isDba" binary />
+                  <label for="dlg-isDba">是否DBA (--is-dba)</label>
                 </div>
                 <div class="config-item checkbox-item">
-                  <Checkbox v-model="currentOptions.getDbs" inputId="getDbs" binary />
-                  <label for="getDbs">获取所有数据库 (--dbs)</label>
+                  <Checkbox v-model="currentOptions.getDbs" inputId="dlg-getDbs" binary />
+                  <label for="dlg-getDbs">获取所有数据库 (--dbs)</label>
                 </div>
                 <div class="config-item checkbox-item">
-                  <Checkbox v-model="currentOptions.getTables" inputId="getTables" binary />
-                  <label for="getTables">获取所有表 (--tables)</label>
+                  <Checkbox v-model="currentOptions.getTables" inputId="dlg-getTables" binary />
+                  <label for="dlg-getTables">获取所有表 (--tables)</label>
                 </div>
                 <div class="config-item checkbox-item">
-                  <Checkbox v-model="currentOptions.getColumns" inputId="getColumns" binary />
-                  <label for="getColumns">获取所有列 (--columns)</label>
+                  <Checkbox v-model="currentOptions.getColumns" inputId="dlg-getColumns" binary />
+                  <label for="dlg-getColumns">获取所有列 (--columns)</label>
                 </div>
                 <div class="config-item checkbox-item">
-                  <Checkbox v-model="currentOptions.dumpTable" inputId="dumpTable" binary />
-                  <label for="dumpTable">导出表数据 (--dump)</label>
+                  <Checkbox v-model="currentOptions.dumpTable" inputId="dlg-dumpTable" binary />
+                  <label for="dlg-dumpTable">导出表数据 (--dump)</label>
                 </div>
               </div>
             </Fieldset>
 
-            <!-- General 通用选项 -->
-            <Fieldset legend="通用选项" :toggleable="true" :collapsed="true" class="config-fieldset">
+            <Fieldset legend="通用选项" :toggleable="true" :collapsed="false" class="config-fieldset">
               <div class="config-grid">
                 <div class="config-item checkbox-item">
-                  <Checkbox v-model="currentOptions.batch" inputId="batch" binary />
-                  <label for="batch">批处理模式 (--batch)</label>
+                  <Checkbox v-model="currentOptions.batch" inputId="dlg-batch" binary />
+                  <label for="dlg-batch">批处理模式 (--batch)</label>
                 </div>
                 <div class="config-item checkbox-item">
-                  <Checkbox v-model="currentOptions.forms" inputId="forms" binary />
-                  <label for="forms">解析表单 (--forms)</label>
+                  <Checkbox v-model="currentOptions.forms" inputId="dlg-forms" binary />
+                  <label for="dlg-forms">解析表单 (--forms)</label>
                 </div>
                 <div class="config-item checkbox-item">
-                  <Checkbox v-model="currentOptions.flushSession" inputId="flushSession" binary />
-                  <label for="flushSession">刷新会话 (--flush-session)</label>
+                  <Checkbox v-model="currentOptions.flushSession" inputId="dlg-flushSession" binary />
+                  <label for="dlg-flushSession">刷新会话 (--flush-session)</label>
                 </div>
                 <div class="config-item checkbox-item">
-                  <Checkbox v-model="currentOptions.freshQueries" inputId="freshQueries" binary />
-                  <label for="freshQueries">刷新查询 (--fresh-queries)</label>
+                  <Checkbox v-model="currentOptions.freshQueries" inputId="dlg-freshQueries" binary />
+                  <label for="dlg-freshQueries">刷新查询 (--fresh-queries)</label>
                 </div>
               </div>
               <div class="config-item">
@@ -525,70 +563,71 @@
                 />
               </div>
             </Fieldset>
-            </div>
-                </div>
-              </div>
-
-              <!-- 中部：当前扫描参数预览（带语法高亮） -->
-              <div class="config-middle-section">
-                <div class="param-preview-header">
-                  <div class="param-preview-title">
-                    <i class="pi pi-terminal"></i>
-                    <span>当前扫描参数</span>
-                  </div>
-                  <Button 
-                    icon="pi pi-copy" 
-                    text 
-                    rounded 
-                    size="small"
-                    @click="copyCommandLine"
-                    v-tooltip="'复制命令'"
-                  />
-                </div>
-                <div class="cmdline-preview-box">
-                  <span class="cmdline-prefix">sqlmap</span>
-                  <template v-if="cmdlineArgs.length > 0">
-                    <span 
-                      v-for="(arg, index) in cmdlineArgs" 
-                      :key="index" 
-                      class="cmdline-arg"
-                      :class="getArgClass(arg)"
-                      v-html="formatArg(arg)"
-                    ></span>
-                  </template>
-                  <span v-else class="cmdline-default">(默认参数)</span>
-                </div>
-              </div>
-
-              <!-- 下部：操作按钮 -->
-              <div class="config-bottom-section">
-                <Button 
-                  label="保存为预设" 
-                  icon="pi pi-save" 
-                  severity="secondary"
-                  @click="showSavePresetDialog = true"
-                  class="save-preset-btn"
-                  :disabled="!canSavePreset"
-                  v-tooltip.top="!canSavePreset ? '只有自定义配置模式才能保存为预设' : ''"
-                />
-                <Button 
-                  label="提交扫描任务" 
-                  icon="pi pi-send" 
-                  class="submit-btn"
-                  :loading="submitting"
-                  :disabled="!canSubmit"
-                  @click="submitTask"
-                  v-tooltip.top="!canSubmit ? submitDisabledReason : ''"
-                />
-              </div>
-              <small class="submit-hint" v-if="!canSubmit">
-                {{ submitDisabledReason }}
-              </small>
-            </div>
-          </template>
-        </Card>
+          </div>
+        </div>
       </div>
-    </div>
+
+      <!-- 参数预览区 -->
+      <div class="config-middle-section">
+        <div class="param-preview-header">
+          <div class="param-preview-title">
+            <i class="pi pi-terminal"></i>
+            <span>当前扫描参数</span>
+          </div>
+          <Button 
+            icon="pi pi-copy" 
+            text 
+            rounded 
+            size="small"
+            @click="copyCommandLine"
+            v-tooltip="'复制命令'"
+          />
+        </div>
+        <div class="cmdline-preview-box">
+          <span class="cmdline-prefix">sqlmap</span>
+          <template v-if="cmdlineArgs.length > 0">
+            <span 
+              v-for="(arg, index) in cmdlineArgs" 
+              :key="index" 
+              class="cmdline-arg"
+              :class="getArgClass(arg)"
+              v-html="formatArg(arg)"
+            ></span>
+          </template>
+          <span v-else class="cmdline-default">(默认参数)</span>
+        </div>
+      </div>
+
+      <!-- Dialog Footer -->
+      <template #footer>
+        <div class="dialog-footer">
+          <Button 
+            label="取消" 
+            icon="pi pi-times"
+            severity="secondary"
+            @click="configDialogVisible = false"
+          />
+          <div class="footer-spacer"></div>
+          <Button 
+            label="保存为预设" 
+            icon="pi pi-save" 
+            severity="secondary"
+            outlined
+            @click="showSavePresetDialog = true"
+            :disabled="!canSavePreset"
+            v-tooltip.top="!canSavePreset ? '只有自定义配置模式才能保存为预设' : ''"
+          />
+          <Button 
+            label="提交扫描任务" 
+            icon="pi pi-send" 
+            :loading="submitting"
+            :disabled="!canSubmit"
+            @click="submitTaskFromDialog"
+            v-tooltip.top="!canSubmit ? submitDisabledReason : ''"
+          />
+        </div>
+      </template>
+    </Dialog>
 
     <!-- 保存预设对话框 -->
     <Dialog 
@@ -633,6 +672,7 @@ import Fieldset from 'primevue/fieldset'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import Toast from 'primevue/toast'
+import Textarea from 'primevue/textarea'
 
 import { useScanPresetStore } from '@/stores/scanPreset'
 import { 
@@ -650,7 +690,7 @@ import {
   DEFAULT_SCAN_OPTIONS,
   type ScanOptions
 } from '@/types/scanPreset'
-import { request } from '@/api/request'
+import { request as apiRequest } from '@/api/request'
 
 const router = useRouter()
 const toast = useToast()
@@ -691,8 +731,8 @@ const parsedRequest = ref<ParsedHttpRequest | null>(null)
 const detectedFormat = ref<RequestFormat>('unknown')
 
 // 配置状态
-const configMode = ref<'preset' | 'custom'>('preset')  // 配置模式：预设/自定义
-const presetCategory = ref<'default' | 'common' | 'history'>('default')  // 预设类型
+const configMode = ref<'preset' | 'custom'>('preset')
+const presetCategory = ref<'default' | 'common' | 'history'>('default')
 const selectedPresetId = ref<number | null>(null)
 const currentOptions = ref<ScanOptions>({ ...DEFAULT_SCAN_OPTIONS })
 const selectedTechniques = ref<string[]>(['B', 'E', 'U', 'S', 'T', 'Q'])
@@ -708,6 +748,7 @@ const PRESET_CATEGORY_OPTIONS = [
 const submitting = ref(false)
 
 // 对话框状态
+const configDialogVisible = ref(false)
 const showSavePresetDialog = ref(false)
 const newPresetName = ref('')
 const newPresetDescription = ref('')
@@ -732,23 +773,19 @@ const formatSeverity = computed(() => {
 })
 
 const canSubmit = computed(() => {
-  // 必须有有效的HTTP报文
   if (!rawHttpContent.value.trim() || !parsedRequest.value) {
     return false
   }
-  // 如果是预设模式，必须选择了预设
   if (configMode.value === 'preset' && !selectedPresetId.value) {
     return false
   }
   return true
 })
 
-// 是否可以保存为预设（只有自定义配置模式才能保存）
 const canSavePreset = computed(() => {
   return configMode.value === 'custom'
 })
 
-// 提交按钮禁用提示文字
 const submitDisabledReason = computed(() => {
   if (!rawHttpContent.value.trim() || !parsedRequest.value) {
     return '请先输入并解析HTTP报文'
@@ -759,13 +796,29 @@ const submitDisabledReason = computed(() => {
   return ''
 })
 
+// 配置状态摘要文本
+const configStatusText = computed(() => {
+  if (configMode.value === 'preset') {
+    if (selectedPresetId.value) {
+      const all = [
+        presetStore.defaultPreset,
+        ...presetStore.presetConfigs,
+        ...presetStore.historyConfigs
+      ]
+      const preset = all.find(p => p?.id === selectedPresetId.value)
+      return preset ? `预设: ${preset.name}` : '自定义配置'
+    }
+    return '未选择预设'
+  }
+  return '自定义配置'
+})
+
 // 命令行参数数组
 const cmdlineArgs = computed(() => {
   const args: string[] = []
   const opts = currentOptions.value
   const defaults = DEFAULT_SCAN_OPTIONS
   
-  // 按优先级添加参数
   if (opts.level !== defaults.level) args.push(`--level=${opts.level}`)
   if (opts.risk !== defaults.risk) args.push(`--risk=${opts.risk}`)
   if (opts.technique && opts.technique !== 'BEUSTQ') args.push(`--technique=${opts.technique}`)
@@ -802,24 +855,16 @@ const cmdlineArgs = computed(() => {
   return args
 })
 
-// 获取参数的CSS类（用于语法高亮）
 function getArgClass(arg: string): string {
-  // 短参数 (-r, -u, -v 等)
   if (/^-[a-zA-Z]=?/.test(arg)) return 'arg-short'
-  // 检测/注入相关
   if (/^--(level|risk|technique|dbms|os|prefix|suffix|tamper)/.test(arg)) return 'arg-detection'
-  // 性能相关
   if (/^--(threads|timeout|retries|delay|time-sec)/.test(arg)) return 'arg-performance'
-  // 枚举相关
   if (/^--(banner|current-user|current-db|is-dba|dbs|tables|columns|dump)/.test(arg)) return 'arg-enumerate'
-  // 代理/网络相关
   if (/^--(proxy|tor|cookie|user-agent|random-agent)/.test(arg)) return 'arg-network'
-  // 开关类参数
   if (/^--(batch|smart|text-only|forms|flush-session|fresh-queries)/.test(arg)) return 'arg-switch'
   return 'arg-long'
 }
 
-// 格式化参数（添加语法高亮）
 function formatArg(arg: string): string {
   const eqIndex = arg.indexOf('=')
   if (eqIndex > 0) {
@@ -830,7 +875,6 @@ function formatArg(arg: string): string {
   return `<span class="arg-name">${arg}</span>`
 }
 
-// 复制命令行
 function copyCommandLine() {
   const fullCmd = 'sqlmap ' + cmdlineArgs.value.join(' ')
   navigator.clipboard.writeText(fullCmd).then(() => {
@@ -851,7 +895,6 @@ function copyCommandLine() {
   })
 }
 
-// 监听技术选择变化
 watch(selectedTechniques, (newVal) => {
   currentOptions.value.technique = newVal.join('')
 }, { deep: true })
@@ -874,7 +917,6 @@ const httpPlaceholder = `转换后的HTTP报文将显示在这里...
 使用 * 标记注入点，例如：
 GET /api/user?id=1* HTTP/1.1`
 
-// 方法
 function onInputChange() {
   detectedFormat.value = detectFormat(inputContent.value)
 }
@@ -910,23 +952,19 @@ function clearInput() {
   detectedFormat.value = 'unknown'
 }
 
-// 选择预设配置
 async function selectPreset(preset: any) {
   if (!preset || !preset.id) return
   
   try {
     selectedPresetId.value = preset.id
     
-    // 直接从预设对象中获取配置，确保参数预览即时更新
     if (preset.options && typeof preset.options === 'object') {
       currentOptions.value = { ...DEFAULT_SCAN_OPTIONS, ...preset.options }
     } else {
-      // 如果预设对象没有options，通过API加载
       await presetStore.selectPreset(preset.id)
       currentOptions.value = { ...DEFAULT_SCAN_OPTIONS, ...presetStore.currentOptions }
     }
     
-    // 更新technique选择
     if (currentOptions.value.technique) {
       selectedTechniques.value = currentOptions.value.technique.split('')
     } else {
@@ -995,7 +1033,6 @@ function getEffectiveOptions(): Record<string, any> {
     }
   }
   
-  // 确保batch选项始终存在
   result.batch = true
   
   return result
@@ -1027,10 +1064,8 @@ async function submitTask() {
       options: getEffectiveOptions()
     }
     
-    // 调用Web端专用的任务添加API
-    await request.post('/web/admin/task/add', taskData)
+    await apiRequest.post('/web/admin/task/add', taskData)
     
-    // 保存到历史记录
     const urlPath = requestInfo.url.split('?')[0] || ''
     const hostPart = requestInfo.host && urlPath ? urlPath.split(requestInfo.host)[1] : ''
     const historyName = `${requestInfo.method} ${requestInfo.host}${hostPart || '/'}`
@@ -1057,7 +1092,10 @@ async function submitTask() {
   }
 }
 
-// 生命周期
+async function submitTaskFromDialog() {
+  await submitTask()
+}
+
 onMounted(async () => {
   try {
     await presetStore.loadConfigOptions()
@@ -1066,127 +1104,51 @@ onMounted(async () => {
     }
   } catch (error) {
     console.error('Failed to load config options:', error)
-    // 使用默认配置
     currentOptions.value = { ...DEFAULT_SCAN_OPTIONS }
   }
 })
 </script>
 
 <style scoped>
+/* === 页面容器 (与 TaskList 一致) === */
 .add-task-container {
   width: 100%;
-  height: 100%;
-  padding: 0.75rem 1rem;
   margin: 0;
-  box-sizing: border-box;
+  padding: 0;
 }
 
-.page-header {
-  margin-bottom: 0.75rem;
-}
-
-.page-header h2 {
-  margin: 0 0 0.25rem 0;
-  color: var(--text-color);
-  font-size: 1.25rem;
-}
-
-.page-header .subtitle {
-  margin: 0;
-  color: var(--text-color-secondary);
-  font-size: 0.85rem;
-}
-
-.content-wrapper {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 1rem;
-  height: calc(100vh - 180px);
-  max-height: 800px;
-  min-width: 1000px;
-}
-
-.left-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  min-height: 0;
-  overflow: visible;
-}
-
-.right-panel {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-  min-width: 400px;
-}
-
-/* 两个编辑器卡片高度相等 */
-.input-card,
-.editor-card {
-  flex: 1 1 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: visible;
-}
-
-.input-card :deep(.p-card-body),
-.editor-card :deep(.p-card-body) {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow: visible;
-}
-
-.input-card :deep(.p-card-content),
-.editor-card :deep(.p-card-content) {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-/* 修复Card标题被遮挡问题 */
-.input-card :deep(.p-card-title),
-.editor-card :deep(.p-card-title) {
-  position: relative;
-  z-index: 1;
-  background: var(--surface-card);
-  padding-right: 1rem;
-}
-
-.card-title-row {
+.page-title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-/* HttpCodeEditor 组件样式 */
-.input-card :deep(.http-code-editor),
-.editor-card :deep(.http-code-editor) {
-  flex: 1;
-  min-height: 120px;
-  max-height: none;
+.subtitle {
+  margin: 0 0 1rem 0;
+  color: var(--text-color-secondary);
+  font-size: 0.85rem;
 }
 
-.flex-editor {
-  flex: 1;
-  min-height: 0;
+/* === 报文输入/编辑区 === */
+.input-section,
+.editor-section {
+  margin-bottom: 1rem;
 }
 
-/* 按钮区域确保可见 */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-color);
+}
+
 .input-actions {
   display: flex;
   gap: 0.5rem;
   margin-top: 0.5rem;
-  padding: 0.25rem 0;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 10;
-  background: var(--surface-card);
 }
 
 .editor-status {
@@ -1205,363 +1167,126 @@ onMounted(async () => {
   font-size: 0.85rem;
 }
 
-/* 配置卡片 */
-.config-card {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.config-card :deep(.p-card-header) {
-  padding: 0.75rem 1rem;
-  flex-shrink: 0;
-}
-
-.config-card :deep(.p-card-title) {
-  padding: 0;
-  margin: 0;
-}
-
-.config-card :deep(.p-card-body) {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-  padding: 0.75rem 1rem;
-}
-
-.config-card :deep(.p-card-content) {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-  padding: 0;
-}
-
-/* 上中下布局容器 */
-.config-layout {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  gap: 0;
-}
-
-/* 上部：切换区域 + 配置显示区域 */
-.config-top-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-}
-
-/* 配置显示区域（独立滚动） */
-.config-content-area {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  min-height: 0;
-  padding: 0.5rem 0;
-}
-
-.config-content-area::-webkit-scrollbar {
-  width: 8px;
-}
-
-.config-content-area::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 4px;
-}
-
-.config-content-area::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.3);
-  border-radius: 4px;
-}
-
-.config-content-area::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.5);
-}
-
-/* 中部：参数预览区域 */
-.config-middle-section {
-  flex-shrink: 0;
-  margin-top: 0.75rem;
-  border: 1px solid var(--surface-border);
-  border-radius: 8px;
-  background: var(--surface-ground);
-  overflow: hidden;
-}
-
-/* 下部：操作按钮 */
-.config-bottom-section {
-  flex-shrink: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--surface-border);
-  overflow: visible;
-}
-
-.config-bottom-section .save-preset-btn,
-.config-bottom-section .submit-btn {
-  flex: 0 0 auto !important;
-  width: auto !important;
-  min-width: 0 !important;
-  height: 2.25rem !important;
-}
-
-.submit-hint {
-  display: block;
-  text-align: center;
-  color: var(--text-color-secondary);
-  margin-top: 0.5rem;
-}
-
-.config-group {
-  margin-bottom: 1rem;
-}
-
-.config-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: var(--text-color);
-}
-
-/* Fieldset样式 */
-.config-fieldset {
-  margin-bottom: 0.75rem;
-}
-
-.config-fieldset :deep(.p-fieldset-legend) {
-  font-size: 0.9rem;
-  padding: 0.5rem 0.75rem;
-}
-
-.config-fieldset :deep(.p-fieldset-content) {
-  padding: 0.75rem;
-}
-
-/* 配置项网格 */
-.config-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.config-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.config-item.full-width {
-  grid-column: 1 / -1;
-  margin-bottom: 0.5rem;
-}
-
-.config-item label {
-  font-size: 0.8rem;
-  color: var(--text-color-secondary);
-}
-
-.config-item.checkbox-item {
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.config-item.checkbox-item label {
-  font-size: 0.85rem;
-  color: var(--text-color);
-}
-
-/* 技术选项复选框 */
-.technique-checkboxes {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-}
-
-.technique-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.technique-item label {
-  font-size: 0.8rem;
-  color: var(--text-color);
-}
-
-/* 枚举选项 */
-.enum-checkboxes {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-}
-
-/* 参数预览区域 */
-.param-preview-header {
+/* === 配置触发区 === */
+.config-trigger-section {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 0.75rem;
-  background: var(--surface-card);
-  border-bottom: 1px solid var(--surface-border);
+  gap: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--p-surface-50);
+  border: 1px solid var(--surface-border);
+  border-radius: 10px;
+  margin-top: 0.5rem;
 }
 
-.param-preview-title {
+.config-summary {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.config-summary-left {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-weight: 600;
+}
+
+.config-summary-left i {
+  color: var(--p-primary-color);
+  font-size: 1.1rem;
+}
+
+.config-status-label {
+  font-weight: 500;
+  color: var(--text-color-secondary);
   font-size: 0.85rem;
-  color: var(--primary-color);
 }
 
-.param-preview-title i {
-  font-size: 0.9rem;
+.config-status-text {
+  font-weight: 600;
+  color: var(--text-color);
+  font-size: 0.85rem;
 }
 
-/* 命令行预览框 */
-.cmdline-preview-box {
-  background: #1e1e2e;
-  padding: 0.75rem 1rem;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
-  font-size: 0.8rem;
-  line-height: 1.6;
-  overflow-x: auto;
+.cmdline-preview-inline {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.35rem;
   align-items: baseline;
+  padding: 0.4rem 0.65rem;
+  background: #1e1e2e;
+  border-radius: 6px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  overflow: hidden;
 }
 
-.cmdline-prefix {
+.cmdline-prefix-inline {
   color: #89b4fa;
   font-weight: 600;
 }
 
-.cmdline-default {
+.cmdline-arg-inline {
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: #cba6f7;
+}
+
+.cmdline-arg-inline.arg-detection { background: rgba(249, 115, 22, 0.15); }
+.cmdline-arg-inline.arg-performance { background: rgba(34, 197, 94, 0.15); }
+.cmdline-arg-inline.arg-enumerate { background: rgba(168, 85, 247, 0.15); }
+.cmdline-arg-inline.arg-network { background: rgba(59, 130, 246, 0.15); }
+.cmdline-arg-inline.arg-switch { background: rgba(236, 72, 153, 0.15); }
+.cmdline-arg-inline.arg-short { background: rgba(251, 191, 36, 0.15); }
+
+.cmdline-more {
   color: #6c7086;
   font-style: italic;
 }
 
-.cmdline-arg {
-  display: inline-flex;
-  align-items: baseline;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.05);
+.cmdline-default-inline {
+  opacity: 0.7;
 }
 
-/* 参数类型语法高亮 */
-.cmdline-arg.arg-detection {
-  background: rgba(249, 115, 22, 0.15);
-}
-
-.cmdline-arg.arg-performance {
-  background: rgba(34, 197, 94, 0.15);
-}
-
-.cmdline-arg.arg-enumerate {
-  background: rgba(168, 85, 247, 0.15);
-}
-
-.cmdline-arg.arg-network {
-  background: rgba(59, 130, 246, 0.15);
-}
-
-.cmdline-arg.arg-switch {
-  background: rgba(236, 72, 153, 0.15);
-}
-
-.cmdline-arg.arg-short {
-  background: rgba(251, 191, 36, 0.15);
-}
-
-.cmdline-arg :deep(.arg-name) {
-  color: #cba6f7;
-  font-weight: 500;
-}
-
-.cmdline-arg :deep(.arg-equals) {
+.cmdline-hint {
   color: #6c7086;
-  margin: 0 2px;
+  font-style: italic;
 }
 
-.cmdline-arg :deep(.arg-value) {
-  color: #a6e3a1;
-}
-
-/* 保留原有的参数预览区域样式（兼容） - 已移除重复定义 */
-
-/* 提交区域 */
-.submit-section {
+.config-trigger-actions {
   display: flex;
   gap: 0.75rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--surface-border);
-}
-
-.save-preset-btn {
   flex-shrink: 0;
-}
-
-.submit-btn {
-  flex: 1;
-  height: 2.75rem;
 }
 
 .submit-hint {
   display: block;
-  text-align: center;
+  text-align: right;
   color: var(--text-color-secondary);
   margin-top: 0.5rem;
+  font-size: 0.8rem;
 }
 
-/* 对话框 */
-.dialog-content {
+/* === Dialog 样式 === */
+.config-dialog :deep(.p-dialog-content) {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.field label {
-  font-weight: 500;
-}
-
-.w-full {
-  width: 100%;
-}
-
-/* 配置模式切换区域 - 突出显示 */
+/* 模式切换栏 */
 .config-mode-switch-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
   background: var(--p-surface-100);
-  border: 2px solid var(--p-surface-border);
+  border: 1px solid var(--surface-border);
   border-radius: 12px;
-  margin-bottom: 1rem;
 }
 
 .mode-switch-tabs {
@@ -1605,6 +1330,12 @@ onMounted(async () => {
   color: white;
 }
 
+.mode-switch-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .mode-switch-hint {
   display: flex;
   align-items: center;
@@ -1618,18 +1349,19 @@ onMounted(async () => {
   font-size: 14px;
 }
 
-/* 预设模式内容 */
+/* === 配置内容区 === */
+.config-content-area {
+  min-height: 0;
+}
+
+/* 预设模式 */
 .preset-mode-content {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  overflow: hidden;
 }
 
-/* 预设类型选择器 */
 .preset-category-selector {
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -1655,10 +1387,7 @@ onMounted(async () => {
   font-size: 1rem;
 }
 
-/* 预设列表区域 */
 .preset-list-area {
-  flex: 1;
-  overflow-y: auto;
   min-height: 0;
 }
 
@@ -1668,28 +1397,23 @@ onMounted(async () => {
   gap: 0.5rem;
   padding: 0.75rem;
   border-radius: 8px;
-  min-height: 100%;
 }
 
-/* 默认配置背景 - 绿色色调 */
 .preset-list-container.preset-default {
   background: rgba(16, 185, 129, 0.08);
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
-/* 常用配置背景 - 蓝色色调 */
 .preset-list-container.preset-common {
   background: rgba(99, 102, 241, 0.08);
   border: 1px solid rgba(99, 102, 241, 0.3);
 }
 
-/* 历史配置背景 - 橙色色调 */
 .preset-list-container.preset-history {
   background: rgba(245, 158, 11, 0.08);
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
-/* 预设列表头部 */
 .preset-list-header {
   display: flex;
   align-items: center;
@@ -1706,17 +1430,9 @@ onMounted(async () => {
   font-size: 1rem;
 }
 
-.preset-default .preset-list-header i {
-  color: #10b981;
-}
-
-.preset-common .preset-list-header i {
-  color: #6366f1;
-}
-
-.preset-history .preset-list-header i {
-  color: #f59e0b;
-}
+.preset-default .preset-list-header i { color: #10b981; }
+.preset-common .preset-list-header i { color: #6366f1; }
+.preset-history .preset-list-header i { color: #f59e0b; }
 
 .preset-count {
   margin-left: auto;
@@ -1728,11 +1444,11 @@ onMounted(async () => {
   border-radius: 10px;
 }
 
-/* 预设列表内容 */
-.preset-list-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+/* 预设卡片多列网格 */
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 0.75rem;
 }
 
 .preset-card {
@@ -1741,56 +1457,24 @@ onMounted(async () => {
   border-radius: 8px;
   cursor: pointer;
   background: var(--surface-card);
+  transition: border-color 0.2s, background 0.2s;
 }
 
 .preset-card:hover {
   border-color: var(--p-primary-color);
 }
 
-/* 默认配置卡片 */
-.preset-card-default {
-  border-color: rgba(16, 185, 129, 0.3);
-}
+.preset-card-default { border-color: rgba(16, 185, 129, 0.3); }
+.preset-card-default:hover { border-color: #10b981; background: rgba(16, 185, 129, 0.05); }
+.preset-card-default.selected { border-color: #10b981; background: rgba(16, 185, 129, 0.1); }
 
-.preset-card-default:hover {
-  border-color: #10b981;
-  background: rgba(16, 185, 129, 0.05);
-}
+.preset-card-common { border-color: rgba(99, 102, 241, 0.3); }
+.preset-card-common:hover { border-color: #6366f1; background: rgba(99, 102, 241, 0.05); }
+.preset-card-common.selected { border-color: #6366f1; background: rgba(99, 102, 241, 0.1); }
 
-.preset-card-default.selected {
-  border-color: #10b981;
-  background: rgba(16, 185, 129, 0.1);
-}
-
-/* 常用配置卡片 */
-.preset-card-common {
-  border-color: rgba(99, 102, 241, 0.3);
-}
-
-.preset-card-common:hover {
-  border-color: #6366f1;
-  background: rgba(99, 102, 241, 0.05);
-}
-
-.preset-card-common.selected {
-  border-color: #6366f1;
-  background: rgba(99, 102, 241, 0.1);
-}
-
-/* 历史配置卡片 */
-.preset-card-history {
-  border-color: rgba(245, 158, 11, 0.3);
-}
-
-.preset-card-history:hover {
-  border-color: #f59e0b;
-  background: rgba(245, 158, 11, 0.05);
-}
-
-.preset-card-history.selected {
-  border-color: #f59e0b;
-  background: rgba(245, 158, 11, 0.1);
-}
+.preset-card-history { border-color: rgba(245, 158, 11, 0.3); }
+.preset-card-history:hover { border-color: #f59e0b; background: rgba(245, 158, 11, 0.05); }
+.preset-card-history.selected { border-color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
 
 .preset-card-header {
   display: flex;
@@ -1831,7 +1515,6 @@ onMounted(async () => {
   font-style: italic;
 }
 
-/* 空状态提示 */
 .preset-empty-hint {
   display: flex;
   align-items: center;
@@ -1842,6 +1525,7 @@ onMounted(async () => {
   background: var(--surface-100);
   border-radius: 6px;
   border: 1px dashed var(--surface-border);
+  grid-column: 1 / -1;
 }
 
 .preset-empty-hint i {
@@ -1849,41 +1533,229 @@ onMounted(async () => {
   opacity: 0.6;
 }
 
-/* 自定义配置模式内容 */
+/* === 自定义配置 - Fieldset 多列网格 === */
 .custom-mode-content {
+  min-height: 0;
+}
+
+.fieldset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.config-fieldset {
+  margin-bottom: 0;
+}
+
+.config-fieldset :deep(.p-fieldset-legend) {
+  font-size: 0.9rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.config-fieldset :deep(.p-fieldset-content) {
+  padding: 0.75rem;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.config-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.config-item.full-width {
+  grid-column: 1 / -1;
+  margin-bottom: 0.5rem;
+}
+
+.config-item label {
+  font-size: 0.8rem;
+  color: var(--text-color-secondary);
+}
+
+.config-item.checkbox-item {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.config-item.checkbox-item label {
+  font-size: 0.85rem;
+  color: var(--text-color);
+}
+
+.technique-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.technique-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.technique-item label {
+  font-size: 0.8rem;
+  color: var(--text-color);
+}
+
+.enum-checkboxes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+/* === 参数预览区 === */
+.config-middle-section {
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
+  background: var(--surface-ground);
+  overflow: hidden;
+}
+
+.param-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.param-preview-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--primary-color);
+}
+
+.param-preview-title i {
+  font-size: 0.9rem;
+}
+
+.cmdline-preview-box {
+  background: #1e1e2e;
+  padding: 0.75rem 1rem;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+  font-size: 0.85rem;
+  line-height: 1.8;
+  overflow-x: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.cmdline-prefix {
+  color: #89b4fa;
+  font-weight: 600;
+}
+
+.cmdline-default {
+  color: #6c7086;
+  font-style: italic;
+}
+
+.cmdline-arg {
+  display: inline-flex;
+  align-items: baseline;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.cmdline-arg.arg-detection { background: rgba(249, 115, 22, 0.15); }
+.cmdline-arg.arg-performance { background: rgba(34, 197, 94, 0.15); }
+.cmdline-arg.arg-enumerate { background: rgba(168, 85, 247, 0.15); }
+.cmdline-arg.arg-network { background: rgba(59, 130, 246, 0.15); }
+.cmdline-arg.arg-switch { background: rgba(236, 72, 153, 0.15); }
+.cmdline-arg.arg-short { background: rgba(251, 191, 36, 0.15); }
+
+.cmdline-arg :deep(.arg-name) {
+  color: #cba6f7;
+  font-weight: 500;
+}
+
+.cmdline-arg :deep(.arg-equals) {
+  color: #6c7086;
+  margin: 0 2px;
+}
+
+.cmdline-arg :deep(.arg-value) {
+  color: #a6e3a1;
+}
+
+/* === Dialog Footer === */
+.dialog-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.footer-spacer {
   flex: 1;
-  overflow-y: auto;
 }
 
-/* 响应式布局 */
+/* === 保存预设对话框 === */
+.dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field label {
+  font-weight: 500;
+}
+
+.w-full {
+  width: 100%;
+}
+
+/* === 响应式 === */
 @media (max-width: 1400px) {
-  .content-wrapper {
-    grid-template-columns: 1fr 1fr;
+  .fieldset-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 1200px) {
-  .content-wrapper {
+@media (max-width: 900px) {
+  .fieldset-grid {
     grid-template-columns: 1fr;
-    height: auto;
-    min-width: auto;
   }
   
-  .left-panel, .right-panel {
-    overflow: visible;
-    min-width: auto;
+  .config-trigger-section {
+    flex-direction: column;
+    align-items: stretch;
   }
   
-  .config-card :deep(.p-card-body) {
-    max-height: 600px;
+  .config-trigger-actions {
+    justify-content: center;
+  }
+  
+  .preset-grid {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
-  .add-task-container {
-    padding: 0.5rem;
-  }
-  
   .config-grid {
     grid-template-columns: 1fr;
   }
@@ -1896,18 +1768,14 @@ onMounted(async () => {
     grid-template-columns: 1fr;
   }
   
-  .mode-switch-tabs {
-    flex-direction: column;
-  }
-  
   .config-mode-switch-bar {
     flex-direction: column;
     gap: 0.75rem;
     align-items: stretch;
   }
-  
-  .mode-switch-hint {
-    justify-content: center;
+
+  .mode-switch-right {
+    justify-content: space-between;
   }
 }
 </style>
