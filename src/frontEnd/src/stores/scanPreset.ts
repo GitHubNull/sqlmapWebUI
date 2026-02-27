@@ -227,10 +227,14 @@ export const useScanPresetStore = defineStore('scanPreset', () => {
   
   /**
    * 添加到历史记录
+   * @param name 历史记录名称
+   * @param options 可选的扫描配置，未提供则使用当前 Store 状态
    */
-  async function addToHistory(name: string): Promise<ScanPreset | null> {
+  async function addToHistory(name: string, options?: ScanOptions): Promise<ScanPreset | null> {
     try {
-      const result = await scanPresetApi.addToHistory(name, currentOptions.value)
+      // 使用传入的配置，或回退到 Store 状态
+      const effectiveOptions = options ?? currentOptions.value
+      const result = await scanPresetApi.addToHistory(name, effectiveOptions)
       if (result) {
         await loadConfigOptions()
       }

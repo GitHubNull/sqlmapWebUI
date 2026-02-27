@@ -377,20 +377,29 @@ class ScanPresetDatabase(Database):
     def add_to_history(self, name: str, options: dict, max_history: int = 20) -> Optional[ScanPreset]:
         """添加到历史记录"""
         try:
-            # 检查是否已存在相同名称的历史记录
+            # 生成 parameter_string
+            parameter_string = self._generate_parameter_string(options)
+            
+            # 检查是否已存在相同名称且相同参数的历史记录
+            # 只有名称和参数都相同才更新，否则创建新记录
             existing = self.get_preset_by_name(name)
             if existing and existing.preset_type == PresetType.HISTORY:
-                # 更新现有记录
-                return self.update_preset(existing.id, ScanPresetUpdate(
-                    options=options
-                ))
+                # 比较参数是否相同（通过 parameter_string）
+                existing_params = existing.parameter_string or ""
+                if existing_params == parameter_string:
+                    # 参数相同，只更新使用时间
+                    self.record_preset_usage(existing.id)
+                    return existing
+                # 参数不同，创建新记录（名称添加时间戳避免重复）
+                name = f"{name} ({datetime.now().strftime('%H:%M:%S')})"
             
             # 创建新历史记录
             preset = self.create_preset(ScanPresetCreate(
                 name=name,
                 description=f"历史配置 - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
                 preset_type=PresetType.HISTORY,
-                options=options
+                options=options,
+                parameter_string=parameter_string
             ))
             
             if preset:
@@ -405,6 +414,60 @@ class ScanPresetDatabase(Database):
         except Exception as e:
             logger.error(f"Failed to add to history: {getSafeExString(e)}")
             return None
+    
+    def _generate_parameter_string(self, options: dict) -> str:
+        """从 options 生成命令行参数字符串"""
+        if not options:
+            return ""
+        
+        # 默认值定义（与前端保持一致）
+        defaults = {
+            'level': 1, 'risk': 1, 'technique': 'BEUSTQ', 'timeSec': 5,
+            'timeout': 30, 'retries': 3, 'delay': 0, 'threads': 1,
+            'verbose': 1, 'batch': True, 'crawlDepth': 0
+        }
+        
+        # 参数名到 CLI 选项的映射
+        param_map = {
+            'level': 'level', 'risk': 'risk', 'technique': 'technique',
+            'timeSec': 'time-sec', 'timeout': 'timeout', 'retries': 'retries',
+            'delay': 'delay', 'threads': 'threads', 'verbose': 'v',
+            'dbms': 'dbms', 'os': 'os', 'prefix': 'prefix', 'suffix': 'suffix',
+            'tamper': 'tamper', 'proxy': 'proxy', 'testParameter': 'p',
+            'string': 'string', 'notString': 'not-string', 'regexp': 'regexp',
+            'randomAgent': 'random-agent', 'tor': 'tor', 'smart': 'smart',
+            'textOnly': 'text-only', 'titles': 'titles', 'forms': 'forms',
+            'flushSession': 'flush-session', 'freshQueries': 'fresh-queries',
+            'getBanner': 'banner', 'getCurrentUser': 'current-user',
+            'getCurrentDb': 'current-db', 'getDbs': 'dbs', 'getTables': 'tables',
+            'getColumns': 'columns', 'dumpTable': 'dump', 'dumpAll': 'dump-all',
+            'db': 'D', 'tbl': 'T', 'col': 'C', 'answers': 'answers'
+        }
+        
+        parts = []
+        for key, value in options.items():
+            if value is None or value == '':
+                continue
+            
+            # 跳过默认值
+            if key in defaults and value == defaults[key]:
+                continue
+            
+            cli_opt = param_map.get(key, key)
+            
+            # 布尔值处理
+            if isinstance(value, bool):
+                if value:
+                    parts.append(f"--{cli_opt}")
+            # 字符串/数字处理
+            else:
+                # 短选项使用不同格式
+                if len(cli_opt) == 1:
+                    parts.append(f"-{cli_opt}={value}")
+                else:
+                    parts.append(f"--{cli_opt}={value}")
+        
+        return ' '.join(parts)
     
     def _cleanup_old_history(self, max_history: int):
         """清理旧的历史记录"""

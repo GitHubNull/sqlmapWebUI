@@ -308,13 +308,16 @@ async function submitTask() {
   submitting.value = true
   
   try {
+    // 获取实际使用的配置
+    const taskOptions = getEffectiveOptions()
+    
     const taskData = {
       scanUrl: requestInfo.url,
       host: requestInfo.host,
       method: requestInfo.method,
       headers: requestInfo.headers,
       body: requestInfo.body,
-      options: getEffectiveOptions()
+      options: taskOptions
     }
     
     await apiRequest.post('/web/admin/task/add', taskData)
@@ -322,7 +325,8 @@ async function submitTask() {
     const urlPath = requestInfo.url.split('?')[0] || ''
     const hostPart = requestInfo.host && urlPath ? urlPath.split(requestInfo.host)[1] : ''
     const historyName = `${requestInfo.method} ${requestInfo.host}${hostPart || '/'}`
-    await presetStore.addToHistory(historyName.substring(0, 50))
+    // 传递实际使用的配置到历史记录
+    await presetStore.addToHistory(historyName.substring(0, 50), taskOptions as ScanOptions)
     
     toast.add({
       severity: 'success',
