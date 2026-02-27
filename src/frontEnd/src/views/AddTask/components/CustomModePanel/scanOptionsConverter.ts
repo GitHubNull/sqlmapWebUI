@@ -4,7 +4,7 @@
  */
 
 import { DEFAULT_SCAN_OPTIONS, type ScanOptions } from '@/types/scanPreset'
-import { getParamDefinition, PARAM_DEFINITIONS } from '@/utils/paramDefinitions'
+import { getParamDefinition } from '@/utils/paramDefinitions'
 
 /**
  * 判断值是否为空（null/undefined/空字符串）
@@ -24,11 +24,6 @@ function isEqual(a: any, b: any): boolean {
   }
   return false
 }
-
-/**
- * 获取已知参数的 key 集合
- */
-const knownParamKeys = new Set(PARAM_DEFINITIONS.map(p => p.key))
 
 /**
  * 将 ScanOptions 转换为 selectedParams

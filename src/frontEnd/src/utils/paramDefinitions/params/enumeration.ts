@@ -2,7 +2,6 @@
  * Enumeration 枚举参数定义
  */
 import type { ParamDefinition } from '../types'
-import { DUMP_FORMAT_OPTIONS } from '../types'
 
 export const ENUMERATION_PARAMS: ParamDefinition[] = [
   // 基本枚举

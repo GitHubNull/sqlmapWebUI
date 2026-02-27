@@ -40,7 +40,6 @@ import ParamConfigPanel from './GuidedParamEditor/ParamConfigPanel.vue'
 import SelectedParamsPanel from './GuidedParamEditor/SelectedParamsPanel.vue'
 import CommandPreview from './GuidedParamEditor/CommandPreview.vue'
 import { 
-  PARAM_DEFINITIONS, 
   getParamDefinition,
   type ParamDefinition 
 } from '@/utils/paramDefinitions'
