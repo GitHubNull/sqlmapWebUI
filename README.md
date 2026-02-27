@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.8.33-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.34-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -269,6 +269,12 @@ sqlmapWebUI/
 请在使用前阅读 [免责声明](DISCLAIMER.md)。
 
 ## 📝 更新日志
+
+### v1.8.34 (2026-02-27)
+
+**重构**
+- GuidedParamEditor 组件重构为模块化架构
+- CustomModePanel 优化，新增 scanOptionsConverter 工具
 
 ### v1.8.33 (2026-02-26)
 
