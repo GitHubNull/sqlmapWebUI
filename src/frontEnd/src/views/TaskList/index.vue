@@ -364,32 +364,42 @@ function getStatusSeverity(status: TaskStatus): string {
   return severities[status] || 'secondary'
 }
 
+// 安全导航函数，捕获重复导航错误
+function safeNavigate(to: Parameters<typeof router.push>[0]) {
+  router.push(to).catch((err) => {
+    // 忽略 NavigationDuplicated 错误（导航到当前位置）
+    if (err.name !== 'NavigationDuplicated') {
+      console.error('Navigation error:', err)
+    }
+  })
+}
+
 function viewTask(task: any) {
-  router.push(`/tasks/${task.taskid}`)
+  safeNavigate(`/tasks/${task.taskid}`)
 }
 
 function goToTaskConfig(task: any) {
-  router.push(`/tasks/${task.taskid}`)
+  safeNavigate(`/tasks/${task.taskid}`)
 }
 
 function goToTaskErrors(task: any) {
   // 跳转到任务详情页的错误记录标签页（value="5"）
-  router.push({ path: `/tasks/${task.taskid}`, query: { tab: '5' } })
+  safeNavigate({ path: `/tasks/${task.taskid}`, query: { tab: '5' } })
 }
 
 function goToTaskLogs(task: any) {
   // 跳转到任务详情页的任务日志标签页（value="4"）
-  router.push({ path: `/tasks/${task.taskid}`, query: { tab: '4' } })
+  safeNavigate({ path: `/tasks/${task.taskid}`, query: { tab: '4' } })
 }
 
 function goToTaskResults(task: any) {
   // 跳转到任务详情页的扫描结果标签页（value="3"）
-  router.push({ path: `/tasks/${task.taskid}`, query: { tab: '3' } })
+  safeNavigate({ path: `/tasks/${task.taskid}`, query: { tab: '3' } })
 }
 
 function goToTaskHttpInfo(task: any) {
   // 跳转到任务详情页的HTTP请求信息标签页（value="1"）
-  router.push({ path: `/tasks/${task.taskid}`, query: { tab: '1' } })
+  safeNavigate({ path: `/tasks/${task.taskid}`, query: { tab: '1' } })
 }
 
 // 确认停止单个任务
@@ -464,7 +474,7 @@ function handleFilterChange(filters: TaskFilters) {
     taskStore.clearFilters()
     // 清除URL中的过滤参数
     if (route.query.status || route.query.injectable) {
-      router.replace({ path: '/tasks', query: {} })
+      router.replace({ path: '/tasks', query: {} }).catch(() => {})
     }
   } else {
     // 普通过滤操作

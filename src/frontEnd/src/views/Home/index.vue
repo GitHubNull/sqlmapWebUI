@@ -125,7 +125,7 @@ function navigateToTasks(filterType: FilterType) {
       break
   }
   
-  router.push({ path: '/tasks', query })
+  router.push({ path: '/tasks', query }).catch(() => {})
 }
 </script>
 

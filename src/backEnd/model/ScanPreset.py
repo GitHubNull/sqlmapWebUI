@@ -20,7 +20,14 @@ class ScanOptions(BaseModel):
     """
     扫描选项模型
     字段名与sqlmap的optiondict.py保持一致
+    支持所有 SQLMap 参数（215+），未显式定义的参数通过 extra='allow' 接收
     """
+    
+    # 允许接收未定义的字段，支持前端传入的所有 SQLMap 参数
+    model_config = {
+        "extra": "allow",
+    }
+    
     # ==================== Detection 检测选项 ====================
     level: int = Field(default=1, ge=1, le=5, description="检测级别 (1-5)")
     risk: int = Field(default=1, ge=1, le=3, description="风险级别 (1-3)")
@@ -90,18 +97,28 @@ class ScanOptions(BaseModel):
     verbose: int = Field(default=1, ge=0, le=6, description="详细级别 (0-6)")
     
     def to_dict(self) -> Dict[str, Any]:
-        """转换为字典，只包含非默认值"""
+        """转换为字典，只包含非默认值（包含额外字段）"""
         result = {}
         default_model = ScanOptions()
         for field_name, field_value in self:
             default_value = getattr(default_model, field_name)
             if field_value != default_value and field_value is not None:
                 result[field_name] = field_value
+        
+        # 添加额外字段（如 answers 等未在模型中定义的 SQLMap 参数）
+        if hasattr(self, '__pydantic_extra__') and self.__pydantic_extra__:
+            result.update(self.__pydantic_extra__)
+        
         return result
     
     def to_full_dict(self) -> Dict[str, Any]:
-        """转换为完整字典"""
-        return self.model_dump()
+        """转换为完整字典（包含所有字段和额外字段）"""
+        result = self.model_dump()
+        # model_dump() 在 extra='allow' 模式下会自动包含额外字段
+        # 但为了确保兼容性，显式添加
+        if hasattr(self, '__pydantic_extra__') and self.__pydantic_extra__:
+            result.update(self.__pydantic_extra__)
+        return result
 
 
 class ScanPreset(BaseModel):

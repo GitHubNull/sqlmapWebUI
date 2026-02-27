@@ -93,6 +93,7 @@ import {
   DEFAULT_SCAN_OPTIONS,
   type ScanOptions
 } from '@/types/scanPreset'
+import { convertOptionToCliArg } from '@/utils/paramDefinitions'
 import { request as apiRequest } from '@/api/request'
 
 const router = useRouter()
@@ -162,38 +163,19 @@ const cmdlineArgs = computed(() => {
   const opts = currentOptions.value
   const defaults = DEFAULT_SCAN_OPTIONS
   
-  if (opts.level !== defaults.level) args.push(`--level=${opts.level}`)
-  if (opts.risk !== defaults.risk) args.push(`--risk=${opts.risk}`)
-  if (opts.technique && opts.technique !== 'BEUSTQ') args.push(`--technique=${opts.technique}`)
-  if (opts.dbms) args.push(`--dbms=${opts.dbms}`)
-  if (opts.testParameter) args.push(`-p=${opts.testParameter}`)
-  if (opts.threads && opts.threads !== defaults.threads) args.push(`--threads=${opts.threads}`)
-  if (opts.timeout && opts.timeout !== defaults.timeout) args.push(`--timeout=${opts.timeout}`)
-  if (opts.proxy) args.push(`--proxy=${opts.proxy}`)
-  if (opts.tamper) args.push(`--tamper=${opts.tamper}`)
-  if (opts.smart) args.push('--smart')
-  if (opts.textOnly) args.push('--text-only')
-  if (opts.randomAgent) args.push('--random-agent')
-  if (opts.tor) args.push('--tor')
-  if (opts.batch) args.push('--batch')
-  if (opts.forms) args.push('--forms')
-  if (opts.flushSession) args.push('--flush-session')
-  if (opts.freshQueries) args.push('--fresh-queries')
-  if (opts.getBanner) args.push('--banner')
-  if (opts.getCurrentUser) args.push('--current-user')
-  if (opts.getCurrentDb) args.push('--current-db')
-  if (opts.isDba) args.push('--is-dba')
-  if (opts.getDbs) args.push('--dbs')
-  if (opts.getTables) args.push('--tables')
-  if (opts.getColumns) args.push('--columns')
-  if (opts.dumpTable) args.push('--dump')
-  if (opts.prefix) args.push(`--prefix="${opts.prefix}"`)
-  if (opts.suffix) args.push(`--suffix="${opts.suffix}"`)
-  if (opts.skip) args.push(`--skip=${opts.skip}`)
-  if (opts.timeSec && opts.timeSec !== 5) args.push(`--time-sec=${opts.timeSec}`)
-  if (opts.retries && opts.retries !== 3) args.push(`--retries=${opts.retries}`)
-  if (opts.delay && opts.delay !== 0) args.push(`--delay=${opts.delay}`)
-  if (opts.verbose !== undefined && opts.verbose !== 1) args.push(`-v=${opts.verbose}`)
+  // 遍历所有选项，使用通用转换函数
+  for (const [key, value] of Object.entries(opts)) {
+    // 跳过空值
+    if (value === null || value === undefined || value === '') continue
+    // 跳过 false 布尔值
+    if (value === false) continue
+    // 跳过等于默认值的参数（batch 除外）
+    if (key !== 'batch' && defaults[key as keyof ScanOptions] === value) continue
+    
+    // 使用通用转换函数
+    const arg = convertOptionToCliArg(key, value)
+    if (arg) args.push(arg)
+  }
   
   return args
 })
@@ -349,7 +331,7 @@ async function submitTask() {
       life: 3000
     })
     
-    router.push('/tasks')
+    router.push('/tasks').catch(() => {})
     
   } catch (error: any) {
     toast.add({

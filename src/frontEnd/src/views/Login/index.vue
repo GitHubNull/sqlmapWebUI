@@ -45,7 +45,7 @@ async function handleLogin() {
   try {
     await authStore.login(formData)
     const redirect = (route.query.redirect as string) || '/home'
-    router.push(redirect)
+    router.push(redirect).catch(() => {})
   } catch (error) {
     console.error('Login failed:', error)
   } finally {

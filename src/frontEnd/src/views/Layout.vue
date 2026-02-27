@@ -124,13 +124,13 @@ function isActiveRoute(routePath: string): boolean {
 
 function navigateTo(path: string): void {
   if (currentRoute.value !== path) {
-    router.push(path)
+    router.push(path).catch(() => {})
   }
 }
 
 function handleLogout(): void {
   authStore.logout()
-  router.push('/login')
+  router.push('/login').catch(() => {})
 }
 
 function handleThemeToggle(): void {
