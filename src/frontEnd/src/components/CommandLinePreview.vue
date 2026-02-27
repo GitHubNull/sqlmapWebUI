@@ -1,24 +1,31 @@
 <template>
-  <div class="command-preview">
-    <div class="preview-header">
-      <span class="preview-title">{{ title }}</span>
-      <Button
-        v-if="showCopy"
-        icon="pi pi-copy"
-        text
-        rounded
-        size="small"
-        @click="copyCommand"
-        v-tooltip.top="'复制'"
-      />
+  <div class="terminal-window">
+    <div class="terminal-header">
+      <div class="traffic-lights">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+      </div>
+      <span class="terminal-title">{{ title }}</span>
+      <div class="terminal-actions">
+        <button
+          v-if="showCopy"
+          class="copy-btn"
+          @click="copyCommand"
+          v-tooltip.top="'复制'"
+        >
+          <i class="pi pi-copy"></i>
+        </button>
+      </div>
     </div>
-    <pre class="preview-content"><code v-html="highlightedCommand"></code></pre>
+    <div class="terminal-body">
+      <pre><code><span class="prompt">$ </span><span v-html="highlightedCommand"></span></code></pre>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import Button from 'primevue/button'
 import { useToast } from 'primevue/usetoast'
 
 interface Props {
@@ -98,63 +105,128 @@ async function copyCommand() {
 </script>
 
 <style scoped>
-.command-preview {
-  border: 1px solid var(--p-surface-border);
-  border-radius: var(--p-border-radius);
+/* ===== Terminal Window ===== */
+.terminal-window {
+  border-radius: 8px;
   overflow: hidden;
+  border: 1px solid #30363d;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-.preview-header {
+/* ===== Title Bar ===== */
+.terminal-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0.75rem;
-  background: var(--p-surface-section);
-  border-bottom: 1px solid var(--p-surface-border);
+  padding: 10px 14px;
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
 }
 
-.preview-title {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--p-text-secondary-color);
+.traffic-lights {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.preview-content {
-  margin: 0;
-  padding: 0.75rem;
-  background: var(--p-surface-card);
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+.traffic-lights .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.traffic-lights .dot.red {
+  background: #ff5f56;
+}
+
+.traffic-lights .dot.yellow {
+  background: #ffbd2e;
+}
+
+.traffic-lights .dot.green {
+  background: #27c93f;
+}
+
+.terminal-title {
+  flex: 1;
+  text-align: center;
   font-size: 13px;
-  line-height: 1.5;
+  font-weight: 500;
+  color: #8b949e;
+  user-select: none;
+}
+
+.terminal-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #8b949e;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.copy-btn:hover {
+  background: #30363d;
+  color: #e6edf3;
+}
+
+.copy-btn i {
+  font-size: 14px;
+}
+
+/* ===== Terminal Body ===== */
+.terminal-body {
+  background: #0d1117;
+  padding: 16px;
   overflow-x: auto;
+}
+
+.terminal-body pre {
+  margin: 0;
   white-space: pre-wrap;
   word-break: break-all;
-  color: var(--p-text-color);
 }
 
-.preview-content :deep(.param) {
-  color: var(--p-primary-color);
+.terminal-body code {
+  font-family: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', Consolas, 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #e6edf3;
+}
+
+/* ===== Prompt ===== */
+.prompt {
+  color: #7ee787;
+  font-weight: 600;
+  user-select: none;
+}
+
+/* ===== Syntax Highlighting - GitHub Dark Default ===== */
+.terminal-body :deep(.param) {
+  color: #79c0ff;
   font-weight: 500;
 }
 
-.preview-content :deep(.flag) {
-  color: var(--p-primary-color);
+.terminal-body :deep(.flag) {
+  color: #d2a8ff;
   font-weight: 500;
 }
 
-.preview-content :deep(.string) {
-  color: var(--p-green-500);
+.terminal-body :deep(.string) {
+  color: #a5d6ff;
 }
 
-.preview-content :deep(.number) {
-  color: var(--p-orange-500);
-}
-
-:deep(.app-dark) .preview-content :deep(.string) {
-  color: var(--p-green-400);
-}
-
-:deep(.app-dark) .preview-content :deep(.number) {
-  color: var(--p-orange-400);
+.terminal-body :deep(.number) {
+  color: #ffa657;
 }
 </style>
