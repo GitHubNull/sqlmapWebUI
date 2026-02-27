@@ -867,6 +867,7 @@ public class AdvancedScanConfigDialog {
                         uiTab.appendLog("[+] 请求已发送: " + url);
                         uiTab.appendLog("    使用配置: " + config.getName());
                         uiTab.appendLog("    响应: " + response);
+                        uiTab.refreshHistoryTable();
                     });
                     
                     api.logging().logToOutput("[+] Task created for: " + url);
@@ -974,6 +975,7 @@ public class AdvancedScanConfigDialog {
                         uiTab.appendLog("[+] 已发送带标记的请求: " + url);
                         uiTab.appendLog("    注入点标记数: " + markCount);
                         uiTab.appendLog("    响应: " + response);
+                        uiTab.refreshHistoryTable();
                     });
                     
                     api.logging().logToOutput("[+] Task created with " + markCount + " injection point(s) for: " + url);

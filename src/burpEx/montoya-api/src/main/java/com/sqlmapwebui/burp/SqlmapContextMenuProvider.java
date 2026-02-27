@@ -308,6 +308,7 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
                         uiTab.appendLog("[+] 请求已发送: " + url);
                         uiTab.appendLog("    使用配置: " + config.getName());
                         uiTab.appendLog("    响应: " + response);
+                        uiTab.refreshHistoryTable();
                     });
                     
                     api.logging().logToOutput("[+] Task created for: " + url);
