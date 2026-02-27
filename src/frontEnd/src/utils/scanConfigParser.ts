@@ -9,6 +9,7 @@
 import mri from 'mri'
 import type { ScanOptions } from '@/types/scanPreset'
 import { DEFAULT_SCAN_OPTIONS } from '@/types/scanPreset'
+import { PARAM_DEFINITIONS, type ParamDefinition } from '@/utils/paramDefinitions'
 
 // ==================== 参数元数据定义 ====================
 
@@ -25,74 +26,60 @@ interface ParamMeta {
 }
 
 /**
- * 参数元数据映射表
- * 与 BurpSuite ScanConfigParser.java 保持一致
+ * 从 ParamDefinition 转换为 ParamMeta
  */
-const PARAM_META: ParamMeta[] = [
-  // Detection 检测选项
-  { name: 'level', longOpt: 'level', type: 'number', defaultValue: 1, minValue: 1, maxValue: 5, description: '检测级别 (1-5)' },
-  { name: 'risk', longOpt: 'risk', type: 'number', defaultValue: 1, minValue: 1, maxValue: 3, description: '风险级别 (1-3)' },
-  { name: 'string', longOpt: 'string', type: 'string', defaultValue: '', description: '页面匹配字符串' },
-  { name: 'notString', longOpt: 'not-string', type: 'string', defaultValue: '', description: '页面不匹配字符串' },
-  { name: 'regexp', longOpt: 'regexp', type: 'string', defaultValue: '', description: '正则匹配' },
-  { name: 'code', longOpt: 'code', type: 'number', defaultValue: 0, minValue: 100, maxValue: 599, description: 'HTTP响应码' },
-  { name: 'smart', longOpt: 'smart', type: 'boolean', defaultValue: false, description: '智能检测' },
-  { name: 'textOnly', longOpt: 'text-only', type: 'boolean', defaultValue: false, description: '仅文本比较' },
-  { name: 'titles', longOpt: 'titles', type: 'boolean', defaultValue: false, description: '基于标题比较' },
+function paramDefToMeta(def: ParamDefinition): ParamMeta {
+  // 提取长选项名（去掉 -- 前缀）
+  let longOpt = def.cliName
+  if (longOpt.startsWith('--')) {
+    longOpt = longOpt.slice(2)
+  } else if (longOpt.startsWith('-') && longOpt.length > 2) {
+    longOpt = longOpt.slice(1)
+  }
   
-  // Injection 注入选项
-  { name: 'testParameter', longOpt: 'test-parameter', shortOpt: 'p', type: 'string', defaultValue: '', description: '指定测试参数' },
-  { name: 'skip', longOpt: 'skip', type: 'string', defaultValue: '', description: '跳过参数' },
-  { name: 'skipStatic', longOpt: 'skip-static', type: 'boolean', defaultValue: false, description: '跳过静态参数' },
-  { name: 'paramExclude', longOpt: 'param-exclude', type: 'string', defaultValue: '', description: '排除参数' },
-  { name: 'dbms', longOpt: 'dbms', type: 'string', defaultValue: '', description: '数据库类型' },
-  { name: 'os', longOpt: 'os', type: 'string', defaultValue: '', validValues: ['linux', 'windows'], description: '操作系统' },
-  { name: 'prefix', longOpt: 'prefix', type: 'string', defaultValue: '', description: '注入前缀' },
-  { name: 'suffix', longOpt: 'suffix', type: 'string', defaultValue: '', description: '注入后缀' },
-  { name: 'tamper', longOpt: 'tamper', type: 'string', defaultValue: '', description: '篡改脚本' },
+  // 提取短选项名
+  let shortOpt: string | undefined
+  if (def.cliName.match(/^-[a-zA-Z]$/)) {
+    shortOpt = def.cliName.slice(1)
+    longOpt = def.key // 使用 key 作为长选项
+  }
   
-  // Techniques 技术选项
-  { name: 'technique', longOpt: 'technique', type: 'string', defaultValue: 'BEUSTQ', description: '注入技术 (BEUSTQ)' },
-  { name: 'timeSec', longOpt: 'time-sec', type: 'number', defaultValue: 5, minValue: 1, maxValue: 60, description: '时间盲注延迟(秒)' },
+  // 转换类型
+  let type: 'boolean' | 'number' | 'string' = 'string'
+  if (def.type === 'boolean') {
+    type = 'boolean'
+  } else if (def.type === 'integer' || def.type === 'float') {
+    type = 'number'
+  }
   
-  // Request 请求选项
-  { name: 'timeout', longOpt: 'timeout', type: 'number', defaultValue: 30, minValue: 1, maxValue: 300, description: '超时(秒)' },
-  { name: 'retries', longOpt: 'retries', type: 'number', defaultValue: 3, minValue: 0, maxValue: 10, description: '重试次数' },
-  { name: 'delay', longOpt: 'delay', type: 'number', defaultValue: 0, minValue: 0, maxValue: 60, description: '请求延迟(秒)' },
-  { name: 'randomAgent', longOpt: 'random-agent', type: 'boolean', defaultValue: false, description: '随机UA' },
-  { name: 'proxy', longOpt: 'proxy', type: 'string', defaultValue: '', description: '代理地址' },
-  { name: 'tor', longOpt: 'tor', type: 'boolean', defaultValue: false, description: '使用Tor' },
-  { name: 'forceSSL', longOpt: 'force-ssl', type: 'boolean', defaultValue: false, description: '强制SSL' },
+  // 默认值
+  let defaultValue: any = def.defaultValue
+  if (defaultValue === undefined) {
+    if (type === 'boolean') defaultValue = false
+    else if (type === 'number') defaultValue = 0
+    else defaultValue = ''
+  }
   
-  // Optimization 优化选项
-  { name: 'optimize', longOpt: 'optimize', shortOpt: 'o', type: 'boolean', defaultValue: false, description: '优化模式' },
-  { name: 'keepAlive', longOpt: 'keep-alive', type: 'boolean', defaultValue: false, description: '保持连接' },
-  { name: 'nullConnection', longOpt: 'null-connection', type: 'boolean', defaultValue: false, description: '空连接' },
-  { name: 'threads', longOpt: 'threads', type: 'number', defaultValue: 1, minValue: 1, maxValue: 10, description: '线程数' },
-  
-  // Enumeration 枚举选项
-  { name: 'getBanner', longOpt: 'banner', type: 'boolean', defaultValue: false, description: '获取Banner' },
-  { name: 'getCurrentUser', longOpt: 'current-user', type: 'boolean', defaultValue: false, description: '获取当前用户' },
-  { name: 'getCurrentDb', longOpt: 'current-db', type: 'boolean', defaultValue: false, description: '获取当前数据库' },
-  { name: 'isDba', longOpt: 'is-dba', type: 'boolean', defaultValue: false, description: '是否DBA' },
-  { name: 'getUsers', longOpt: 'users', type: 'boolean', defaultValue: false, description: '获取用户列表' },
-  { name: 'getDbs', longOpt: 'dbs', type: 'boolean', defaultValue: false, description: '获取数据库列表' },
-  { name: 'getTables', longOpt: 'tables', type: 'boolean', defaultValue: false, description: '获取表列表' },
-  { name: 'getColumns', longOpt: 'columns', type: 'boolean', defaultValue: false, description: '获取列列表' },
-  { name: 'dumpTable', longOpt: 'dump', type: 'boolean', defaultValue: false, description: '导出表数据' },
-  { name: 'dumpAll', longOpt: 'dump-all', type: 'boolean', defaultValue: false, description: '导出所有数据' },
-  { name: 'db', longOpt: 'db', shortOpt: 'D', type: 'string', defaultValue: '', description: '目标数据库' },
-  { name: 'tbl', longOpt: 'tbl', shortOpt: 'T', type: 'string', defaultValue: '', description: '目标表' },
-  { name: 'col', longOpt: 'col', shortOpt: 'C', type: 'string', defaultValue: '', description: '目标列' },
-  
-  // General 通用选项
-  { name: 'batch', longOpt: 'batch', type: 'boolean', defaultValue: true, description: '非交互模式' },
-  { name: 'forms', longOpt: 'forms', type: 'boolean', defaultValue: false, description: '解析表单' },
-  { name: 'crawlDepth', longOpt: 'crawl', type: 'number', defaultValue: 0, minValue: 0, maxValue: 10, description: '爬取深度' },
-  { name: 'flushSession', longOpt: 'flush-session', type: 'boolean', defaultValue: false, description: '刷新会话' },
-  { name: 'freshQueries', longOpt: 'fresh-queries', type: 'boolean', defaultValue: false, description: '新鲜查询' },
-  { name: 'verbose', longOpt: 'verbose', shortOpt: 'v', type: 'number', defaultValue: 1, minValue: 0, maxValue: 6, description: '详细程度 (0-6)' },
-]
+  return {
+    name: def.key,
+    longOpt,
+    shortOpt,
+    type,
+    defaultValue,
+    minValue: def.min,
+    maxValue: def.max,
+    validValues: def.options?.filter(o => o !== ''),
+    description: def.description
+  }
+}
+
+/**
+ * 参数元数据映射表
+ * 从 PARAM_DEFINITIONS 自动生成
+ */
+const PARAM_META: ParamMeta[] = PARAM_DEFINITIONS
+  .filter(def => !def.disabled) // 过滤禁用的参数
+  .map(paramDefToMeta)
 
 // 创建映射
 const NAME_MAP = new Map<string, ParamMeta>()

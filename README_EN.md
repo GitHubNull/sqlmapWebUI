@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.8.12-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.33-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -276,6 +276,66 @@ For detailed usage, please refer to [doc/USAGE_GUIDE.md](doc/USAGE_GUIDE.md)
 Please read the [Disclaimer](DISCLAIMER.md) before use.
 
 ## Changelog
+
+### v1.8.33 (2026-02-26)
+
+**New Features**
+- Command line preview component with GitHub Dark theme styling, added terminal window style
+
+**Improvements**
+- Burp plugins (Montoya & Legacy) version synchronized to 1.8.33
+
+### v1.8.32 (2026-02-26)
+
+**Fixes**
+- Fixed randomAgent parameter not taking effect
+
+### v1.8.30 (2026-02-26)
+
+**New Features**
+- Added tick marks to auto-refresh interval slider in config page (major ticks every 5 minutes, minor ticks every 1 minute)
+
+### v1.8.29 (2026-02-26)
+
+**Fixes**
+- Fixed dark theme adaptation issue for config trigger bar in AddTask page
+
+### v1.8.28 (2026-02-26)
+
+**Fixes**
+- Fixed non-default port being incorrectly removed from HTTP Host header
+
+### v1.8.27 (2026-02-26)
+
+**Refactor**
+- Split AddTask page into modular components (ConfigTriggerBar, CustomModePanel, PresetModePanel, etc.)
+
+### v1.8.19-v1.8.26 (2026-02)
+
+**New Features**
+- Support for parsing all SQLMap command line parameters (215 parameters)
+- Frontend refactored to PrimeVue 4 streamlined theme
+- Session Header management component modularized
+
+**Improvements**
+- Optimized frontend styles and component layout
+- Unified background panel width for homepage and config pages
+- Fixed task list dropdown text truncation issue
+
+**Fixes**
+- Fixed white background issue in multiple pages under dark mode
+- Fixed Burp plugin parameter parsing and backend parameter display issues
+- Fixed Burp plugin JSON request mistakenly detected as binary
+
+### v1.8.13-v1.8.18 (2025-12)
+
+**New Features**
+- Added file synchronization scripts for dual API architecture
+- Added architecture documentation explaining dual API design
+
+**Fixes**
+- Fixed guided parameter editor display and loading issues
+- Fixed TypeScript type errors and SCSS variables
 
 ### v1.8.12 (2025-12-24)
 

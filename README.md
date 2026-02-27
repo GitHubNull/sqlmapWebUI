@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.8.12-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.33-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -269,6 +269,66 @@ sqlmapWebUI/
 请在使用前阅读 [免责声明](DISCLAIMER.md)。
 
 ## 📝 更新日志
+
+### v1.8.33 (2026-02-26)
+
+**新功能**
+- 命令行预览组件采用 GitHub Dark 主题风格，添加终端窗口样式
+
+**优化**
+- Burp 插件 (Montoya & Legacy) 版本同步更新至 1.8.33
+
+### v1.8.32 (2026-02-26)
+
+**修复**
+- 修复 randomAgent 参数不生效的问题
+
+### v1.8.30 (2026-02-26)
+
+**新功能**
+- 配置页面自动刷新间隔滑块添加刻度标记（主刻度每5分钟，次刻度每1分钟）
+
+### v1.8.29 (2026-02-26)
+
+**修复**
+- 修复 AddTask 页面配置触发栏暗色主题适配问题
+
+### v1.8.28 (2026-02-26)
+
+**修复**
+- 修复 HTTP Host header 中非默认端口被错误移除的问题
+
+### v1.8.27 (2026-02-26)
+
+**重构**
+- AddTask 页面拆分为模块化组件（ConfigTriggerBar、CustomModePanel、PresetModePanel 等）
+
+### v1.8.19-v1.8.26 (2026-02)
+
+**新功能**
+- 支持解析所有 SQLMap 命令行参数（215个参数）
+- 前端重构为 PrimeVue 4 简洁主题
+- 会话 Header 管理组件模块化
+
+**优化**
+- 优化前端样式和组件布局
+- 统一首页和配置页面背景板宽度
+- 修复任务列表下拉选框文字截断问题
+
+**修复**
+- 修复前端暗黑模式下多个页面的白色背景问题
+- 修复 Burp 插件参数解析和后端参数显示问题
+- 修复 Burp 插件 JSON 请求被误判为二进制的问题
+
+### v1.8.13-v1.8.18 (2025-12)
+
+**新功能**
+- 添加文件同步脚本支持双 API 架构
+- 添加架构文档说明双 API 设计
+
+**修复**
+- 修复引导式参数编辑器的参数显示和加载问题
+- 修复 TypeScript 类型错误和 SCSS 变量
 
 ### v1.8.12 (2025-12-24)
 
