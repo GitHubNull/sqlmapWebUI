@@ -44,6 +44,7 @@ from handlers.product_handlers import ProductHandlerMixin
 from handlers.order_handlers import OrderHandlerMixin
 from handlers.cart_handlers import CartHandlerMixin
 from handlers.system_handlers import SystemHandlerMixin
+from handlers.secrets_handlers import SecretsHandlerMixin
 
 
 class VulnShopHandler(
@@ -53,6 +54,7 @@ class VulnShopHandler(
     OrderHandlerMixin,
     CartHandlerMixin,
     SystemHandlerMixin,
+    SecretsHandlerMixin,
     BaseHTTPRequestHandler
 ):
     """
@@ -139,6 +141,8 @@ class VulnShopHandler(
                 self.handle_orders_query(params)
             elif path == '/api/config':
                 self.handle_get_config()
+            elif path == '/api/logs':
+                self.handle_get_logs(params)
             else:
                 self.send_error(404, 'Not Found')
         except WAFBlockedException as e:
@@ -187,6 +191,69 @@ class VulnShopHandler(
                 self.handle_set_config(data)
             elif path == '/api/database/reset':
                 self.handle_database_reset()
+            
+            # 用户模块扩展接口
+            elif path == '/api/user/delete':
+                self.handle_user_delete(data)
+            elif path == '/api/user/change-password':
+                self.handle_user_change_password(data)
+            elif path == '/api/user/list':
+                self.handle_user_list(data)
+            elif path == '/api/user/search':
+                self.handle_user_search(data)
+            
+            # 商品模块扩展接口
+            elif path == '/api/products/create':
+                self.handle_product_create(data)
+            elif path == '/api/products/update':
+                self.handle_product_update(data)
+            elif path == '/api/products/delete':
+                self.handle_product_delete(data)
+            elif path == '/api/products/category':
+                self.handle_products_by_category(data)
+            elif path == '/api/products/price-range':
+                self.handle_products_by_price_range(data)
+            
+            # 订单模块扩展接口
+            elif path == '/api/orders/update-status':
+                self.handle_order_update_status(data)
+            elif path == '/api/orders/delete':
+                self.handle_order_delete(data)
+            elif path == '/api/orders/stats':
+                self.handle_orders_stats(data)
+            elif path == '/api/orders/advanced-search':
+                self.handle_orders_advanced_search(data)
+            
+            # 购物车模块扩展接口
+            elif path == '/api/cart/delete':
+                self.handle_cart_delete(data)
+            elif path == '/api/cart/clear':
+                self.handle_cart_clear(data)
+            elif path == '/api/cart/query':
+                self.handle_cart_query(data)
+            
+            # 反馈模块扩展接口
+            elif path == '/api/feedback/update':
+                self.handle_feedback_update(data)
+            elif path == '/api/feedback/delete':
+                self.handle_feedback_delete(data)
+            elif path == '/api/feedback/list':
+                self.handle_feedback_list(data)
+            elif path == '/api/feedback/search':
+                self.handle_feedback_search(data)
+            
+            # 敏感信息模块接口
+            elif path == '/api/secrets/create':
+                self.handle_secrets_create(data)
+            elif path == '/api/secrets/update':
+                self.handle_secrets_update(data)
+            elif path == '/api/secrets/delete':
+                self.handle_secrets_delete(data)
+            elif path == '/api/secrets/query':
+                self.handle_secrets_query(data)
+            elif path == '/api/secrets/search':
+                self.handle_secrets_search(data)
+            
             else:
                 self.send_error(404, 'Not Found')
         except WAFBlockedException as e:
@@ -243,20 +310,45 @@ def run_server():
 ║  • 数据修改INSERT/UPDATE接口: 使用参数化查询保护 (防止数据污染)                      ║
 ║                                                                                       ║
 ║  [存在SQL注入的接口 - 可用于测试]                                                     ║
-║  • POST /api/user/login       - Error-based SQLi (只读)                                ║
-║  • GET  /api/user/profile     - Union-based SQLi (只读)                                ║
-║  • GET  /api/products/search  - Boolean-based Blind SQLi (只读)                        ║
-║  • GET  /api/products/detail  - Time-based Blind SQLi (只读)                           ║
-║  • GET  /api/orders/query     - SQL注入 (只读)                                          ║
+║  • POST /api/user/login           - Error-based SQLi (只读)                            ║
+║  • GET  /api/user/profile         - Union-based SQLi (只读)                            ║
+║  • GET  /api/products/search      - Boolean-based Blind SQLi (只读)                    ║
+║  • GET  /api/products/detail      - Time-based Blind SQLi (只读)                       ║
+║  • GET  /api/orders/query         - SQL注入 (只读)                                      ║
+║  • POST /api/user/list            - SQL注入 (只读)                                      ║
+║  • POST /api/user/search          - SQL注入 (只读)                                      ║
+║  • POST /api/products/category    - SQL注入 (只读)                                      ║
+║  • POST /api/products/price-range - SQL注入 (只读)                                      ║
+║  • POST /api/orders/stats         - SQL注入 (只读)                                      ║
+║  • POST /api/orders/advanced-search - SQL注入 (只读)                                    ║
+║  • POST /api/cart/query           - SQL注入 (只读)                                      ║
+║  • POST /api/feedback/list        - SQL注入 (只读)                                      ║
+║  • POST /api/feedback/search      - SQL注入 (只读)                                      ║
+║  • POST /api/secrets/query        - SQL注入 (只读 - 可获取Flag)                        ║
+║  • POST /api/secrets/search       - SQL注入 (只读 - 可搜索Flag)                        ║
 ║                                                                                       ║
 ║  [安全接口 - 参数化查询保护]                                                           ║
-║  • POST /api/user/register    - 安全 (session_id, captcha_token)                       ║
-║  • POST /api/user/update      - 安全 XML (session_id, token, device_id)                ║
-║  • POST /api/cart/add         - 安全 Form (session_id, csrf_token)                     ║
-║  • POST /api/cart/update      - 安全 Form (session_id, csrf_token)                     ║
-║  • POST /api/orders/create    - 安全 JSON (session_id, token, user_agent)              ║
-║  • POST /api/orders/cancel    - 安全 XML (session_id, auth_token)                      ║
-║  • POST /api/feedback         - 安全 JSON (session_id, token, timestamp)               ║
+║  • POST /api/user/register        - 安全 (session_id, captcha_token)                   ║
+║  • POST /api/user/update          - 安全 XML (session_id, token, device_id)            ║
+║  • POST /api/user/delete          - 安全 XML (session_id, auth_token)                  ║
+║  • POST /api/user/change-password - 安全 JSON (session_id, auth_token)                 ║
+║  • POST /api/cart/add             - 安全 Form (session_id, csrf_token)                 ║
+║  • POST /api/cart/update          - 安全 Form (session_id, csrf_token)                 ║
+║  • POST /api/cart/delete          - 安全 XML (session_id, csrf_token)                  ║
+║  • POST /api/cart/clear           - 安全 JSON (session_id, csrf_token)                 ║
+║  • POST /api/orders/create        - 安全 JSON (session_id, token, user_agent)          ║
+║  • POST /api/orders/cancel        - 安全 XML (session_id, auth_token)                  ║
+║  • POST /api/orders/update-status - 安全 JSON (session_id, auth_token)                 ║
+║  • POST /api/orders/delete        - 安全 XML (session_id, auth_token)                  ║
+║  • POST /api/feedback             - 安全 JSON (session_id, token, timestamp)           ║
+║  • POST /api/feedback/update      - 安全 JSON (session_id, token)                      ║
+║  • POST /api/feedback/delete      - 安全 XML (session_id, token)                       ║
+║  • POST /api/products/create      - 安全 JSON (session_id, auth_token)                 ║
+║  • POST /api/products/update      - 安全 JSON (session_id, auth_token)                 ║
+║  • POST /api/products/delete      - 安全 XML (session_id, auth_token)                  ║
+║  • POST /api/secrets/create       - 安全 JSON (session_id, auth_token)                 ║
+║  • POST /api/secrets/update       - 安全 JSON (session_id, auth_token)                 ║
+║  • POST /api/secrets/delete       - 安全 XML (session_id, auth_token)                  ║
 ║                                                                                       ║
 ╠═══════════════════════════════════════════════════════════════════════════════════════╣
 ║  Test Accounts:                                                                       ║

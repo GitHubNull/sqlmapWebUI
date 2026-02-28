@@ -239,3 +239,257 @@ class UserHandlerMixin:
             self.send_xml_response({'success': 'false', 'message': f'Update failed: {str(e)}'}, 500)
         finally:
             conn.close()
+    
+    def handle_user_delete(self, data):
+        """
+        删除用户 - XML格式 - 安全接口，使用参数化查询
+        
+        请求体示例 (application/xml):
+        <?xml version="1.0" encoding="UTF-8"?>
+        <request>
+            <user_id>1</user_id>
+            <reason>Inactive account</reason>
+            <session_id>abc123</session_id>
+            <auth_token>xyz789</auth_token>
+        </request>
+        
+        注意：此接口使用参数化查询，不存在SQL注入漏洞
+        （数据修改操作需保护，避免测试数据污染）
+        """
+        user_id = data.get('user_id', '')
+        reason = data.get('reason', '')
+        session_id = data.get('session_id', '')
+        auth_token = data.get('auth_token', '')
+        
+        if not user_id:
+            self.send_xml_response({'success': 'false', 'message': 'user_id is required'}, 400)
+            return
+        
+        # 验证user_id是否为有效数字
+        try:
+            user_id_int = int(user_id)
+        except ValueError:
+            self.send_xml_response({'success': 'false', 'message': 'Invalid user ID'}, 400)
+            return
+        
+        if DEBUG:
+            logger.debug("[UserDelete] session_id=%s, auth_token=%s", session_id, auth_token)
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 使用参数化查询，安全删除数据
+            cursor.execute('DELETE FROM users WHERE id = ?', (user_id_int,))
+            conn.commit()
+            
+            if cursor.rowcount > 0:
+                self.send_xml_response({
+                    'success': 'true',
+                    'message': 'User deleted successfully',
+                    'data': {
+                        'user_id': user_id,
+                        'reason': reason,
+                        'session_id': session_id
+                    }
+                })
+            else:
+                self.send_xml_response({
+                    'success': 'false',
+                    'message': 'User not found'
+                }, 404)
+        except sqlite3.Error as e:
+            self.send_xml_response({'success': 'false', 'message': f'Failed to delete user: {str(e)}'}, 500)
+        finally:
+            conn.close()
+    
+    def handle_user_change_password(self, data):
+        """
+        修改密码 - JSON格式 - 安全接口，使用参数化查询
+        
+        请求体示例 (application/json):
+        {
+            "user_id": 1,
+            "old_password": "oldpass123",
+            "new_password": "newpass456",
+            "session_id": "abc123",
+            "auth_token": "xyz789"
+        }
+        
+        注意：此接口使用参数化查询，不存在SQL注入漏洞
+        （数据修改操作需保护，避免测试数据污染）
+        """
+        user_id = data.get('user_id', '')
+        old_password = data.get('old_password', '')
+        new_password = data.get('new_password', '')
+        session_id = data.get('session_id', '')
+        auth_token = data.get('auth_token', '')
+        
+        if not user_id or not old_password or not new_password:
+            self.send_json_response({
+                'success': False,
+                'message': 'user_id, old_password and new_password are required'
+            }, 400)
+            return
+        
+        # 验证user_id是否为有效数字
+        try:
+            user_id_int = int(user_id)
+        except ValueError:
+            self.send_json_response({'success': False, 'message': 'Invalid user ID'}, 400)
+            return
+        
+        if DEBUG:
+            logger.debug("[ChangePassword] session_id=%s, auth_token=%s", session_id, auth_token)
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 验证旧密码
+            cursor.execute('SELECT password FROM users WHERE id = ?', (user_id_int,))
+            user = cursor.fetchone()
+            
+            if not user:
+                self.send_json_response({'success': False, 'message': 'User not found'}, 404)
+                conn.close()
+                return
+            
+            if user['password'] != hash_password(old_password):
+                self.send_json_response({'success': False, 'message': 'Invalid old password'}, 401)
+                conn.close()
+                return
+            
+            # 使用参数化查询更新密码
+            cursor.execute('UPDATE users SET password = ? WHERE id = ?', (hash_password(new_password), user_id_int))
+            conn.commit()
+            
+            self.send_json_response({
+                'success': True,
+                'message': 'Password changed successfully',
+                'data': {
+                    'user_id': user_id,
+                    'session_id': session_id
+                }
+            })
+        except sqlite3.Error as e:
+            self.send_json_response({'success': False, 'message': f'Failed to change password: {str(e)}'}, 500)
+        finally:
+            conn.close()
+    
+    def handle_user_list(self, data):
+        """
+        用户列表查询 - JSON格式 - 保留SQL注入漏洞（只读查询）
+        
+        漏洞点：排序字段和方向直接拼接到SQL语句
+        测试payload: sort_by=username' UNION SELECT * FROM secrets--
+        
+        注意：此接口保留SQL注入以供测试，但不支持堆叠查询
+        """
+        waf = get_waf()
+        sort_by = waf.filter_input(data.get('sort_by', 'id'))
+        order = waf.filter_input(data.get('order', 'ASC'))
+        limit = data.get('limit', '10')
+        session_id = data.get('session_id', '')
+        
+        # 验证limit为数字
+        try:
+            limit_int = int(limit)
+            if limit_int > 100:
+                limit_int = 100
+        except ValueError:
+            limit_int = 10
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 构建存在漏洞的SQL（字符串拼接）
+        sql = f"SELECT id, username, email, phone, address, balance, is_admin, created_at FROM users ORDER BY {sort_by} {order} LIMIT {limit_int}"
+        
+        if DEBUG:
+            sql_logger.debug("[SQL] %s", sql)
+            logger.debug("[UserList] session_id=%s", session_id)
+        
+        try:
+            cursor.execute(sql)
+            users = cursor.fetchall()
+            
+            result = []
+            for user in users:
+                result.append({
+                    'id': user[0],
+                    'username': user[1],
+                    'email': user[2],
+                    'phone': user[3],
+                    'address': user[4],
+                    'balance': user[5],
+                    'is_admin': bool(user[6]),
+                    'created_at': user[7]
+                })
+            
+            self.send_json_response({
+                'success': True,
+                'data': result,
+                'count': len(result),
+                'session_id': session_id
+            })
+        except sqlite3.Error as e:
+            self.send_error_response(f'Query error: {str(e)}', 500, sql_error=e)
+        finally:
+            conn.close()
+    
+    def handle_user_search(self, data):
+        """
+        用户搜索 - JSON格式 - 保留SQL注入漏洞（只读查询）
+        
+        漏洞点：搜索关键词直接拼接到SQL语句
+        测试payload: keyword=admin' OR '1'='1
+        
+        注意：此接口保留SQL注入以供测试，但不支持堆叠查询
+        """
+        waf = get_waf()
+        keyword = waf.filter_input(data.get('keyword', ''))
+        search_by = waf.filter_input(data.get('search_by', 'username'))
+        session_id = data.get('session_id', '')
+        
+        if not keyword:
+            self.send_json_response({'success': False, 'message': 'keyword is required'}, 400)
+            return
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 构建存在漏洞的SQL（字符串拼接）
+        sql = f"SELECT id, username, email, phone, address, balance, is_admin, created_at FROM users WHERE {search_by} LIKE '%{keyword}%'"
+        
+        if DEBUG:
+            sql_logger.debug("[SQL] %s", sql)
+            logger.debug("[UserSearch] session_id=%s", session_id)
+        
+        try:
+            cursor.execute(sql)
+            users = cursor.fetchall()
+            
+            result = []
+            for user in users:
+                result.append({
+                    'id': user[0],
+                    'username': user[1],
+                    'email': user[2],
+                    'phone': user[3],
+                    'address': user[4],
+                    'balance': user[5],
+                    'is_admin': bool(user[6]),
+                    'created_at': user[7]
+                })
+            
+            self.send_json_response({
+                'success': True,
+                'data': result,
+                'count': len(result),
+                'session_id': session_id
+            })
+        except sqlite3.Error as e:
+            self.send_error_response(f'Query error: {str(e)}', 500, sql_error=e)
+        finally:
+            conn.close()

@@ -1529,3 +1529,237 @@ html, body {
     font-size: 12px;
     color: var(--code-color);
 }
+
+/* ==================== 日志查看器样式 ==================== */
+.log-controls {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: var(--bg-input);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    flex-wrap: wrap;
+}
+
+.log-type-selector,
+.log-lines-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.log-type-selector label,
+.log-lines-selector label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.log-type-selector select,
+.log-lines-selector select {
+    padding: 8px 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.log-type-selector select:focus,
+.log-lines-selector select:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.log-content-container {
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.log-content {
+    margin: 0;
+    padding: 20px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    word-break: break-all;
+    background: transparent;
+}
+
+.log-stats {
+    display: flex;
+    gap: 20px;
+    margin-top: 15px;
+    padding: 12px 15px;
+    background: var(--bg-input);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.log-stat-item {
+    font-size: 12px;
+    color: var(--text-secondary);
+    padding: 4px 12px;
+    background: var(--bg-card);
+    border-radius: 4px;
+    border: 1px solid var(--border-light);
+}
+
+.refresh-icon {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.btn:active .refresh-icon {
+    transform: rotate(360deg);
+}
+
+/* 日志内容语法高亮 */
+.log-content .timestamp {
+    color: var(--info);
+}
+
+.log-content .level-info { color: var(--info); }
+.log-content .level-warning { color: var(--warning); }
+.log-content .level-error { color: var(--danger); }
+.log-content .level-debug { color: var(--text-muted); }
+
+/* ==================== 模态框尺寸扩展 ==================== */
+.modal-xl {
+    max-width: 1000px;
+    width: 90%;
+}
+
+/* ==================== 动画效果优化 ==================== */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-content {
+    animation: fadeIn 0.3s ease;
+}
+
+/* ==================== 按钮交互增强 ==================== */
+.btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
+}
+
+.btn:active::after {
+    width: 200px;
+    height: 200px;
+}
+
+/* ==================== 卡片悬停效果增强 ==================== */
+.vuln-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.vuln-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.5s;
+}
+
+.vuln-card:hover::before {
+    left: 100%;
+}
+
+/* ==================== 输入框焦点效果 ==================== */
+.form-group input:focus,
+.form-group textarea:focus,
+.search-bar input:focus {
+    box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.15);
+}
+
+/* ==================== 侧边栏菜单动画 ==================== */
+.sidebar-menu li a {
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar-menu li a::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 3px;
+    background: var(--primary);
+    transform: scaleY(0);
+    transition: transform 0.2s;
+}
+
+.sidebar-menu li a:hover::before,
+.sidebar-menu li a.active::before {
+    transform: scaleY(1);
+}
+
+/* ==================== 加载动画 ==================== */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+/* ==================== 响应式优化 ==================== */
+@media (max-width: 1200px) {
+    .modal-xl {
+        max-width: 95%;
+        width: 95%;
+    }
+}
+
+@media (max-width: 768px) {
+    .log-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .log-type-selector,
+    .log-lines-selector {
+        justify-content: space-between;
+    }
+    
+    .log-stats {
+        flex-wrap: wrap;
+    }
+}

@@ -215,3 +215,269 @@ class OrderHandlerMixin:
             self.send_xml_response({'success': 'false', 'message': f'Failed to cancel order: {str(e)}'}, 500)
         finally:
             conn.close()
+    
+    def handle_order_update_status(self, data):
+        """
+        更新订单状态 - JSON格式 - 安全接口，使用参数化查询
+        
+        请求体示例 (application/json):
+        {
+            "order_id": 1,
+            "status": "shipped",
+            "tracking_number": "TRACK123456",
+            "session_id": "abc123",
+            "auth_token": "xyz789"
+        }
+        
+        注意：此接口使用参数化查询，不存在SQL注入漏洞
+        （数据修改操作需保护，避免测试数据污染）
+        """
+        order_id = data.get('order_id', '')
+        status = data.get('status', '')
+        tracking_number = data.get('tracking_number', '')
+        session_id = data.get('session_id', '')
+        auth_token = data.get('auth_token', '')
+        
+        if not order_id or not status:
+            self.send_json_response({
+                'success': False,
+                'message': 'order_id and status are required'
+            }, 400)
+            return
+        
+        # 验证order_id是否为有效数字
+        try:
+            order_id_int = int(order_id)
+        except ValueError:
+            self.send_json_response({'success': False, 'message': 'Invalid order ID'}, 400)
+            return
+        
+        # 验证状态值
+        valid_statuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded']
+        if status not in valid_statuses:
+            self.send_json_response({
+                'success': False,
+                'message': f'Invalid status. Must be one of: {", ".join(valid_statuses)}'
+            }, 400)
+            return
+        
+        if DEBUG:
+            logger.debug("[OrderUpdateStatus] session_id=%s, auth_token=%s", session_id, auth_token)
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 使用参数化查询更新订单状态
+            cursor.execute('''
+                UPDATE orders SET status = ? WHERE id = ?
+            ''', (status, order_id_int))
+            conn.commit()
+            
+            if cursor.rowcount > 0:
+                self.send_json_response({
+                    'success': True,
+                    'message': 'Order status updated successfully',
+                    'data': {
+                        'order_id': order_id,
+                        'status': status,
+                        'tracking_number': tracking_number,
+                        'session_id': session_id
+                    }
+                })
+            else:
+                self.send_json_response({
+                    'success': False,
+                    'message': 'Order not found'
+                }, 404)
+        except sqlite3.Error as e:
+            self.send_json_response({'success': False, 'message': f'Failed to update order status: {str(e)}'}, 500)
+        finally:
+            conn.close()
+    
+    def handle_order_delete(self, data):
+        """
+        删除订单 - XML格式 - 安全接口，使用参数化查询
+        
+        请求体示例 (application/xml):
+        <?xml version="1.0" encoding="UTF-8"?>
+        <request>
+            <order_id>1</order_id>
+            <reason>Customer request</reason>
+            <session_id>abc123</session_id>
+            <auth_token>xyz789</auth_token>
+        </request>
+        
+        注意：此接口使用参数化查询，不存在SQL注入漏洞
+        （数据修改操作需保护，避免测试数据污染）
+        """
+        order_id = data.get('order_id', '')
+        reason = data.get('reason', '')
+        session_id = data.get('session_id', '')
+        auth_token = data.get('auth_token', '')
+        
+        if not order_id:
+            self.send_xml_response({'success': 'false', 'message': 'order_id is required'}, 400)
+            return
+        
+        # 验证order_id是否为有效数字
+        try:
+            order_id_int = int(order_id)
+        except ValueError:
+            self.send_xml_response({'success': 'false', 'message': 'Invalid order ID'}, 400)
+            return
+        
+        if DEBUG:
+            logger.debug("[OrderDelete] session_id=%s, auth_token=%s", session_id, auth_token)
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 使用参数化查询删除订单
+            cursor.execute('DELETE FROM orders WHERE id = ?', (order_id_int,))
+            conn.commit()
+            
+            if cursor.rowcount > 0:
+                self.send_xml_response({
+                    'success': 'true',
+                    'message': 'Order deleted successfully',
+                    'data': {
+                        'order_id': order_id,
+                        'reason': reason,
+                        'session_id': session_id
+                    }
+                })
+            else:
+                self.send_xml_response({
+                    'success': 'false',
+                    'message': 'Order not found'
+                }, 404)
+        except sqlite3.Error as e:
+            self.send_xml_response({'success': 'false', 'message': f'Failed to delete order: {str(e)}'}, 500)
+        finally:
+            conn.close()
+    
+    def handle_orders_stats(self, data):
+        """
+        订单统计查询 - JSON格式 - 保留SQL注入漏洞（只读查询）
+        
+        漏洞点：分组字段直接拼接到SQL语句
+        测试payload: group_by=status' UNION SELECT * FROM secrets--
+        
+        注意：此接口保留SQL注入以供测试，但不支持堆叠查询
+        """
+        waf = get_waf()
+        group_by = waf.filter_input(data.get('group_by', 'status'))
+        status_filter = waf.filter_input(data.get('status', ''))
+        session_id = data.get('session_id', '')
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 构建存在漏洞的SQL（字符串拼接）
+        if status_filter:
+            sql = f"SELECT {group_by}, COUNT(*) as count, SUM(total_price) as total FROM orders WHERE status = '{status_filter}' GROUP BY {group_by}"
+        else:
+            sql = f"SELECT {group_by}, COUNT(*) as count, SUM(total_price) as total FROM orders GROUP BY {group_by}"
+        
+        if DEBUG:
+            sql_logger.debug("[SQL] %s", sql)
+            logger.debug("[OrdersStats] session_id=%s", session_id)
+        
+        try:
+            cursor.execute(sql)
+            stats = cursor.fetchall()
+            
+            result = []
+            for row in stats:
+                result.append({
+                    'group_value': row[0],
+                    'count': row[1],
+                    'total': row[2] if row[2] else 0
+                })
+            
+            self.send_json_response({
+                'success': True,
+                'data': result,
+                'count': len(result),
+                'session_id': session_id
+            })
+        except sqlite3.Error as e:
+            self.send_error_response(f'Query error: {str(e)}', 500, sql_error=e)
+        finally:
+            conn.close()
+    
+    def handle_orders_advanced_search(self, data):
+        """
+        订单高级搜索 - JSON格式 - 保留SQL注入漏洞（只读查询）
+        
+        漏洞点：搜索条件直接拼接到SQL语句
+        测试payload: status=pending' OR '1'='1
+        
+        注意：此接口保留SQL注入以供测试，但不支持堆叠查询
+        """
+        waf = get_waf()
+        user_id = waf.filter_input(data.get('user_id', ''))
+        status = waf.filter_input(data.get('status', ''))
+        min_price = waf.filter_input(data.get('min_price', ''))
+        max_price = waf.filter_input(data.get('max_price', ''))
+        date_from = waf.filter_input(data.get('date_from', ''))
+        date_to = waf.filter_input(data.get('date_to', ''))
+        session_id = data.get('session_id', '')
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 构建存在漏洞的SQL（字符串拼接）
+        conditions = []
+        
+        if user_id:
+            conditions.append(f"user_id = {user_id}")
+        if status:
+            conditions.append(f"status = '{status}'")
+        if min_price:
+            conditions.append(f"total_price >= {min_price}")
+        if max_price:
+            conditions.append(f"total_price <= {max_price}")
+        if date_from:
+            conditions.append(f"created_at >= '{date_from}'")
+        if date_to:
+            conditions.append(f"created_at <= '{date_to}'")
+        
+        if conditions:
+            sql = f"SELECT * FROM orders WHERE {' AND '.join(conditions)} ORDER BY created_at DESC"
+        else:
+            sql = "SELECT * FROM orders ORDER BY created_at DESC LIMIT 50"
+        
+        if DEBUG:
+            sql_logger.debug("[SQL] %s", sql)
+            logger.debug("[OrdersAdvancedSearch] session_id=%s", session_id)
+        
+        try:
+            cursor.execute(sql)
+            orders = cursor.fetchall()
+            
+            result = []
+            for order in orders:
+                result.append({
+                    'id': order['id'],
+                    'order_no': order['order_no'],
+                    'user_id': order['user_id'],
+                    'product_id': order['product_id'],
+                    'quantity': order['quantity'],
+                    'total_price': order['total_price'],
+                    'status': order['status'],
+                    'created_at': order['created_at']
+                })
+            
+            self.send_json_response({
+                'success': True,
+                'data': result,
+                'count': len(result),
+                'session_id': session_id
+            })
+        except sqlite3.Error as e:
+            self.send_error_response(f'Query error: {str(e)}', 500, sql_error=e)
+        finally:
+            conn.close()

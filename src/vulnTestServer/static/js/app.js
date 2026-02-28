@@ -161,6 +161,11 @@ const api = {
     
     async resetDatabase() {
         return this.post('/api/database/reset', {});
+    },
+    
+    // 日志相关
+    async getLogs(logType = 'vulnshop', lines = 100) {
+        return this.get(`/api/logs?type=${encodeURIComponent(logType)}&lines=${encodeURIComponent(lines)}`);
     }
 };
 
@@ -607,6 +612,93 @@ const ui = {
     // 格式化JSON显示
     formatJson(obj) {
         return JSON.stringify(obj, null, 2);
+    },
+    
+    // 显示日志查看器
+    showLogViewer() {
+        const modal = document.createElement('div');
+        modal.id = 'logViewerModal';
+        modal.className = 'modal show';
+        modal.innerHTML = `
+            <div class="modal-content modal-xl">
+                <div class="modal-header">
+                    <h3>📊 系统日志查看器</h3>
+                    <button class="cart-close" onclick="document.getElementById('logViewerModal').remove()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="log-controls">
+                        <div class="log-type-selector">
+                            <label>日志类型：</label>
+                            <select id="logTypeSelect">
+                                <option value="vulnshop">应用日志 (vulnshop.log)</option>
+                                <option value="access">访问日志 (access.log)</option>
+                                <option value="error">错误日志 (error.log)</option>
+                            </select>
+                        </div>
+                        <div class="log-lines-selector">
+                            <label>显示行数：</label>
+                            <select id="logLinesSelect">
+                                <option value="50">50行</option>
+                                <option value="100" selected>100行</option>
+                                <option value="200">200行</option>
+                                <option value="500">500行</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" id="refreshLogsBtn">
+                            <span class="refresh-icon">🔄</span> 刷新
+                        </button>
+                    </div>
+                    <div class="log-content-container">
+                        <pre id="logContent" class="log-content">加载中...</pre>
+                    </div>
+                    <div class="log-stats" id="logStats"></div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // 加载日志
+        this.loadLogs();
+        
+        // 绑定事件
+        document.getElementById('refreshLogsBtn').addEventListener('click', () => this.loadLogs());
+        document.getElementById('logTypeSelect').addEventListener('change', () => this.loadLogs());
+        document.getElementById('logLinesSelect').addEventListener('change', () => this.loadLogs());
+        
+        // 点击模态框外部关闭
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+    },
+    
+    // 加载日志内容
+    async loadLogs() {
+        const logContent = document.getElementById('logContent');
+        const logStats = document.getElementById('logStats');
+        const logType = document.getElementById('logTypeSelect').value;
+        const lines = document.getElementById('logLinesSelect').value;
+        
+        logContent.textContent = '加载中...';
+        logStats.textContent = '';
+        
+        try {
+            const result = await api.getLogs(logType, lines);
+            
+            if (result.success) {
+                logContent.textContent = result.data.content || '日志为空';
+                logStats.innerHTML = `
+                    <span class="log-stat-item">类型: ${result.data.type}</span>
+                    <span class="log-stat-item">显示: ${result.data.lines} 行</span>
+                    <span class="log-stat-item">总计: ${result.data.total_lines} 行</span>
+                `;
+            } else {
+                logContent.textContent = `错误: ${result.message || '无法加载日志'}`;
+            }
+        } catch (error) {
+            logContent.textContent = `请求失败: ${error.message}`;
+        }
     }
 };
 
@@ -868,6 +960,15 @@ function initEventListeners() {
             } else {
                 cart.showToast(result.message || '重置失败', 'error');
             }
+        });
+    }
+    
+    // 侧边栏查看日志链接
+    const viewLogsLink = document.getElementById('viewLogsLink');
+    if (viewLogsLink) {
+        viewLogsLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            ui.showLogViewer();
         });
     }
     
