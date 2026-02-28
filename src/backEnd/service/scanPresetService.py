@@ -162,7 +162,7 @@ class ScanPresetService:
         """
         default_preset = self.get_default_preset()
         preset_configs = self.get_preset_configs()
-        history_configs = self.get_history_configs()
+        history_configs, _ = self.get_history_configs()
         
         return {
             "default": default_preset,
