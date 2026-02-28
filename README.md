@@ -9,11 +9,18 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.8.40-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.41-orange.svg" alt="Version">
 </p>
 
 <p align="center">
   <b>中文</b> | <a href="README_EN.md">English</a>
+</p>
+
+<p align="center">
+  <a href="doc/USAGE_GUIDE.md">📖 使用指南</a> | 
+  <a href="doc/USAGE_GUIDE_EN.md">📖 English Guide</a> | 
+  <a href="#-快速开始">🚀 快速开始</a> | 
+  <a href="#-更新日志">📝 更新日志</a>
 </p>
 
 一个现代化的 SQLMap Web 界面，为安全研究人员提供便捷的 SQL 注入测试平台。**内置 VulnShop 靶场**，开箱即用。
@@ -256,7 +263,18 @@ sqlmapWebUI/
    - 可选：配置作用域限定生效范围
 4. 保存规则
 
-详细使用说明请参阅 [doc/USAGE_GUIDE.md](doc/USAGE_GUIDE.md)
+### 系统日志查看器
+
+1. 进入「配置」页面
+2. 找到「系统日志查看器」入口
+3. 选择日志类型（应用/访问/错误）
+4. 设置显示行数并刷新查看
+
+---
+
+**📚 详细使用说明请参阅 [使用指南文档](doc/USAGE_GUIDE.md)**
+
+包含完整的功能说明、操作步骤、配置指南和常见问题解答。
 
 ## 🔐 安全声明
 
@@ -269,6 +287,14 @@ sqlmapWebUI/
 请在使用前阅读 [免责声明](DISCLAIMER.md)。
 
 ## 📝 更新日志
+
+### v1.8.41 (2026-02-28)
+
+**文档**
+- 全面重构前端帮助页面，采用模块化设计（8个组件，单文件<700行）
+- 新增完整的双语使用指南（中文/英文）
+- 更新 Burp Suite 插件帮助文档
+- 优化 README 文档结构和导航链接
 
 ### v1.8.40 (2026-02-28)
 

@@ -9,16 +9,23 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.8.33-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.41-orange.svg" alt="Version">
 </p>
 
 <p align="center">
   <a href="README.md">中文</a> | <b>English</b>
 </p>
 
+<p align="center">
+  <a href="doc/USAGE_GUIDE_EN.md">📖 User Guide</a> | 
+  <a href="doc/USAGE_GUIDE.md">📖 中文指南</a> | 
+  <a href="#-quick-start">🚀 Quick Start</a> | 
+  <a href="#-changelog">📝 Changelog</a>
+</p>
+
 A modern SQLMap web interface that provides a convenient SQL injection testing platform for security researchers. **Built-in VulnShop Lab** for hands-on practice.
 
-## Features
+## 🌟 Core Features
 
 ### SQL Injection Scanning Platform
 - **Task Management**: Create, monitor, and stop SQL injection scanning tasks
@@ -113,7 +120,7 @@ Built-in e-commerce platform simulation with 8 types of SQL injection vulnerabil
   - Montoya API (Java 17+, Burp 2023.1+)
   - Legacy API (Java 11+)
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Requirements
 
@@ -124,7 +131,7 @@ Built-in e-commerce platform simulation with 8 types of SQL injection vulnerabil
 
 ### Backend Installation
 
-#### Option 1: Using Startup Script (Recommended)
+#### Method 1: Using Startup Script (Recommended)
 
 ```batch
 # Windows
@@ -135,15 +142,15 @@ start.bat
 cd src/backEnd && chmod +x start.sh && ./start.sh
 ```
 
-The startup script supports configuring mirror sources, intranet environments, offline mode, etc. See `startup.conf` for details.
+The startup script supports configuring mirror sources, intranet environment, offline mode, etc. See `startup.conf` for details.
 
-#### Option 2: Manual Start
+#### Method 2: Manual Startup
 
 ```bash
 # Enter backend directory
 cd src/backEnd
 
-# Install dependencies with uv
+# Install dependencies using uv
 uv sync --extra thirdparty
 
 # Start service
@@ -162,7 +169,7 @@ pnpm install
 # Development mode
 pnpm run dev
 
-# Build for production
+# Build production version
 pnpm run build
 ```
 
@@ -183,11 +190,11 @@ python server.py
 
 | Service | Address |
 |---------|---------|
-| Frontend dev server | http://localhost:5173 |
-| Backend API server | http://localhost:8775 |
+| Frontend Dev Server | http://localhost:5173 |
+| Backend API Server | http://localhost:8775 |
 | VulnShop Lab | http://127.0.0.1:9527 |
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 sqlmapWebUI/
@@ -196,7 +203,7 @@ sqlmapWebUI/
 │   │   ├── api/                 # API routes
 │   │   │   ├── webApi/          # Web browser page API
 │   │   │   ├── burpSuiteExApi/  # Burp Suite API
-│   │   │   └── commonApi/       # Common API (auth/headers/config)
+│   │   │   └── commonApi/       # Common API (auth/header rules/config)
 │   │   ├── model/               # Data models
 │   │   ├── service/             # Business logic
 │   │   ├── utils/               # Utility functions
@@ -220,10 +227,10 @@ sqlmapWebUI/
 │       ├── server.py            # HTTP server
 │       ├── database.py          # Database management
 │       └── waf.py               # WAF module
-└── doc/                         # Documentation
+└── doc/                         # Project documentation
 ```
 
-## Usage Guide
+## 📖 Usage Guide
 
 ### Create Scan Task
 
@@ -232,16 +239,9 @@ sqlmapWebUI/
 3. Configure scan parameters (optional)
 4. Click "Start Scan"
 
-### View Task Results
-
-1. Click the target task in the task list
-2. View basic info, HTTP request, scan configuration
-3. View scan results and injection payloads
-4. View real-time task logs
-
 ### Using VulnShop Lab
 
-1. Start the lab server: `python server.py`
+1. Start lab server: `python server.py`
 2. Visit http://127.0.0.1:9527 in your browser
 3. Login with test accounts (admin/admin123 or test/test)
 4. Follow page prompts to test various injection types
@@ -263,9 +263,20 @@ sqlmapWebUI/
    - Optional: Configure scope to limit effective range
 4. Save the rule
 
-For detailed usage, please refer to [doc/USAGE_GUIDE.md](doc/USAGE_GUIDE.md)
+### System Log Viewer
 
-## Security Notice
+1. Go to "Config" page
+2. Find "System Log Viewer" entry
+3. Select log type (Application/Access/Error)
+4. Set display lines and refresh to view
+
+---
+
+**📚 For detailed usage, please refer to [User Guide](doc/USAGE_GUIDE_EN.md)**
+
+Includes complete feature descriptions, operation steps, configuration guides, and FAQ.
+
+## 🔐 Security Notice
 
 **Important**: This tool is for authorized security testing only.
 
@@ -275,12 +286,67 @@ For detailed usage, please refer to [doc/USAGE_GUIDE.md](doc/USAGE_GUIDE.md)
 
 Please read the [Disclaimer](DISCLAIMER.md) before use.
 
-## Changelog
+## 📝 Changelog
+
+### v1.8.41 (2026-02-28)
+
+**Documentation**
+- Fully refactored frontend help page with modular design (8 components, <700 lines per file)
+- Added complete bilingual user guide (Chinese/English)
+- Updated Burp Suite plugin help documentation
+- Optimized README document structure and navigation links
+
+### v1.8.40 (2026-02-28)
+
+**New Features**
+- VulnShop frontend page visual design fully improved
+- Added system log viewer function, supporting Application/Access/Error log switching
+- Log viewer supports custom display line count (50/100/200/500 lines)
+
+**Fixes**
+- Fixed "View Logs" function not responding when clicked
+- Optimized log display interface and interaction experience
+
+### v1.8.39 (2026-02-28)
+
+**Fixes**
+- Fixed scanPresetService return value unpacking issue
+
+### v1.8.38 (2026-02-27)
+
+**New Features**
+- History config table added sorting function (support sorting by ID, command line params, last used time, usage count)
+- History config table added pagination function (support selecting items per page)
+- History config cards display ID identifier
+
+### v1.8.37 (2026-02-27)
+
+**Fixes**
+- Burp plugin auto-refreshes history config table after task creation
+
+### v1.8.36 (2026-02-27)
+
+**New Features**
+- Burp plugin auto-saves to history config after creating tasks
+
+**Improvements**
+- Improved history config deduplication logic, only updates usage time when same name and params
+
+### v1.8.35 (2026-02-27)
+
+**Fixes**
+- Fixed frontend build failure caused by TypeScript unused variable warnings (TS6133)
+
+### v1.8.34 (2026-02-27)
+
+**Refactoring**
+- GuidedParamEditor component refactored to modular architecture
+- CustomModePanel optimized, added scanOptionsConverter utility
 
 ### v1.8.33 (2026-02-26)
 
 **New Features**
-- Command line preview component with GitHub Dark theme styling, added terminal window style
+- Command line preview component adopts GitHub Dark theme style, added terminal window style
 
 **Improvements**
 - Burp plugins (Montoya & Legacy) version synchronized to 1.8.33
@@ -303,60 +369,60 @@ Please read the [Disclaimer](DISCLAIMER.md) before use.
 ### v1.8.28 (2026-02-26)
 
 **Fixes**
-- Fixed non-default port being incorrectly removed from HTTP Host header
+- Fixed HTTP Host header non-default port being incorrectly removed
 
 ### v1.8.27 (2026-02-26)
 
-**Refactor**
-- Split AddTask page into modular components (ConfigTriggerBar, CustomModePanel, PresetModePanel, etc.)
+**Refactoring**
+- AddTask page split into modular components (ConfigTriggerBar, CustomModePanel, PresetModePanel, etc.)
 
 ### v1.8.19-v1.8.26 (2026-02)
 
 **New Features**
-- Support for parsing all SQLMap command line parameters (215 parameters)
-- Frontend refactored to PrimeVue 4 streamlined theme
+- Support parsing all SQLMap command line parameters (215 params)
+- Frontend refactored to PrimeVue 4 clean theme
 - Session Header management component modularized
 
 **Improvements**
-- Optimized frontend styles and component layout
-- Unified background panel width for homepage and config pages
+- Optimized frontend styles and component layouts
+- Unified homepage and config page background panel width
 - Fixed task list dropdown text truncation issue
 
 **Fixes**
-- Fixed white background issue in multiple pages under dark mode
+- Fixed white background issues on multiple pages in dark mode
 - Fixed Burp plugin parameter parsing and backend parameter display issues
-- Fixed Burp plugin JSON request mistakenly detected as binary
+- Fixed Burp plugin JSON requests being misjudged as binary
 
 ### v1.8.13-v1.8.18 (2025-12)
 
 **New Features**
-- Added file synchronization scripts for dual API architecture
+- Added file sync script supporting dual API architecture
 - Added architecture documentation explaining dual API design
 
 **Fixes**
-- Fixed guided parameter editor display and loading issues
+- Fixed guided parameter editor parameter display and loading issues
 - Fixed TypeScript type errors and SCSS variables
 
 ### v1.8.12 (2025-12-24)
 
 **Fixes**
-- Fixed cURL (Windows CMD) parsing not removing `^` escape character before Chinese characters
-- Fixed HTTP request editor long line content stretching container, added soft wrap support
+- Fixed cURL (Windows CMD) parsing not removing escape character `^` before Chinese characters
+- Fixed HTTP message editor long lines stretching container, added soft wrap support
 
 ### v1.8.11 (2025-12-24)
 
 **Fixes**
-- Fixed Burp plugin (Legacy/Montoya) Chinese character encoding issue, enforced UTF-8 encoding for HTTP requests
+- Fixed Burp plugin (Legacy/Montoya) Chinese garbled text, forced UTF-8 encoding for HTTP requests
 
 ### v1.8.10 (2025-12-24)
 
 **Fixes**
-- Fixed task log area unable to scroll to show all logs
+- Fixed task log area unable to scroll to display all logs
 
 ### v1.8.9 (2025-12-23)
 
 **Fixes**
-- Fixed Burp plugin right-click menu scan config source selection not working
+- Fixed Burp plugin right-click menu scan config source selection not taking effect
 
 ### v1.8.8 (2025-12-23)
 
@@ -366,20 +432,20 @@ Please read the [Disclaimer](DISCLAIMER.md) before use.
 ### v1.8.7 (2025-12-22)
 
 **Fixes**
-- URL parsing host field now excludes port for cross-platform consistency
+- URL parsing excludes port from host field for cross-platform consistency
 
 **Improvements**
-- Optimized homepage statistics card size
+- Optimized homepage statistic card sizes
 
 ### v1.8.1-v1.8.6 (2025-12)
 
 **New Features**
-- Added session Body field dynamic replacement feature
+- Added session Body field dynamic replacement function
 - VulnShop lab added logging system
-- VulnShop lab modular refactoring with enhanced security
+- VulnShop lab modular refactoring and security enhancement
 
 **Improvements**
-- Improved VulnShop lab robustness, prevent crashes during SQLMap scanning
+- Improved VulnShop lab robustness, prevents crashes during SQLMap scanning
 - Adjusted task list empty data area height
 - API prefix renamed (/chrome/admin → /web/admin)
 
@@ -387,50 +453,50 @@ Please read the [Disclaimer](DISCLAIMER.md) before use.
 
 **New Features**
 - Added backend service startup scripts (Windows/Linux/macOS)
-- Support for auto-creating and reusing virtual environments
-- Support for PyPI mirror configuration (Tsinghua/Aliyun/USTC, etc.)
-- Support for intranet private mirror configuration
-- Support for fully offline environment deployment
+- Support automatic creation and reuse of virtual environments
+- Support configuring PyPI mirrors (Tsinghua/Aliyun/USTC, etc.)
+- Support intranet private mirror configuration
+- Support fully offline environment deployment
 - Added WebSocket real-time notification mechanism, backend can actively push task status changes
 - Added confirmation dialogs for delete and stop operations on task list page
 
 **Improvements**
 - Optimized task operation thread safety, moved sync lock operations to thread pool to avoid blocking event loop
-- Improved scan configuration preset selection UI
-- Enhanced submit button disable logic and hints
-- Lowered Python minimum version requirement to 3.10+
+- Optimized scan config preset selection UI
+- Improved submit button disabled logic and prompt messages
+- Python minimum version requirement adjusted to 3.10+
 
 **Fixes**
-- Fixed Windows/Linux command line encoding issues
+- Solved Windows/Linux command line Chinese garbled text issues
 - Fixed refresh interval API response data structure handling error
 - Added backend service disclaimer document
 
 ### v1.7.9 (2025-12)
-- Added project Logo design (shield + injection syringe concept)
-- Web: Updated favicon, status bar, and About page Logo
-- BurpSuite Plugin: Added Help/About dialog (usage help, license, disclaimer)
-- BurpSuite Plugin: About page uses Java2D custom Logo drawing
+- Added project Logo design (shield + injection needle concept)
+- Web: Updated favicon, status bar, about page Logo
+- BurpSuite plugin: Added help/about dialog (includes usage help, open source license, disclaimer)
+- BurpSuite plugin: About page uses Java2D to draw custom Logo
 - Fixed PrimeVue 4 component deprecation warnings (TabView → Tabs)
-- Fixed JLabel HTML rendering issue in BurpSuite plugin
-- Updated project documentation with Logo display
+- Fixed BurpSuite plugin JLabel HTML rendering issues
+- Updated project documentation adding Logo display
 
 ### v1.7.7 (2025-12)
-- Updated all project documentation to reflect latest features
+- Updated all project documents to reflect latest features
 - Improved AGENTS.md and CLAUDE.md AI programming guides
 - Optimized user usage guide documentation
 
 ### v1.7.6 (2025-12)
-- Added scan configuration preset management (default/preset/history)
+- Added scan config preset management (default/preset/history configs)
 - Added guided parameter editor
 - Added HTTP request parser (supports cURL/PowerShell/fetch/raw HTTP)
 - Added code editor component (line numbers, syntax highlighting, search)
 - Frontend code modular refactoring
-- Fixed fetch parser escaped quotes handling issue
+- Fixed fetch parser escaped quote handling issues
 
 ### v1.6.0 (2025-12)
-- Added header rules scope configuration feature
+- Added header rules scope configuration function
 - Added session-level header management
-- Added batch header import functionality
+- Added batch header rules import function
 - Added summary statistics row to task list
 - Enhanced task filters (date range, injection status)
 - Optimized smart polling strategy
@@ -443,16 +509,16 @@ Please read the [Disclaimer](DISCLAIMER.md) before use.
 
 ### v1.5.0 (2025-12)
 - Added VulnShop SQL injection testing lab
-- Support for 8 SQL injection vulnerability types
-- Modern UI with light/dark theme support
+- Support 8 types of SQL injection vulnerabilities
+- Modern UI with light/dark theme
 - Complete shopping flow simulation
-- 3 difficulty levels with WAF protection
+- 3 difficulty levels and WAF protection
 
-## License
+## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is open sourced under the [MIT License](LICENSE).
 
-## Contributing
+## 🤝 Contributing
 
 Issues and Pull Requests are welcome!
 
@@ -462,7 +528,7 @@ Issues and Pull Requests are welcome!
 4. Push to branch (`git push origin feature/AmazingFeature`)
 5. Submit Pull Request
 
-## Acknowledgments
+## 🙏 Acknowledgments
 
 - [SQLMap](https://github.com/sqlmapproject/sqlmap) - Powerful SQL injection automation tool
 - [FastAPI](https://fastapi.tiangolo.com/) - Modern Python web framework

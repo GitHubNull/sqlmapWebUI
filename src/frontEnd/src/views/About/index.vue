@@ -27,9 +27,9 @@
                   <p class="description">一个现代化的 SQLMap Web 界面，为安全研究人员提供便捷的 SQL 注入测试平台。</p>
                 </div>
               </div>
-              
+
               <Divider />
-              
+
               <div class="info-section">
                 <h3>功能特性</h3>
                 <div class="feature-grid">
@@ -57,37 +57,47 @@
                     <i class="pi pi-link"></i>
                     <span>Burp Suite插件集成</span>
                   </div>
+                  <div class="feature-item">
+                    <i class="pi pi-file-edit"></i>
+                    <span>系统日志查看器</span>
+                  </div>
+                  <div class="feature-item">
+                    <i class="pi pi-sliders-h"></i>
+                    <span>215个SQLMap参数支持</span>
+                  </div>
                 </div>
               </div>
-              
+
               <Divider />
-              
+
               <div class="info-section">
                 <h3>技术栈</h3>
                 <div class="tech-tags">
                   <Tag value="Vue 3" severity="success" />
                   <Tag value="TypeScript" severity="info" />
-                  <Tag value="PrimeVue" severity="warn" />
+                  <Tag value="PrimeVue 4" severity="warn" />
                   <Tag value="FastAPI" severity="danger" />
                   <Tag value="Python 3.10+" severity="secondary" />
                   <Tag value="SQLMap" />
+                  <Tag value="Pinia" severity="success" />
+                  <Tag value="Vite" severity="info" />
                 </div>
               </div>
-              
+
               <Divider />
-              
+
               <div class="info-section">
                 <h3>链接</h3>
                 <div class="link-buttons">
-                  <Button 
-                    label="GitHub 仓库" 
-                    icon="pi pi-github" 
+                  <Button
+                    label="GitHub 仓库"
+                    icon="pi pi-github"
                     severity="secondary"
                     @click="openLink('https://github.com/GitHubNull/sqlmapWebUI')"
                   />
-                  <Button 
-                    label="报告问题" 
-                    icon="pi pi-exclamation-circle" 
+                  <Button
+                    label="报告问题"
+                    icon="pi pi-exclamation-circle"
                     severity="secondary"
                     @click="openLink('https://github.com/GitHubNull/sqlmapWebUI/issues')"
                   />
@@ -95,86 +105,62 @@
               </div>
             </div>
             </TabPanel>
-            
+
             <!-- 使用帮助 -->
             <TabPanel value="1">
-            <div class="help-content">
-              <Accordion :multiple="true" :activeIndex="[0]">
-                <AccordionPanel value="0">
-                  <AccordionHeader>快速开始</AccordionHeader>
-                  <AccordionContent>
-                    <div class="help-section">
-                      <h4>1. 创建扫描任务</h4>
-                      <p>进入"添加任务"页面，粘贴HTTP请求报文（支持cURL、PowerShell、fetch、原始HTTP格式），系统会自动解析并转换。</p>
-                      
-                      <h4>2. 配置扫描参数</h4>
-                      <p>在右侧配置面板中设置检测等级(Level)、风险等级(Risk)、注入技术等参数，或选择预设配置。</p>
-                      
-                      <h4>3. 提交任务</h4>
-                      <p>点击"提交扫描任务"按钮，任务将自动进入队列执行。</p>
-                      
-                      <h4>4. 查看结果</h4>
-                      <p>在任务列表中查看任务状态，点击任务可查看详细的扫描结果和日志。</p>
-                    </div>
-                  </AccordionContent>
-                </AccordionPanel>
-                
-                <AccordionPanel value="1">
-                  <AccordionHeader>扫描配置管理</AccordionHeader>
-                  <AccordionContent>
-                    <div class="help-section">
-                      <h4>默认配置</h4>
-                      <p>设置全局默认扫描参数，新建任务时自动应用。</p>
-                      
-                      <h4>常用配置</h4>
-                      <p>保存常用的配置组合，支持增删改查操作。可使用"引导式编辑"可视化配置参数。</p>
-                      
-                      <h4>历史配置</h4>
-                      <p>自动记录历史扫描使用过的配置，方便复用。</p>
-                    </div>
-                  </AccordionContent>
-                </AccordionPanel>
-                
-                <AccordionPanel value="2">
-                  <AccordionHeader>请求头规则</AccordionHeader>
-                  <AccordionContent>
-                    <div class="help-section">
-                      <h4>持久化规则</h4>
-                      <p>创建长期有效的请求头规则，支持作用域配置（协议、主机名、端口、路径匹配）。</p>
-                      
-                      <h4>会话级规则</h4>
-                      <p>设置临时请求头，支持TTL自动过期。</p>
-                      
-                      <h4>优先级</h4>
-                      <p>0-100优先级控制，数值越大优先级越高。</p>
-                    </div>
-                  </AccordionContent>
-                </AccordionPanel>
-                
-                <AccordionPanel value="3">
-                  <AccordionHeader>键盘快捷键</AccordionHeader>
-                  <AccordionContent>
-                    <div class="help-section shortcuts-table">
-                      <table>
-                        <thead>
-                          <tr>
-                            <th>快捷键</th>
-                            <th>功能</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr><td><kbd>Alt</kbd> + <kbd>1</kbd></td><td>跳转到首页</td></tr>
-                          <tr><td><kbd>Alt</kbd> + <kbd>2</kbd></td><td>跳转到任务列表</td></tr>
-                          <tr><td><kbd>Alt</kbd> + <kbd>3</kbd></td><td>跳转到添加任务</td></tr>
-                          <tr><td><kbd>Alt</kbd> + <kbd>4</kbd></td><td>跳转到配置</td></tr>
-                          <tr><td><kbd>Ctrl</kbd> + <kbd>F</kbd></td><td>在编辑器中搜索</td></tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </AccordionContent>
-                </AccordionPanel>
-              </Accordion>
-            </div>
+              <div class="help-content">
+                <Tabs value="0" class="help-sub-tabs">
+                  <TabList>
+                    <Tab value="0">
+                      <div class="sub-tab-label">
+                        <i class="pi pi-play-circle"></i>
+                        <span>快速开始</span>
+                      </div>
+                    </Tab>
+                    <Tab value="1">
+                      <div class="sub-tab-label">
+                        <i class="pi pi-sliders-h"></i>
+                        <span>扫描配置</span>
+                      </div>
+                    </Tab>
+                    <Tab value="2">
+                      <div class="sub-tab-label">
+                        <i class="pi pi-list"></i>
+                        <span>Header规则</span>
+                      </div>
+                    </Tab>
+                    <Tab value="3">
+                      <div class="sub-tab-label">
+                        <i class="pi pi-check-square"></i>
+                        <span>任务管理</span>
+                      </div>
+                    </Tab>
+                    <Tab value="4">
+                      <div class="sub-tab-label">
+                        <i class="pi pi-star"></i>
+                        <span>高级功能</span>
+                      </div>
+                    </Tab>
+                  </TabList>
+                  <TabPanels>
+                    <TabPanel value="0">
+                      <QuickStartHelp />
+                    </TabPanel>
+                    <TabPanel value="1">
+                      <ScanConfigHelp />
+                    </TabPanel>
+                    <TabPanel value="2">
+                      <HeaderRulesHelp />
+                    </TabPanel>
+                    <TabPanel value="3">
+                      <TaskManagementHelp />
+                    </TabPanel>
+                    <TabPanel value="4">
+                      <AdvancedFeaturesHelp />
+                    </TabPanel>
+                  </TabPanels>
+                </Tabs>
+              </div>
             </TabPanel>
             
             <!-- 开源协议 -->
@@ -216,14 +202,17 @@ import TabPanel from 'primevue/tabpanel'
 import Divider from 'primevue/divider'
 import Tag from 'primevue/tag'
 import Button from 'primevue/button'
-import Accordion from 'primevue/accordion'
-import AccordionPanel from 'primevue/accordionpanel'
-import AccordionHeader from 'primevue/accordionheader'
-import AccordionContent from 'primevue/accordioncontent'
 import Message from 'primevue/message'
 
+// 导入模块化帮助组件
+import QuickStartHelp from './components/QuickStartHelp.vue'
+import ScanConfigHelp from './components/ScanConfigHelp.vue'
+import HeaderRulesHelp from './components/HeaderRulesHelp.vue'
+import TaskManagementHelp from './components/TaskManagementHelp.vue'
+import AdvancedFeaturesHelp from './components/AdvancedFeaturesHelp.vue'
+
 const activeTab = ref<string | number>('0')
-const version = '1.7.9'
+const version = '1.8.40'
 
 function handleTabChange(value: string | number) {
   activeTab.value = value
@@ -419,47 +408,41 @@ function openLink(url: string) {
   padding: 0.5rem 0;
 }
 
-.help-section {
-  h4 {
-    margin: 0.75rem 0 0.5rem 0;
-    color: var(--text-color);
-    
-    &:first-child {
-      margin-top: 0;
+/* 子标签页样式 */
+.help-sub-tabs {
+  :deep(.p-tablist) {
+    border-bottom: 1px solid var(--surface-border);
+    margin-bottom: 1rem;
+    background: var(--surface-ground);
+    border-radius: 6px;
+    padding: 0.25rem;
+  }
+
+  :deep(.p-tab) {
+    padding: 0.5rem 0.75rem;
+    margin-right: 0.25rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+    border-radius: 4px;
+
+    &.p-tab-active {
+      background: var(--surface-card);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
   }
-  
-  p {
-    margin: 0 0 0.75rem 0;
-    color: var(--text-color-secondary);
-    line-height: 1.6;
+
+  :deep(.p-tabpanels) {
+    padding: 0;
   }
 }
 
-.shortcuts-table {
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    
-    th, td {
-      padding: 0.75rem;
-      text-align: left;
-      border-bottom: 1px solid var(--surface-border);
-    }
-    
-    th {
-      background: var(--surface-ground);
-      font-weight: 600;
-    }
-    
-    kbd {
-      padding: 0.2rem 0.5rem;
-      background: var(--surface-ground);
-      border: 1px solid var(--surface-border);
-      border-radius: 4px;
-      font-family: monospace;
-      font-size: 0.9rem;
-    }
+.sub-tab-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  i {
+    font-size: 0.9rem;
   }
 }
 
