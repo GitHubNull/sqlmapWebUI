@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.8.37-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.38-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -269,6 +269,13 @@ sqlmapWebUI/
 请在使用前阅读 [免责声明](DISCLAIMER.md)。
 
 ## 📝 更新日志
+
+### v1.8.38 (2026-02-27)
+
+**新功能**
+- 历史配置表格添加排序功能（支持按ID、命令行参数、最后使用时间、使用次数排序）
+- 历史配置表格添加分页功能（支持选择每页显示数量）
+- 历史配置卡片显示ID标识
 
 ### v1.8.37 (2026-02-27)
 
