@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.8.38-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.40-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -269,6 +269,17 @@ sqlmapWebUI/
 请在使用前阅读 [免责声明](DISCLAIMER.md)。
 
 ## 📝 更新日志
+
+### v1.8.40 (2026-02-28)
+
+**新功能**
+- VulnShop 前端页面视觉设计全面改进
+- 新增系统日志查看器功能，支持应用日志/访问日志/错误日志切换
+- 日志查看器支持自定义显示行数（50/100/200/500行）
+
+**修复**
+- 修复"查看日志"功能点击无反应的问题
+- 优化日志显示的界面和交互体验
 
 ### v1.8.39 (2026-02-28)
 
