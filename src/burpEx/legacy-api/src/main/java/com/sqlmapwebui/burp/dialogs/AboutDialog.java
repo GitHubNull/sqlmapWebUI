@@ -11,7 +11,104 @@ import java.awt.geom.*;
  */
 public class AboutDialog extends JDialog {
     
-    private static final String VERSION = "1.8.40";
+    private static final String VERSION = "1.8.41";
+    
+    // 帮助内容HTML模板 - 使用模块化组织
+    private static final String HELP_CONTENT_HTML = "<html><head><style>" +
+        "body { font-family: 'Microsoft YaHei', sans-serif; font-size: 12px; line-height: 1.6; }" +
+        "h2 { color: #1976d2; margin: 15px 0 10px 0; border-bottom: 2px solid #1976d2; padding-bottom: 5px; }" +
+        "h3 { color: #333; margin: 12px 0 8px 0; font-size: 13px; }" +
+        "h4 { color: #555; margin: 10px 0 6px 0; font-size: 12px; }" +
+        "p { margin: 5px 0; }" +
+        "ul, ol { margin: 5px 0 10px 20px; }" +
+        "li { margin: 4px 0; }" +
+        "code { background: #f5f5f5; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace; font-size: 11px; }" +
+        ".section { margin-bottom: 15px; padding: 10px; background: #fafafa; border-radius: 5px; }" +
+        ".feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; }" +
+        ".feature-item { padding: 6px 10px; background: #f0f0f0; border-radius: 4px; font-size: 11px; }" +
+        ".param-list { background: #f8f8f8; padding: 10px; border-radius: 4px; margin: 8px 0; }" +
+        ".param-item { margin: 4px 0; padding: 4px 0; border-bottom: 1px dotted #ddd; }" +
+        ".param-item:last-child { border-bottom: none; }" +
+        ".highlight { background: #fff3cd; padding: 2px 4px; border-radius: 3px; }" +
+        ".new-badge { background: #28a745; color: white; padding: 1px 6px; border-radius: 10px; font-size: 10px; margin-left: 5px; }" +
+        ".tip { background: #e3f2fd; border-left: 3px solid #2196f3; padding: 8px 12px; margin: 10px 0; border-radius: 0 4px 4px 0; }" +
+        ".warning { background: #fff3e0; border-left: 3px solid #ff9800; padding: 8px 12px; margin: 10px 0; border-radius: 0 4px 4px 0; }" +
+        "</style></head><body>" +
+        
+        // 快速开始
+        "<h2>快速开始</h2>" +
+        "<div class='section'>" +
+        "<h3>1. 配置服务器</h3>" +
+        "<p>在「服务器配置」标签页中设置SQLMap WebUI后端地址（默认: <code>http://127.0.0.1:8775</code>）</p>" +
+        "<p>点击「测试连接」验证连接状态</p>" +
+        
+        "<h3>2. 发送扫描请求</h3>" +
+        "<p>在Burp的任意HTTP请求上右键，选择以下选项：</p>" +
+        "<ul>" +
+        "<li><strong>Send to SQLMap WebUI</strong>: 使用默认配置快速发送</li>" +
+        "<li><strong>Send to SQLMap WebUI (选择配置)...</strong>: 选择预设配置发送</li>" +
+        "</ul>" +
+        
+        "<h3>3. 查看扫描结果</h3>" +
+        "<p>打开SQLMap WebUI的Web界面查看扫描任务状态和结果</p>" +
+        "<p>任务会自动保存到历史配置，方便后续复用</p>" +
+        "</div>" +
+        
+        // 扫描配置管理
+        "<h2>扫描配置管理</h2>" +
+        "<div class='section'>" +
+        "<div class='feature-grid'>" +
+        "<div class='feature-item'><strong>默认配置</strong><br>设置全局默认扫描参数，每次发送请求时自动应用</div>" +
+        "<div class='feature-item'><strong>常用配置</strong><br>保存常用的配置组合，支持增删改查和引导式编辑</div>" +
+        "<div class='feature-item'><strong>历史配置</strong><br>自动记录历史扫描使用过的配置，支持排序和分页<span class='new-badge'>NEW</span></div>" +
+        "<div class='feature-item'><strong>自动保存</strong><br>通过插件创建的任务自动保存到历史配置<span class='new-badge'>NEW</span></div>" +
+        "</div>" +
+        "</div>" +
+        
+        // 常用参数说明
+        "<h2>常用参数说明</h2>" +
+        "<div class='param-list'>" +
+        "<div class='param-item'><code>--level</code> <strong>检测等级</strong> (1-5)，越高检测越全面</div>" +
+        "<div class='param-item'><code>--risk</code> <strong>风险等级</strong> (1-3)，越高测试越激进</div>" +
+        "<div class='param-item'><code>--technique</code> <strong>注入技术</strong> (BEUSTQ: B=布尔盲注 E=报错注入 U=联合查询 S=堆叠查询 T=时间盲注 Q=内联查询)</div>" +
+        "<div class='param-item'><code>--threads</code> <strong>并发线程数</strong> (默认1)</div>" +
+        "<div class='param-item'><code>--batch</code> <strong>非交互模式</strong>，自动使用默认值</div>" +
+        "<div class='param-item'><code>--random-agent</code> <strong>随机User-Agent</strong>，避免被WAF拦截</div>" +
+        "<div class='param-item'><code>--dbms</code> <strong>指定数据库</strong> (mysql/oracle/mssql等)</div>" +
+        "</div>" +
+        
+        // 高级功能
+        "<h2>高级功能<span class='new-badge'>NEW</span></h2>" +
+        "<div class='section'>" +
+        "<h3>请求去重</h3>" +
+        "<p>自动检测并跳过重复请求，基于以下维度判断：</p>" +
+        "<ul>" +
+        "<li>请求协议、方法、主机、端口</li>" +
+        "<li>请求路径和查询参数</li>" +
+        "<li>请求Body内容</li>" +
+        "</ul>" +
+        "<div class='tip'>去重结果会在活动日志中显示，可选择保留或跳过重复请求</div>" +
+        
+        "<h3>二进制内容检测</h3>" +
+        "<p>自动检测二进制请求内容（如文件上传），避免发送非文本请求</p>" +
+        "<div class='warning'>检测到二进制内容时会显示警告，建议跳过此类请求</div>" +
+        
+        "<h3>中文编码处理</h3>" +
+        "<p>强制使用UTF-8编码处理HTTP请求，正确处理中文字符<span class='new-badge'>v1.8.11+</span></p>" +
+        "</div>" +
+        
+        // 注意事项
+        "<h2>注意事项</h2>" +
+        "<div class='section'>" +
+        "<ul>" +
+        "<li>确保SQLMap WebUI后端服务已启动并可以访问</li>" +
+        "<li>使用「测试连接」功能验证配置是否正确</li>" +
+        "<li>建议在发送前检查请求内容，避免发送敏感信息</li>" +
+        "<li>本工具仅供授权安全测试使用</li>" +
+        "</ul>" +
+        "</div>" +
+        
+        "</body></html>";
     
     /**
      * 自定义Logo组件 - 绘制盾牌+注入针头图标
@@ -222,68 +319,8 @@ public class AboutDialog extends JDialog {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(new EmptyBorder(15, 15, 15, 15));
         
-        String htmlContent = "<html><head><style>" +
-            "body { font-family: 'Microsoft YaHei', sans-serif; font-size: 12px; line-height: 1.6; }" +
-            "h2 { color: #1976d2; margin: 15px 0 10px 0; border-bottom: 2px solid #1976d2; padding-bottom: 5px; }" +
-            "h3 { color: #333; margin: 10px 0 5px 0; }" +
-            "p { margin: 5px 0; }" +
-            "ul { margin: 5px 0 10px 20px; }" +
-            "li { margin: 3px 0; }" +
-            "code { background: #f5f5f5; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace; }" +
-            ".section { margin-bottom: 15px; padding: 10px; background: #fafafa; border-radius: 5px; }" +
-            "</style></head><body>" +
-            
-            "<h2>快速开始</h2>" +
-            "<div class='section'>" +
-            "<h3>1. 配置服务器</h3>" +
-            "<p>在「服务器配置」标签页中设置SQLMap WebUI后端地址（默认: http://127.0.0.1:8775）</p>" +
-            "<p>点击「测试连接」验证连接状态</p>" +
-            
-            "<h3>2. 发送扫描请求</h3>" +
-            "<p>在Burp的任意HTTP请求上右键，选择「Send to SQLMap WebUI」</p>" +
-            "<p>可选择使用默认配置或选择已保存的配置</p>" +
-            
-            "<h3>3. 查看扫描结果</h3>" +
-            "<p>打开SQLMap WebUI的Web界面查看扫描任务状态和结果</p>" +
-            "</div>" +
-            
-            "<h2>扫描配置管理</h2>" +
-            "<div class='section'>" +
-            "<h3>默认配置</h3>" +
-            "<p>设置全局默认扫描参数，每次发送请求时自动应用。</p>" +
-            
-            "<h3>常用配置</h3>" +
-            "<p>保存常用的配置组合，支持增删改查。右键菜单可快速选择使用。</p>" +
-            "<p>点击「引导式添加/编辑」可视化配置扫描参数。</p>" +
-            
-            "<h3>历史配置</h3>" +
-            "<p>自动记录历史扫描使用过的配置，方便复用。</p>" +
-            "</div>" +
-            
-            "<h2>常用参数说明</h2>" +
-            "<div class='section'>" +
-            "<ul>" +
-            "<li><code>--level</code>: 检测等级 (1-5)，越高检测越全面</li>" +
-            "<li><code>--risk</code>: 风险等级 (1-3)，越高测试越激进</li>" +
-            "<li><code>--technique</code>: 注入技术 (BEUSTQ)</li>" +
-            "<li><code>--threads</code>: 并发线程数</li>" +
-            "<li><code>--batch</code>: 非交互模式，自动使用默认值</li>" +
-            "<li><code>--random-agent</code>: 随机User-Agent</li>" +
-            "</ul>" +
-            "</div>" +
-            
-            "<h2>注意事项</h2>" +
-            "<div class='section'>" +
-            "<ul>" +
-            "<li>确保SQLMap WebUI后端服务已启动</li>" +
-            "<li>二进制请求（如图片上传）会显示警告提示</li>" +
-            "<li>支持请求去重功能，避免重复提交相同请求</li>" +
-            "</ul>" +
-            "</div>" +
-            
-            "</body></html>";
-        
-        JEditorPane editorPane = createHtmlPane(htmlContent);
+        // 使用预定义的模块化帮助内容
+        JEditorPane editorPane = createHtmlPane(HELP_CONTENT_HTML);
         JScrollPane scrollPane = new JScrollPane(editorPane);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         panel.add(scrollPane, BorderLayout.CENTER);
