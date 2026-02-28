@@ -76,17 +76,47 @@ export async function getPresetConfigs(): Promise<ScanPreset[]> {
 }
 
 /**
- * 获取历史配置列表
+ * 历史配置列表响应
  */
-export async function getHistoryConfigs(limit = 20): Promise<ScanPreset[]> {
+export interface HistoryListResponse {
+  presets: ScanPreset[]
+  total: number
+  page: number
+  page_size: number
+  total_pages: number
+}
+
+/**
+ * 获取历史配置列表（带分页和排序）
+ */
+export async function getHistoryConfigs(
+  page: number = 1,
+  pageSize: number = 10,
+  sortField: string = 'last_used_at',
+  sortOrder: string = 'desc'
+): Promise<HistoryListResponse> {
   const result = await request.get<{
     presets: ScanPreset[]
     total: number
+    page: number
+    page_size: number
+    total_pages: number
   }>('/scan-preset/history', {
-    params: { limit }
+    params: {
+      page,
+      page_size: pageSize,
+      sort_field: sortField,
+      sort_order: sortOrder
+    }
   })
   
-  return result.presets || []
+  return {
+    presets: result.presets || [],
+    total: result.total || 0,
+    page: result.page || 1,
+    page_size: result.page_size || 10,
+    total_pages: result.total_pages || 0
+  }
 }
 
 /**

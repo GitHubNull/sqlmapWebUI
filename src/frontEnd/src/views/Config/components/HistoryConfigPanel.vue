@@ -5,18 +5,18 @@
       <div class="search-title">搜索过滤</div>
       <div class="search-row">
         <label>搜索:</label>
-        <InputText v-model="searchKeyword" placeholder="输入关键词过滤历史记录" class="search-input" @keyup.enter="applyFilter" />
-        <Button label="搜索" size="small" @click="applyFilter" />
+        <InputText v-model="searchKeyword" placeholder="输入关键词过滤历史记录" class="search-input" @keyup.enter="handleSearch" />
+        <Button label="搜索" size="small" @click="handleSearch" />
       </div>
       <div class="advanced-options">
         <span class="options-label">高级选项:</span>
-        <Checkbox v-model="useRegex" :binary="true" @change="applyFilter" />
+        <Checkbox v-model="useRegex" :binary="true" />
         <span class="checkbox-text">正则表达式</span>
         
-        <Checkbox v-model="caseSensitive" :binary="true" @change="applyFilter" />
+        <Checkbox v-model="caseSensitive" :binary="true" />
         <span class="checkbox-text">大小写敏感</span>
         
-        <Checkbox v-model="invertFilter" :binary="true" @change="applyFilter" />
+        <Checkbox v-model="invertFilter" :binary="true" />
         <span class="checkbox-text">反选</span>
         
         <Button label="清除过滤" size="small" severity="secondary" @click="clearSearch" />
@@ -28,41 +28,72 @@
       <div class="table-title">历史扫描配置记录</div>
       <DataTable 
         v-model:selection="selectedRows"
-        :value="filteredHistory" 
+        :value="displayList" 
         :loading="loading"
         dataKey="id"
         selectionMode="multiple"
         :metaKeySelection="false"
         scrollable
-        scrollHeight="350px"
+        scrollHeight="300px"
         class="history-table"
+        :sortField="sortField"
+        :sortOrder="sortOrder"
+        @sort="onSort"
+        @row-dblclick="handleRowDblClick"
       >
         <Column selectionMode="multiple" headerStyle="width: 3rem" />
-        <Column header="序号" style="width: 60px">
-          <template #body="{ index }">
-            {{ index + 1 }}
+        <Column field="id" header="ID" sortable style="width: 80px">
+          <template #body="{ data }">
+            <span class="id-badge">#{{ data.id }}</span>
           </template>
         </Column>
-        <Column field="parameter_string" header="命令行参数" style="min-width: 450px">
+        <Column field="parameter_string" header="命令行参数" sortable style="min-width: 400px">
           <template #body="{ data }">
             <code class="param-code">{{ formatParamString(data) }}</code>
           </template>
         </Column>
-        <Column header="日期时间" style="width: 160px">
+        <Column field="last_used_at" header="最后使用" sortable style="width: 160px">
           <template #body="{ data }">
             {{ formatTime(data.last_used_at || data.created_at) }}
           </template>
         </Column>
+        <Column field="use_count" header="使用次数" sortable style="width: 100px">
+          <template #body="{ data }">
+            <span class="use-count">{{ data.use_count || 0 }}</span>
+          </template>
+        </Column>
       </DataTable>
+    </div>
+
+    <!-- 分页组件 -->
+    <div class="pagination-section">
+      <div class="pagination-info">
+        <span>每页显示:</span>
+        <Select
+          v-model="pageSize"
+          :options="pageSizeOptions"
+          optionLabel="label"
+          optionValue="value"
+          class="page-size-select"
+          @change="onPageSizeChange"
+        />
+        <span class="total-info">共 {{ totalRecords }} 条记录</span>
+      </div>
+      <Paginator
+        :rows="pageSize"
+        :totalRecords="totalRecords"
+        :first="(currentPage - 1) * pageSize"
+        @page="onPageChange"
+        template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
+      />
     </div>
 
     <!-- 操作栏 -->
     <div class="action-bar">
       <!-- 左侧按钮 -->
       <div class="left-buttons">
-        <Button label="全选" size="small" severity="secondary" @click="selectAll" />
+        <Button label="全选当前页" size="small" severity="secondary" @click="selectAllCurrentPage" />
         <Button label="取消全选" size="small" severity="secondary" @click="deselectAll" />
-        <Button label="反选" size="small" severity="secondary" @click="invertSelection" />
       </div>
       
       <!-- 状态栏 -->
@@ -72,8 +103,9 @@
       
       <!-- 右侧按钮 -->
       <div class="right-buttons">
+        <Button label="应用选中" size="small" severity="success" icon="pi pi-check" @click="applySelected" :disabled="selectedRows.length !== 1" />
         <Button label="删除选中" size="small" severity="danger" @click="deleteSelected" :disabled="selectedRows.length === 0" />
-        <Button label="清空全部" size="small" severity="danger" @click="clearAll" :disabled="historyList.length === 0" />
+        <Button label="清空全部" size="small" severity="danger" @click="clearAll" :disabled="totalRecords === 0" />
         <Button label="刷新" size="small" severity="secondary" icon="pi pi-refresh" @click="refreshTable" />
       </div>
     </div>
@@ -86,12 +118,15 @@ import { useToast } from 'primevue/usetoast'
 import InputText from 'primevue/inputtext'
 import Checkbox from 'primevue/checkbox'
 import Button from 'primevue/button'
-import DataTable from 'primevue/datatable'
+import Select from 'primevue/select'
+import DataTable, { type DataTableSortEvent } from 'primevue/datatable'
 import Column from 'primevue/column'
+import Paginator from 'primevue/paginator'
 import dayjs from 'dayjs'
 import type { ScanPreset } from '@/types/scanPreset'
 import { useScanPresetStore } from '@/stores/scanPreset'
 import { toParameterString } from '@/utils/scanConfigParser'
+import * as scanPresetApi from '@/api/scanPreset'
 
 const emit = defineEmits<{
   select: [preset: ScanPreset]
@@ -100,19 +135,36 @@ const emit = defineEmits<{
 const toast = useToast()
 const scanPresetStore = useScanPresetStore()
 
-// 状态
+// 数据状态
 const loading = ref(false)
 const historyList = ref<ScanPreset[]>([])
 const selectedRows = ref<ScanPreset[]>([])
+const totalRecords = ref(0)
 
-// 搜索
+// 分页状态
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+// 排序状态
+const sortField = ref('last_used_at')
+const sortOrder = ref(-1) // -1 = desc, 1 = asc
+
+// 搜索状态
 const searchKeyword = ref('')
 const useRegex = ref(false)
 const caseSensitive = ref(false)
 const invertFilter = ref(false)
 
-// 过滤后的列表
-const filteredHistory = computed(() => {
+// 分页选项
+const pageSizeOptions = [
+  { label: '10 条', value: 10 },
+  { label: '20 条', value: 20 },
+  { label: '50 条', value: 50 },
+  { label: '100 条', value: 100 }
+]
+
+// 显示列表（本地过滤后的数据）
+const displayList = computed(() => {
   if (!searchKeyword.value.trim()) return historyList.value
   
   const keyword = searchKeyword.value.trim()
@@ -141,14 +193,13 @@ const filteredHistory = computed(() => {
 
 // 状态文本
 const statusText = computed(() => {
-  const total = historyList.value.length
-  const visible = filteredHistory.value.length
   const selected = selectedRows.value.length
+  const visible = displayList.value.length
   
-  if (total !== visible) {
-    return `显示 ${visible}/${total} 条记录，已选中 ${selected} 条`
+  if (searchKeyword.value.trim()) {
+    return `搜索结果 ${visible} 条，已选中 ${selected} 条`
   }
-  return `共 ${total} 条记录，已选中 ${selected} 条`
+  return `第 ${currentPage.value}/${Math.ceil(totalRecords.value / pageSize.value) || 1} 页，已选中 ${selected} 条`
 })
 
 // 格式化时间
@@ -167,9 +218,35 @@ function formatParamString(preset: ScanPreset): string {
   return '(默认参数)'
 }
 
-// 应用过滤
-function applyFilter() {
-  // 触发 computed 重新计算
+// 加载数据
+async function loadData() {
+  loading.value = true
+  try {
+    const sortFieldApi = sortField.value
+    const sortOrderApi = sortOrder.value === -1 ? 'desc' : 'asc'
+    
+    const result = await scanPresetApi.getHistoryConfigs(
+      currentPage.value,
+      pageSize.value,
+      sortFieldApi,
+      sortOrderApi
+    )
+    
+    historyList.value = result.presets
+    totalRecords.value = result.total
+    selectedRows.value = []
+  } catch (e) {
+    toast.add({ severity: 'error', summary: '加载失败', life: 3000 })
+  } finally {
+    loading.value = false
+  }
+}
+
+// 处理搜索
+function handleSearch() {
+  // 搜索时重置到第一页
+  currentPage.value = 1
+  loadData()
 }
 
 // 清除搜索
@@ -180,9 +257,33 @@ function clearSearch() {
   invertFilter.value = false
 }
 
-// 全选
-function selectAll() {
-  selectedRows.value = [...filteredHistory.value]
+// 排序变化
+function onSort(event: DataTableSortEvent) {
+  if (event.sortField && typeof event.sortField === 'string') {
+    sortField.value = event.sortField
+  }
+  if (event.sortOrder !== undefined && event.sortOrder !== null) {
+    sortOrder.value = event.sortOrder
+  }
+  currentPage.value = 1
+  loadData()
+}
+
+// 分页变化
+function onPageChange(event: { page: number; first: number; rows: number }) {
+  currentPage.value = event.page + 1
+  loadData()
+}
+
+// 每页数量变化
+function onPageSizeChange() {
+  currentPage.value = 1
+  loadData()
+}
+
+// 全选当前页
+function selectAllCurrentPage() {
+  selectedRows.value = [...displayList.value]
 }
 
 // 取消全选
@@ -190,24 +291,41 @@ function deselectAll() {
   selectedRows.value = []
 }
 
-// 反选
-function invertSelection() {
-  const currentIds = new Set(selectedRows.value.map(r => r.id))
-  selectedRows.value = filteredHistory.value.filter(h => !currentIds.has(h.id))
+// 双击行选择
+function handleRowDblClick(event: { data: ScanPreset }) {
+  const preset = event.data
+  if (preset && preset.id) {
+    emit('select', preset)
+    toast.add({
+      severity: 'info',
+      summary: '已选择历史配置',
+      detail: `ID: #${preset.id} - ${preset.name}`,
+      life: 2000
+    })
+  }
+}
+
+// 应用选中的配置
+function applySelected() {
+  if (selectedRows.value.length === 1) {
+    const preset = selectedRows.value[0]
+    if (preset && preset.id) {
+      emit('select', preset)
+      toast.add({
+        severity: 'success',
+        summary: '已应用历史配置',
+        detail: `ID: #${preset.id} - ${preset.name}`,
+        life: 2000
+      })
+    }
+  }
 }
 
 // 刷新表格
 async function refreshTable() {
-  loading.value = true
-  try {
-    await scanPresetStore.loadConfigOptions()
-    historyList.value = scanPresetStore.history
-    selectedRows.value = []
-  } catch (e) {
-    toast.add({ severity: 'error', summary: '加载失败', life: 3000 })
-  } finally {
-    loading.value = false
-  }
+  await loadData()
+  // 同时更新 store 中的历史配置
+  await scanPresetStore.loadConfigOptions()
 }
 
 // 删除选中
@@ -235,15 +353,17 @@ async function deleteSelected() {
 
 // 清空全部
 async function clearAll() {
-  if (historyList.value.length === 0) {
+  if (totalRecords.value === 0) {
     toast.add({ severity: 'info', summary: '提示', detail: '历史记录已为空', life: 2000 })
     return
   }
   
-  if (!confirm('确定要清空所有历史记录吗？')) return
+  if (!confirm(`确定要清空所有 ${totalRecords.value} 条历史记录吗？`)) return
   
   try {
-    for (const item of historyList.value) {
+    // 先获取所有历史配置
+    const allResult = await scanPresetApi.getHistoryConfigs(1, 1000, 'id', 'asc')
+    for (const item of allResult.presets) {
       if (item.id) {
         await scanPresetStore.deletePreset(item.id)
       }
@@ -256,7 +376,7 @@ async function clearAll() {
 }
 
 onMounted(() => {
-  refreshTable()
+  loadData()
 })
 </script>
 
@@ -267,7 +387,7 @@ onMounted(() => {
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .search-section {
@@ -324,7 +444,6 @@ onMounted(() => {
   border: 1px solid var(--p-surface-border);
   border-radius: var(--p-border-radius);
   padding: 12px;
-  flex: 1;
   
   .table-title {
     font-weight: 600;
@@ -345,6 +464,54 @@ onMounted(() => {
   border-radius: 4px;
 }
 
+.id-badge {
+  display: inline-block;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--p-primary-color);
+  background: rgba(var(--p-primary-color-rgb, 99, 102, 241), 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.use-count {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--p-text-muted-color);
+  background: var(--p-surface-100);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.pagination-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--p-surface-card);
+  border: 1px solid var(--p-surface-border);
+  border-radius: var(--p-border-radius);
+  padding: 8px 12px;
+  
+  .pagination-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--p-text-muted-color);
+    
+    .page-size-select {
+      width: 100px;
+    }
+    
+    .total-info {
+      font-weight: 500;
+      color: var(--p-text-color);
+    }
+  }
+}
+
 .action-bar {
   display: flex;
   align-items: center;
@@ -362,5 +529,11 @@ onMounted(() => {
     font-size: 13px;
     color: var(--p-text-muted-color);
   }
+}
+
+:deep(.p-paginator) {
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 </style>

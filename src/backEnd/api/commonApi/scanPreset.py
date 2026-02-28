@@ -142,19 +142,35 @@ async def get_preset_configs(
 
 @router.get("/history", summary="获取历史配置列表")
 async def get_history_configs(
-    limit: int = Query(20, ge=1, le=100, description="返回数量限制"),
+    page: int = Query(1, ge=1, description="页码"),
+    page_size: int = Query(10, ge=1, le=100, description="每页数量"),
+    sort_field: str = Query("last_used_at", description="排序字段"),
+    sort_order: str = Query("desc", regex="^(asc|desc)$", description="排序方向"),
     current_user: dict = Depends(get_current_user)
 ):
-    """获取历史配置列表"""
+    """
+    获取历史配置列表（带分页和排序）
+    
+    支持的排序字段：id, name, created_at, updated_at, last_used_at, use_count
+    """
     try:
-        presets = scanPresetService.get_history_configs(limit)
+        offset = (page - 1) * page_size
+        presets, total = scanPresetService.get_history_configs(
+            limit=page_size,
+            offset=offset,
+            sort_field=sort_field,
+            sort_order=sort_order
+        )
         return BaseResponseMsg(
             success=True,
             code=http_status.HTTP_200_OK,
             msg="获取成功",
             data={
                 "presets": [p.model_dump() for p in presets],
-                "total": len(presets)
+                "total": total,
+                "page": page,
+                "page_size": page_size,
+                "total_pages": (total + page_size - 1) // page_size if page_size > 0 else 0
             }
         )
     except Exception as e:

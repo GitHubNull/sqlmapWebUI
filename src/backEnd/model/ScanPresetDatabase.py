@@ -271,15 +271,53 @@ class ScanPresetDatabase(Database):
         presets = self.get_presets_by_type(PresetType.DEFAULT)
         return presets[0] if presets else None
     
-    def get_history_presets(self, limit: int = 20) -> List[ScanPreset]:
-        """获取历史配置"""
+    def get_history_presets(
+        self,
+        limit: int = 20,
+        offset: int = 0,
+        sort_field: str = "last_used_at",
+        sort_order: str = "desc"
+    ) -> tuple[List[ScanPreset], int]:
+        """
+        获取历史配置（带分页和排序）
+        
+        Args:
+            limit: 每页数量
+            offset: 偏移量
+            sort_field: 排序字段 (id, name, created_at, updated_at, last_used_at, use_count)
+            sort_order: 排序方向 (asc, desc)
+        
+        Returns:
+            tuple: (预设列表, 总数)
+        """
+        # 验证排序字段，防止SQL注入
+        valid_sort_fields = {
+            "id": "id",
+            "name": "name",
+            "created_at": "created_at",
+            "updated_at": "updated_at",
+            "last_used_at": "last_used_at",
+            "use_count": "use_count"
+        }
+        
+        order_field = valid_sort_fields.get(sort_field, "last_used_at")
+        order_direction = "DESC" if sort_order.lower() == "desc" else "ASC"
+        
         try:
+            # 先获取总数
+            count_cursor = self.only_execute(
+                "SELECT COUNT(*) FROM scan_presets WHERE preset_type = ? AND is_active = 1",
+                (PresetType.HISTORY.value,)
+            )
+            total = count_cursor.fetchone()[0] if count_cursor else 0
+            
+            # 获取分页数据
             cursor = self.only_execute(
                 f"""SELECT {_PRESET_COLUMNS} FROM scan_presets 
                    WHERE preset_type = ? AND is_active = 1 
-                   ORDER BY last_used_at DESC 
-                   LIMIT ?""",
-                (PresetType.HISTORY.value, limit)
+                   ORDER BY {order_field} {order_direction}
+                   LIMIT ? OFFSET ?""",
+                (PresetType.HISTORY.value, limit, offset)
             )
             
             presets = []
@@ -288,11 +326,11 @@ class ScanPresetDatabase(Database):
                     preset = self._row_to_preset(row)
                     if preset:
                         presets.append(preset)
-            return presets
+            return presets, total
             
         except Exception as e:
             logger.error(f"Failed to get history presets: {getSafeExString(e)}")
-            return []
+            return [], 0
     
     def update_preset(self, preset_id: int, data: ScanPresetUpdate) -> Optional[ScanPreset]:
         """更新预设配置"""

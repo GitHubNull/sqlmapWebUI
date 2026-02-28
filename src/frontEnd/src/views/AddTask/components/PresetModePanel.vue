@@ -108,7 +108,10 @@
             @click="handleSelect(preset)"
           >
             <div class="preset-card-header">
-              <span class="preset-name">{{ preset.name }}</span>
+              <span class="preset-name">
+                <span class="preset-id">#{{ preset.id }}</span>
+                {{ preset.name }}
+              </span>
               <Tag severity="warn" value="历史" />
             </div>
             <div class="preset-card-params">
@@ -300,6 +303,18 @@ function handleSelect(preset: ScanPreset) {
   font-weight: 500;
   color: var(--text-color);
   font-size: 0.95rem;
+}
+
+.preset-id {
+  display: inline-block;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--p-primary-color);
+  background: rgba(var(--p-primary-color-rgb, 99, 102, 241), 0.1);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-right: 0.5rem;
 }
 
 .preset-card-desc {

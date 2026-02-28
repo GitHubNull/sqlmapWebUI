@@ -52,9 +52,26 @@ class ScanPresetService:
         """获取常用配置列表"""
         return self.db.get_presets_by_type(PresetType.PRESET)
     
-    def get_history_configs(self, limit: int = 20) -> List[ScanPreset]:
-        """获取历史配置列表"""
-        return self.db.get_history_presets(limit)
+    def get_history_configs(
+        self,
+        limit: int = 20,
+        offset: int = 0,
+        sort_field: str = "last_used_at",
+        sort_order: str = "desc"
+    ) -> tuple[List[ScanPreset], int]:
+        """
+        获取历史配置列表（带分页和排序）
+        
+        Args:
+            limit: 每页数量
+            offset: 偏移量
+            sort_field: 排序字段
+            sort_order: 排序方向
+        
+        Returns:
+            tuple: (预设列表, 总数)
+        """
+        return self.db.get_history_presets(limit, offset, sort_field, sort_order)
     
     def get_default_preset(self) -> Optional[ScanPreset]:
         """获取默认配置"""
