@@ -11,7 +11,7 @@ import java.awt.geom.*;
  */
 public class AboutDialog extends JDialog {
     
-    private static final String VERSION = "1.8.39";
+    private static final String VERSION = "1.8.40";
     
     /**
      * 自定义Logo组件 - 绘制盾牌+注入针头图标
