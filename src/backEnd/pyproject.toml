@@ -3,7 +3,9 @@ name = "sqlmapwebui"
 version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+    "psutil",
+]
 
 [project.optional-dependencies]
 thirdparty = [

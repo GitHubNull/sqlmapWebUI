@@ -3,6 +3,35 @@ import sys
 import tempfile
 import os
 
+
+def disable_windows_quick_edit():
+    """
+    禁用 Windows 控制台的 Quick Edit Mode。
+    Quick Edit Mode 会导致点击控制台窗口时进程输出被暂停，
+    必须按 Enter 才能恢复，这会导致后端服务卡住。
+    """
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+        kernel32 = ctypes.windll.kernel32
+        # STD_INPUT_HANDLE = -10
+        handle = kernel32.GetStdHandle(-10)
+        mode = ctypes.c_ulong()
+        if kernel32.GetConsoleMode(handle, ctypes.byref(mode)):
+            # ENABLE_QUICK_EDIT_MODE = 0x0040
+            # ENABLE_EXTENDED_FLAGS = 0x0080 (必须设置才能修改 Quick Edit)
+            mode.value &= ~0x0040  # 禁用 Quick Edit
+            mode.value |= 0x0080   # 启用 Extended Flags
+            kernel32.SetConsoleMode(handle, mode)
+            print("[INFO] Windows Quick Edit Mode 已禁用，控制台点击不会再暂停进程")
+    except Exception as e:
+        print(f"[WARNING] 无法禁用 Quick Edit Mode: {e}")
+
+
+# 在服务启动前禁用 Windows Quick Edit Mode
+disable_windows_quick_edit()
+
 # 配置 Python 模块导入路径 - 必须在所有项目模块导入之前完成
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sqlmap_path = os.path.join(current_dir, "third_lib", "sqlmap")
@@ -164,7 +193,9 @@ def main(username, password):
 
         uvicorn.run(app=app, host="127.0.0.1", port=8775, reload=False, log_config='./uvicorn_config.json')
     except Exception as e:
-        print(e)
+        import traceback
+        print(f"\n[ERROR] 服务启动失败: {e}")
+        traceback.print_exc()
 
 if __name__ == "__main__":
     username = "admin"
