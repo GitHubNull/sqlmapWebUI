@@ -31,13 +31,6 @@ if %errorlevel% neq 0 (
 for /f "tokens=2" %%i in ('python --version 2^>^&1') do set PYTHON_VERSION=%%i
 echo [信息] 检测到 Python %PYTHON_VERSION%
 
-:: 检查依赖
-python -c "import flask" >nul 2>&1
-if %errorlevel% neq 0 (
-    echo [信息] 正在安装 Flask 依赖...
-    pip install flask -q
-)
-
 :: 启动服务器
 echo.
 echo [信息] 正在启动 VulnShop 靶场服务...
