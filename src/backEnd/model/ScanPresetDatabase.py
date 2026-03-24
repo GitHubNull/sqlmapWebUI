@@ -37,11 +37,13 @@ class ScanPresetDatabase(Database):
         if self._initialized:
             return
             
-        # 如果没有指定数据库路径，使用默认路径
+        # 如果没有指定数据库路径，使用 sqlite_dbs 目录下的默认路径
         if database_path is None:
             current_dir = os.path.dirname(os.path.abspath(__file__))
             project_dir = os.path.dirname(current_dir)
-            database_path = os.path.join(project_dir, "scan_presets.db")
+            sqlite_dbs_dir = os.path.join(project_dir, "sqlite_dbs")
+            os.makedirs(sqlite_dbs_dir, exist_ok=True)
+            database_path = os.path.join(sqlite_dbs_dir, "scan_presets.db")
         
         super().__init__(database_path)
         self.database_path = database_path
@@ -605,10 +607,10 @@ class ScanPresetDatabase(Database):
 _scan_preset_db: Optional[ScanPresetDatabase] = None
 
 
-def get_scan_preset_db() -> ScanPresetDatabase:
+def get_scan_preset_db(database_path=None) -> ScanPresetDatabase:
     """获取扫描配置预设数据库实例"""
     global _scan_preset_db
     if _scan_preset_db is None:
-        _scan_preset_db = ScanPresetDatabase()
+        _scan_preset_db = ScanPresetDatabase(database_path=database_path)
         _scan_preset_db.init()
     return _scan_preset_db

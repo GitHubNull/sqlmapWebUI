@@ -132,25 +132,29 @@ def main(username, password):
         global_username = username
         global_password = password
 
-        _, Database.filepath = tempfile.mkstemp(prefix=MKSTEMP_PREFIX.IPC, text=False)
-        os.close(_)
+        # 创建 sqlite_dbs 目录（所有数据库文件统一存放）
+        sqlite_dbs_dir = os.path.join(current_dir, "sqlite_dbs")
+        os.makedirs(sqlite_dbs_dir, exist_ok=True)
+        logger.info(f"[*] SQLite database directory: {sqlite_dbs_dir}")
 
-        # Initialize IPC database
-        # pdb.set_trace()
+        # Initialize IPC database (固定存储到 sqlite_dbs 目录)
+        Database.filepath = os.path.join(sqlite_dbs_dir, f"{MKSTEMP_PREFIX.IPC}ipc.db")
         DataStore.current_db = Database()
         logger.info(f"id(DataStore.current_db): {id(DataStore.current_db)}")
         DataStore.current_db.connect()
         DataStore.current_db.init()
         logger.info("[*] IPC database initialized")
         
-        # Initialize Header database
-        DataStore.header_db = HeaderDatabase()
+        # Initialize Header database (存储到 sqlite_dbs 目录)
+        header_db_path = os.path.join(sqlite_dbs_dir, "headers.db")
+        DataStore.header_db = HeaderDatabase(database_path=header_db_path)
         DataStore.header_db.connect()
         DataStore.header_db.init()
         logger.info("[*] Header database initialized")
         
-        # Initialize Scan Preset database
-        DataStore.scan_preset_db = get_scan_preset_db()
+        # Initialize Scan Preset database (存储到 sqlite_dbs 目录)
+        scan_preset_db_path = os.path.join(sqlite_dbs_dir, "scan_presets.db")
+        DataStore.scan_preset_db = get_scan_preset_db(database_path=scan_preset_db_path)
         logger.info("[*] Scan preset database initialized")
 
         scheduler = BackgroundScheduler()

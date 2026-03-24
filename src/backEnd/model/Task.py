@@ -76,6 +76,10 @@ class Task(object):
         
         logger.debug(f"[{self.taskid}] Task initialization completed")
 
+    
+    def __str__(self):
+        return f"Task(taskid={self.taskid}, status={self.status}, create_datetime={self.create_datetime}, start_datetime={self.start_datetime}, scanUrl={self.scanUrl}, host={self.host}, method={self.method}, headers={self.headers}, body={self.body}, remote_addr={self.remote_addr}, process={self.process}, output_directory={self.output_directory}, options={self.options}, _original_options={self._original_options}, _user_set_options={self._user_set_options}, _header_rules_applied={self._header_rules_applied}, _body_field_rules_applied={self._body_field_rules_applied}, _request_file_path={self._request_file_path})"
+
     def initialize_options(self, taskid):
         datatype = {"boolean": False, "string": None, "integer": None, "float": None}
         self.options = AttribDict()

@@ -12,13 +12,13 @@ class HeaderDatabase(Database):
     """独立的请求头管理数据库"""
     
     def __init__(self, database_path=None):
-        # 如果没有指定数据库路径，则使用程序所在目录下的headers.db文件
+        # 如果没有指定数据库路径，则使用 sqlite_dbs 目录下的 headers.db 文件
         if database_path is None:
-            # 获取当前脚本所在目录
             current_dir = os.path.dirname(os.path.abspath(__file__))
-            # 确保是src目录的上一级目录
             project_dir = os.path.dirname(current_dir)
-            database_path = os.path.join(project_dir, "headers.db")
+            sqlite_dbs_dir = os.path.join(project_dir, "sqlite_dbs")
+            os.makedirs(sqlite_dbs_dir, exist_ok=True)
+            database_path = os.path.join(sqlite_dbs_dir, "headers.db")
         
         super().__init__(database_path)
         self.database_path = database_path

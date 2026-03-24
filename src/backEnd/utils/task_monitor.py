@@ -34,7 +34,7 @@ def get_max_tasks_count():
 
 
 def monitor(max_tasks_count=None):
-    # logger.info("monitor...")
+    logger.debug("monitor triggered...")
     # logger.debug(f"monitor -> id(DataStore.tasks): {id(DataStore.tasks)}")
     # logger.debug(f"monitor -> id(DataStore.current_db): {id(DataStore.current_db)}")
     local_max_tasks_count = 0
@@ -56,7 +56,6 @@ def monitor(max_tasks_count=None):
     with DataStore.tasks_lock:
         runnable_list = []
         running_task_cnt = 0
-
         for taskid in DataStore.tasks:
             task = DataStore.tasks[taskid]
             task_orin_status = task.status
@@ -87,7 +86,8 @@ def monitor(max_tasks_count=None):
                         continue
                 else:
                     running_task_cnt += 1
-                    # logger.debug(f"monitor -> task_id: {task.options.taskid} task.start_datetime: {task.start_datetime}")
+                    logger.debug(f"monitor -> task_id: {task.options.taskid} task.start_datetime: {task.start_datetime}")
+                    logger.debug(f"monitor -> task_info: {task}")
                     task.start_datetime = datetime.now()
                     task.engine_start()
                     task.status = TaskStatus.Running
