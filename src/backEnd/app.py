@@ -30,13 +30,12 @@ async def lifespan(app: FastAPI):
     """FastAPI 生命周期管理"""
     # 启动时，从配置加载刷新间隔
     initial_interval = get_refresh_interval()
-    print(f"[WebSocket] 启动 WebSocket 管理器，刷新间隔: {initial_interval} 分钟")
+    logger.info(f"启动 WebSocket 管理器，刷新间隔: {initial_interval} 分钟")
     ws_manager.start(initial_interval)
     logger.info(f"WebSocket 管理器已启动，刷新间隔: {initial_interval} 分钟")
     yield
     # 关闭时
     await ws_manager.stop()
-    print("[WebSocket] WebSocket 管理器已停止")
     logger.info("WebSocket 管理器已停止")
 
 app = FastAPI(lifespan=lifespan)

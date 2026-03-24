@@ -155,30 +155,24 @@ class WebSocketManager:
     
     async def _refresh_loop(self) -> None:
         """定时刷新循环"""
-        print(f"[WebSocket] 定时刷新循环已启动，间隔: {self._refresh_interval} 分钟")
         logger.info(f"定时刷新循环已启动，间隔: {self._refresh_interval} 分钟")
         while self._is_running:
             try:
                 # 等待指定的刷新间隔（转换为秒）
                 wait_seconds = self._refresh_interval * 60
-                print(f"[WebSocket] 下一次刷新将在 {self._refresh_interval} 分钟后 ({wait_seconds}秒)")
-                logger.info(f"下一次刷新将在 {self._refresh_interval} 分钟后 ({wait_seconds}秒)")
+                logger.debug(f"下一次刷新将在 {self._refresh_interval} 分钟后 ({wait_seconds}秒)")
                 await asyncio.sleep(wait_seconds)
                 
                 # 只有有连接时才广播
                 if self._active_connections:
-                    print(f"[WebSocket] 定时刷新触发，准备广播到 {self.connection_count} 个连接")
                     logger.info(f"定时刷新触发，准备广播到 {self.connection_count} 个连接")
                     await self.broadcast_refresh()
                 else:
-                    print("[WebSocket] 定时刷新触发，但没有活跃连接，跳过广播")
                     logger.info("定时刷新触发，但没有活跃连接，跳过广播")
             except asyncio.CancelledError:
-                print("[WebSocket] 定时刷新任务被取消")
                 logger.info("定时刷新任务被取消")
                 break
             except Exception as e:
-                print(f"[WebSocket] 定时刷新循环出错: {e}")
                 logger.error(f"定时刷新循环出错: {e}")
                 await asyncio.sleep(5)  # 出错后短暂等待再重试
     
@@ -193,7 +187,6 @@ class WebSocketManager:
                 self._refresh_interval = max(1, min(60, initial_interval))
             self._is_running = True
             self._refresh_task = asyncio.create_task(self._refresh_loop())
-            print(f"[WebSocket] WebSocket 管理器已启动，刷新间隔: {self._refresh_interval}分钟")
             logger.info(f"WebSocket 管理器已启动，刷新间隔: {self._refresh_interval}分钟")
     
     async def stop(self) -> None:

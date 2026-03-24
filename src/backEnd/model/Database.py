@@ -1,8 +1,11 @@
+import logging
 import sqlite3
 import threading
 import time
 
-from third_lib.sqlmap.lib.core.data import logger
+from third_lib.sqlmap.lib.core.data import logger as sqlmap_logger
+
+logger = logging.getLogger(__name__)
 from third_lib.sqlmap.lib.core.common import getSafeExString
 
 
@@ -33,6 +36,8 @@ class Database(object):
         self.connection.commit()
 
     def execute(self, statement, arguments=None):
+        max_retries = 5
+        retry_count = 0
         with self.lock:
             while True:
                 try:
@@ -44,7 +49,13 @@ class Database(object):
                     if "locked" not in getSafeExString(ex):
                         raise
                     else:
-                        time.sleep(1)
+                        retry_count += 1
+                        if retry_count > max_retries:
+                            logger.error(f"Database locked after {max_retries} retries, giving up")
+                            raise sqlite3.OperationalError(f"Database locked after {max_retries} retries")
+                        wait_time = min(0.05 * (2 ** retry_count), 1.0)
+                        logger.warning(f"Database locked, retry {retry_count}/{max_retries} after {wait_time:.2f}s")
+                        time.sleep(wait_time)
                 else:
                     break
 
@@ -52,6 +63,8 @@ class Database(object):
             return self.cursor.fetchall()
 
     def only_execute(self, statement, arguments=None):
+        max_retries = 5
+        retry_count = 0
         with self.lock:
             while True:
                 try:
@@ -63,7 +76,13 @@ class Database(object):
                     if "locked" not in getSafeExString(ex):
                         raise
                     else:
-                        time.sleep(1)
+                        retry_count += 1
+                        if retry_count > max_retries:
+                            logger.error(f"Database locked after {max_retries} retries, giving up")
+                            raise sqlite3.OperationalError(f"Database locked after {max_retries} retries")
+                        wait_time = min(0.05 * (2 ** retry_count), 1.0)
+                        logger.warning(f"Database locked, retry {retry_count}/{max_retries} after {wait_time:.2f}s")
+                        time.sleep(wait_time)
                 else:
                     break
 
@@ -71,11 +90,16 @@ class Database(object):
 
     def init(self):
         self.execute(
-            "CREATE TABLE logs(id INTEGER PRIMARY KEY AUTOINCREMENT, taskid INTEGER, datetime TEXT, level TEXT, message TEXT)")
+            "CREATE TABLE IF NOT EXISTS logs(id INTEGER PRIMARY KEY AUTOINCREMENT, taskid INTEGER, datetime TEXT, level TEXT, message TEXT)")
         self.execute(
-            "CREATE TABLE data(id INTEGER PRIMARY KEY AUTOINCREMENT, taskid INTEGER, status INTEGER, content_type INTEGER, value TEXT)")
+            "CREATE TABLE IF NOT EXISTS data(id INTEGER PRIMARY KEY AUTOINCREMENT, taskid INTEGER, status INTEGER, content_type INTEGER, value TEXT)")
         self.execute(
-            "CREATE TABLE errors(id INTEGER PRIMARY KEY AUTOINCREMENT, taskid INTEGER, error TEXT)")
+            "CREATE TABLE IF NOT EXISTS errors(id INTEGER PRIMARY KEY AUTOINCREMENT, taskid INTEGER, error TEXT)")
+        
+        # IPC 表是进程间临时通信数据，每次启动时清空旧数据，避免无限增长
+        self.execute("DELETE FROM logs")
+        self.execute("DELETE FROM data")
+        self.execute("DELETE FROM errors")
         
         # 创建持久化请求头规则表
         self.execute("""

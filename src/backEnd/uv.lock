@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.10"
 
 [[package]]
@@ -815,6 +815,9 @@ wheels = [
 name = "sqlmapwebui"
 version = "0.1.0"
 source = { virtual = "." }
+dependencies = [
+    { name = "psutil" },
+]
 
 [package.optional-dependencies]
 thirdparty = [
@@ -829,6 +832,7 @@ requires-dist = [
     { name = "apscheduler", marker = "extra == 'thirdparty'" },
     { name = "fastapi", extras = ["standard"], marker = "extra == 'thirdparty'" },
     { name = "jsonpath-ng", marker = "extra == 'thirdparty'" },
+    { name = "psutil" },
     { name = "psutil", marker = "extra == 'thirdparty'" },
 ]
 provides-extras = ["thirdparty"]

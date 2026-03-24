@@ -3,9 +3,18 @@ import os
 from model.TaskStatus import TaskStatus
 from third_lib.sqlmap.lib.core.data import logger
 
-import psutil
-
 from model.DataStore import DataStore
+
+# psutil 导入容错处理
+try:
+    import psutil
+    # 模块级别预热：psutil.cpu_percent 首次调用 interval=0 会返回 0.0（无意义）
+    # 需要先执行一次 interval=1 的调用来初始化内部状态
+    psutil.cpu_percent(interval=1)
+    _has_psutil = True
+except ImportError:
+    psutil = None
+    _has_psutil = False
 
 
 def get_max_tasks_count():
@@ -17,8 +26,11 @@ def get_max_tasks_count():
     # 获取逻辑核心数
     logical_cores = os.cpu_count() or 1
 
-    # 获取当前 CPU 平均占用率（过去 1 秒的平均值）
-    cpu_usage = psutil.cpu_percent(interval=1)
+    # 获取当前 CPU 平均占用率（非阻塞，立即返回）
+    if _has_psutil:
+        cpu_usage = psutil.cpu_percent(interval=0)
+    else:
+        cpu_usage = 50  # psutil 不可用时，默认假设 50% CPU 使用率
 
     # 根据 CPU 使用率动态调整最大任务数
     # 如果 CPU 使用率较高，则减少最大任务数
