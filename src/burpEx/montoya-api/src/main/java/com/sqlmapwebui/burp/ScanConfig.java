@@ -1502,7 +1502,7 @@ public class ScanConfig {
         if (titles) sb.append("--titles ");
         
         // Injection
-        if (!testParameter.isEmpty()) sb.append("-p=").append(testParameter).append(" ");
+        if (!testParameter.isEmpty()) sb.append("-p ").append(testParameter).append(" ");
         if (!skip.isEmpty()) sb.append("--skip=").append(skip).append(" ");
         if (skipStatic) sb.append("--skip-static ");
         if (!paramExclude.isEmpty()) sb.append("--param-exclude=").append(paramExclude).append(" ");
@@ -1544,9 +1544,9 @@ public class ScanConfig {
         if (getColumns) sb.append("--columns ");
         if (dumpTable) sb.append("--dump ");
         if (dumpAll) sb.append("--dump-all ");
-        if (!db.isEmpty()) sb.append("-D=").append(db).append(" ");
-        if (!tbl.isEmpty()) sb.append("-T=").append(tbl).append(" ");
-        if (!col.isEmpty()) sb.append("-C=").append(col).append(" ");
+        if (!db.isEmpty()) sb.append("-D ").append(db).append(" ");
+        if (!tbl.isEmpty()) sb.append("-T ").append(tbl).append(" ");
+        if (!col.isEmpty()) sb.append("-C ").append(col).append(" ");
         
         // General
         if (batch) sb.append("--batch ");
@@ -1554,18 +1554,18 @@ public class ScanConfig {
         if (crawlDepth > 0) sb.append("--crawl=").append(crawlDepth).append(" ");
         if (flushSession) sb.append("--flush-session ");
         if (freshQueries) sb.append("--fresh-queries ");
-        if (verbose != 1) sb.append("-v=").append(verbose).append(" ");
+        if (verbose != 1) sb.append("-v ").append(verbose).append(" ");
         
         // Target
-        if (!direct.isEmpty()) sb.append("-d=").append(direct).append(" ");
-        if (!logFile.isEmpty()) sb.append("-l=").append(logFile).append(" ");
-        if (!bulkFile.isEmpty()) sb.append("-m=").append(bulkFile).append(" ");
-        if (!sessionFile.isEmpty()) sb.append("-s=").append(sessionFile).append(" ");
-        if (!googleDork.isEmpty()) sb.append("-g=").append(googleDork).append(" ");
-        if (!configFile.isEmpty()) sb.append("-c=").append(configFile).append(" ");
+        if (!direct.isEmpty()) sb.append("-d ").append(direct).append(" ");
+        if (!logFile.isEmpty()) sb.append("-l ").append(logFile).append(" ");
+        if (!bulkFile.isEmpty()) sb.append("-m ").append(bulkFile).append(" ");
+        if (!sessionFile.isEmpty()) sb.append("-s ").append(sessionFile).append(" ");
+        if (!googleDork.isEmpty()) sb.append("-g ").append(googleDork).append(" ");
+        if (!configFile.isEmpty()) sb.append("-c ").append(configFile).append(" ");
         
         // General Extended
-        if (!trafficFile.isEmpty()) sb.append("-t=").append(trafficFile).append(" ");
+        if (!trafficFile.isEmpty()) sb.append("-t ").append(trafficFile).append(" ");
         if (abortOnEmpty) sb.append("--abort-on-empty ");
         if (!answers.isEmpty()) sb.append("--answers=").append(answers).append(" ");
         if (!base64Parameter.isEmpty()) sb.append("--base64=").append(base64Parameter).append(" ");
@@ -1671,10 +1671,10 @@ public class ScanConfig {
         if (search) sb.append("--search ");
         if (getComments) sb.append("--comments ");
         if (getStatements) sb.append("--statements ");
-        if (!exclude.isEmpty()) sb.append("-X=").append(exclude).append(" ");
+        if (!exclude.isEmpty()) sb.append("-X ").append(exclude).append(" ");
         if (!pivotColumn.isEmpty()) sb.append("--pivot-column=").append(pivotColumn).append(" ");
         if (!dumpWhere.isEmpty()) sb.append("--where=").append(dumpWhere).append(" ");
-        if (!user.isEmpty()) sb.append("-U=").append(user).append(" ");
+        if (!user.isEmpty()) sb.append("-U ").append(user).append(" ");
         if (excludeSysDbs) sb.append("--exclude-sysdbs ");
         if (limitStart > 0) sb.append("--start=").append(limitStart).append(" ");
         if (limitStop > 0) sb.append("--stop=").append(limitStop).append(" ");
@@ -1730,7 +1730,7 @@ public class ScanConfig {
         if (!resultsFile.isEmpty()) sb.append("--results-file=").append(resultsFile).append(" ");
         if (!tmpDir.isEmpty()) sb.append("--tmp-dir=").append(tmpDir).append(" ");
         if (unstable) sb.append("--unstable ");
-        if (!mnemonics.isEmpty()) sb.append("-z=").append(mnemonics).append(" ");
+        if (!mnemonics.isEmpty()) sb.append("-z ").append(mnemonics).append(" ");
         
         return sb.toString().trim();
     }

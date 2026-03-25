@@ -26,6 +26,16 @@ public class ConfigManager {
     private static final String KEY_SCAN_CONFIG_SOURCE = "scanConfigSource";  // 扫描配置来源
     private static final String KEY_SELECTED_PRESET_NAME = "selectedPresetName";  // 选中的常用配置名称
     
+    // ==================== 剪贴板功能配置 ====================
+    private static final String KEY_CLIPBOARD_AUTO_COPY = "clipboardAutoCopy";  // 是否自动复制
+    private static final String KEY_CLIPBOARD_TEMP_DIR = "clipboardTempDir";  // 临时目录
+    
+    // ==================== 直接执行功能配置 ====================
+    private static final String KEY_DIRECT_PYTHON_PATH = "directPythonPath";  // Python路径
+    private static final String KEY_DIRECT_SQLMAP_PATH = "directSqlmapPath";  // SQLMap路径
+    private static final String KEY_DIRECT_TERMINAL_TYPE = "directTerminalType";  // 终端类型
+    private static final String KEY_DIRECT_KEEP_TERMINAL = "directKeepTerminal";  // 保持终端打开
+    
     // 历史记录数量限制
     public static final int MIN_HISTORY_SIZE = 3;
     public static final int MAX_HISTORY_SIZE = 32;
@@ -58,6 +68,29 @@ public class ConfigManager {
     
     // 连接状态
     private boolean connected = false;
+    
+    // ==================== 剪贴板功能配置 ====================
+    private boolean clipboardAutoCopy = true;  // 是否自动复制到剪贴板（默认自动）
+    private String clipboardTempDir = "";  // 临时文件目录（空则使用系统默认）
+    
+    // ==================== 直接执行功能配置 ====================
+    private String directPythonPath = "";  // Python解释器路径
+    private String directSqlmapPath = "";  // SQLMap脚本路径
+    private TerminalType directTerminalType = TerminalType.AUTO;  // 终端类型
+    private boolean directKeepTerminal = true;  // 执行后保持终端打开
+    
+    /**
+     * 终端类型枚举
+     */
+    public enum TerminalType {
+        AUTO,           // 自动检测操作系统
+        CMD,            // Windows CMD
+        POWERSHELL,     // Windows PowerShell
+        GNOME_TERMINAL, // Linux GNOME Terminal
+        XTERM,          // Linux xterm
+        TERMINAL_APP,   // macOS Terminal.app
+        ITERM            // macOS iTerm2
+    }
     
     /**
      * 扫描配置来源枚举
@@ -183,6 +216,42 @@ public class ConfigManager {
             } catch (Exception e) {
                 historyConfigs = new ArrayList<>();
             }
+        }
+
+        // ==================== 加载剪贴板功能配置 ====================
+        String savedClipboardAutoCopy = callbacks.loadExtensionSetting(KEY_CLIPBOARD_AUTO_COPY);
+        if (savedClipboardAutoCopy != null && !savedClipboardAutoCopy.isEmpty()) {
+            clipboardAutoCopy = Boolean.parseBoolean(savedClipboardAutoCopy);
+        }
+
+        String savedClipboardTempDir = callbacks.loadExtensionSetting(KEY_CLIPBOARD_TEMP_DIR);
+        if (savedClipboardTempDir != null && !savedClipboardTempDir.isEmpty()) {
+            clipboardTempDir = savedClipboardTempDir;
+        }
+
+        // ==================== 加载直接执行功能配置 ====================
+        String savedDirectPythonPath = callbacks.loadExtensionSetting(KEY_DIRECT_PYTHON_PATH);
+        if (savedDirectPythonPath != null && !savedDirectPythonPath.isEmpty()) {
+            directPythonPath = savedDirectPythonPath;
+        }
+
+        String savedDirectSqlmapPath = callbacks.loadExtensionSetting(KEY_DIRECT_SQLMAP_PATH);
+        if (savedDirectSqlmapPath != null && !savedDirectSqlmapPath.isEmpty()) {
+            directSqlmapPath = savedDirectSqlmapPath;
+        }
+
+        String savedDirectTerminalType = callbacks.loadExtensionSetting(KEY_DIRECT_TERMINAL_TYPE);
+        if (savedDirectTerminalType != null && !savedDirectTerminalType.isEmpty()) {
+            try {
+                directTerminalType = TerminalType.valueOf(savedDirectTerminalType);
+            } catch (IllegalArgumentException e) {
+                directTerminalType = TerminalType.AUTO;
+            }
+        }
+
+        String savedDirectKeepTerminal = callbacks.loadExtensionSetting(KEY_DIRECT_KEEP_TERMINAL);
+        if (savedDirectKeepTerminal != null && !savedDirectKeepTerminal.isEmpty()) {
+            directKeepTerminal = Boolean.parseBoolean(savedDirectKeepTerminal);
         }
     }
     
@@ -512,5 +581,99 @@ public class ConfigManager {
         public String toString() {
             return displayName;
         }
+    }
+
+    // ============ 剪贴板功能配置管理 ============
+
+    /**
+     * 获取是否自动复制到剪贴板
+     */
+    public boolean isClipboardAutoCopy() {
+        return clipboardAutoCopy;
+    }
+
+    /**
+     * 设置是否自动复制到剪贴板
+     */
+    public void setClipboardAutoCopy(boolean autoCopy) {
+        this.clipboardAutoCopy = autoCopy;
+        callbacks.saveExtensionSetting(KEY_CLIPBOARD_AUTO_COPY, String.valueOf(autoCopy));
+    }
+
+    /**
+     * 获取临时文件目录
+     */
+    public String getClipboardTempDir() {
+        return clipboardTempDir;
+    }
+
+    /**
+     * 设置临时文件目录
+     */
+    public void setClipboardTempDir(String tempDir) {
+        this.clipboardTempDir = tempDir != null ? tempDir : "";
+        callbacks.saveExtensionSetting(KEY_CLIPBOARD_TEMP_DIR, this.clipboardTempDir);
+    }
+
+    // ============ 直接执行功能配置管理 ============
+
+    /**
+     * 获取 Python 解释器路径
+     */
+    public String getDirectPythonPath() {
+        return directPythonPath;
+    }
+
+    /**
+     * 设置 Python 解释器路径
+     */
+    public void setDirectPythonPath(String path) {
+        this.directPythonPath = path != null ? path : "";
+        callbacks.saveExtensionSetting(KEY_DIRECT_PYTHON_PATH, this.directPythonPath);
+    }
+
+    /**
+     * 获取 SQLMap 脚本路径
+     */
+    public String getDirectSqlmapPath() {
+        return directSqlmapPath;
+    }
+
+    /**
+     * 设置 SQLMap 脚本路径
+     */
+    public void setDirectSqlmapPath(String path) {
+        this.directSqlmapPath = path != null ? path : "";
+        callbacks.saveExtensionSetting(KEY_DIRECT_SQLMAP_PATH, this.directSqlmapPath);
+    }
+
+    /**
+     * 获取终端类型
+     */
+    public TerminalType getDirectTerminalType() {
+        return directTerminalType;
+    }
+
+    /**
+     * 设置终端类型
+     */
+    public void setDirectTerminalType(TerminalType type) {
+        this.directTerminalType = type != null ? type : TerminalType.AUTO;
+        callbacks.saveExtensionSetting(KEY_DIRECT_TERMINAL_TYPE, this.directTerminalType.name());
+    }
+
+    /**
+     * 获取执行后是否保持终端打开
+     */
+    public boolean isDirectKeepTerminal() {
+        return directKeepTerminal;
+    }
+
+    /**
+     * 设置执行后是否保持终端打开
+     */
+    public void setDirectKeepTerminal(boolean keepTerminal) {
+        this.directKeepTerminal = keepTerminal;
+        callbacks.saveExtensionSetting(KEY_DIRECT_KEEP_TERMINAL, String.valueOf(keepTerminal));
     }
 }

@@ -16,7 +16,9 @@ import java.util.function.Consumer;
  * 2. 默认扫描配置
  * 3. 常用配置管理
  * 4. 历史配置管理
- * 5. 活动日志
+ * 5. 剪贴板功能配置（复制SQLMap命令）
+ * 6. 直接执行配置（终端执行SQLMap）
+ * 7. 活动日志
  * 
  * 采用模块化设计，各功能面板独立实现
  */
@@ -34,6 +36,10 @@ public class SqlmapUITab extends JPanel {
     private PresetConfigPanel presetConfigPanel;
     private HistoryConfigPanel historyConfigPanel;
     private LogPanel logPanel;
+    
+    // 新增：剪贴板和直接执行配置面板
+    private ClipboardConfigPanel clipboardConfigPanel;
+    private DirectExecuteConfigPanel directExecuteConfigPanel;
     
     // 状态标签
     private JLabel statusLabel;
@@ -92,7 +98,15 @@ public class SqlmapUITab extends JPanel {
         historyConfigPanel = new HistoryConfigPanel(configManager, apiClient, this::appendLog);
         tabbedPane.addTab("历史配置", historyConfigPanel);
         
-        // Tab 5: 活动日志
+        // Tab 5: 剪贴板功能配置
+        clipboardConfigPanel = new ClipboardConfigPanel(configManager, apiClient, this::appendLog);
+        tabbedPane.addTab("剪贴板配置", clipboardConfigPanel);
+        
+        // Tab 6: 直接执行配置
+        directExecuteConfigPanel = new DirectExecuteConfigPanel(configManager, apiClient, this::appendLog);
+        tabbedPane.addTab("直接执行配置", directExecuteConfigPanel);
+        
+        // Tab 7: 活动日志
         tabbedPane.addTab("活动日志", logPanel);
         
         add(tabbedPane, BorderLayout.CENTER);
