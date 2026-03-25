@@ -105,11 +105,28 @@ public final class CommandExecutor {
             String command,
             TerminalType terminalType,
             boolean keepTerminal) {
+        return executeInTerminal(command, terminalType, keepTerminal, null);
+    }
+
+    /**
+     * 在新终端窗口中执行命令（带自定义窗口标题）
+     *
+     * @param command 要执行的命令
+     * @param terminalType 终端类型
+     * @param keepTerminal 执行后是否保持终端打开
+     * @param title 终端窗口标题（可选）
+     * @return 执行结果
+     */
+    public static ExecutionResult executeInTerminal(
+            String command,
+            TerminalType terminalType,
+            boolean keepTerminal,
+            String title) {
 
         try {
             // 构建完整的终端命令
             String terminalCommand = SqlCommandBuilder.buildTerminalCommand(
-                    command, terminalType, keepTerminal);
+                    command, terminalType, keepTerminal, title);
 
             // 获取操作系统类型
             SqlCommandBuilder.OsType osType = SqlCommandBuilder.detectOs();
@@ -151,9 +168,26 @@ public final class CommandExecutor {
             String command,
             TerminalType terminalType,
             boolean keepTerminal) {
+        return executeInTerminalAsync(command, terminalType, keepTerminal, null);
+    }
+
+    /**
+     * 异步在新终端窗口中执行命令（带自定义窗口标题）
+     *
+     * @param command 要执行的命令
+     * @param terminalType 终端类型
+     * @param keepTerminal 执行后是否保持终端打开
+     * @param title 终端窗口标题（可选）
+     * @return 异步执行结果
+     */
+    public static CompletableFuture<ExecutionResult> executeInTerminalAsync(
+            String command,
+            TerminalType terminalType,
+            boolean keepTerminal,
+            String title) {
 
         return CompletableFuture.supplyAsync(() ->
-                executeInTerminal(command, terminalType, keepTerminal));
+                executeInTerminal(command, terminalType, keepTerminal, title));
     }
 
     /**

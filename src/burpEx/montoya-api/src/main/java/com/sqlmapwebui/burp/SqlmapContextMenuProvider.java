@@ -10,6 +10,8 @@ import com.sqlmapwebui.burp.dialogs.*;
 import com.sqlmapwebui.burp.util.CommandExecutor;
 import com.sqlmapwebui.burp.util.PayloadBuilder;
 import com.sqlmapwebui.burp.util.SqlCommandBuilder;
+import com.sqlmapwebui.burp.util.TitleConfig;
+import com.sqlmapwebui.burp.util.TitleExtractor;
 
 import javax.swing.*;
 import java.awt.*;
@@ -488,9 +490,14 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
                 ConfigManager.TerminalType terminalType = configManager.getDirectTerminalType();
                 boolean keepTerminal = configManager.isDirectKeepTerminal();
                 String tempDir = configManager.getClipboardTempDir();
+                
+                // 获取标题配置
+                TitleConfig titleConfig = configManager.getTitleConfig();
 
                 // 为每个请求执行SQLMap
+                int index = 0;
                 for (HttpRequestResponse message : messages) {
+                    index++;
                     HttpRequest request = message.request();
                     
                     // 构建HTTP请求内容
@@ -507,13 +514,26 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
                     String sqlmapCommand = SqlCommandBuilder.buildSqlMapCommand(
                         pythonPath, sqlmapPath, tempFilePath, additionalParams);
                     
-                    // 构建完整的终端命令
+                    // 提取窗口标题
+                    String baseTitle = TitleExtractor.extract(request, titleConfig);
+                    
+                    // 批量执行时添加序号后缀
+                    String windowTitle;
+                    if (messages.size() > 1) {
+                        windowTitle = baseTitle + "-" + index;
+                    } else {
+                        windowTitle = baseTitle;
+                    }
+                    
+                    // 构建完整的终端命令（带标题）
                     String terminalCommand = SqlCommandBuilder.buildTerminalCommand(
-                        sqlmapCommand, terminalType, keepTerminal);
+                        sqlmapCommand, terminalType, keepTerminal, windowTitle);
                     
                     final String url = request.url();
+                    final String finalWindowTitle = windowTitle;
                     SwingUtilities.invokeLater(() -> {
                         uiTab.appendLog("[+] 执行SQLMap扫描: " + url);
+                        uiTab.appendLog("    窗口标题: " + finalWindowTitle);
                         uiTab.appendLog("    临时文件: " + tempFilePath);
                     });
 
@@ -532,7 +552,7 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
                 }
 
                 SwingUtilities.invokeLater(() -> {
-                    uiTab.appendLog("[+] 所有SQLMap命令已启动");
+                    uiTab.appendLog("[+] 所有SQLMap命令已启动 (" + messages.size() + " 个)");
                 });
 
             } catch (Exception e) {

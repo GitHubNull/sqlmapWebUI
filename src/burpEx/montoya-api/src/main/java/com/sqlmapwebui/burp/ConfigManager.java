@@ -5,6 +5,10 @@ import burp.api.montoya.persistence.PersistedObject;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.sqlmapwebui.burp.util.TitleConfig;
+import com.sqlmapwebui.burp.util.TitleRule;
+import com.sqlmapwebui.burp.util.TitleSourceType;
+import com.sqlmapwebui.burp.util.RegexSource;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -37,6 +41,21 @@ public class ConfigManager {
     private static final String KEY_DIRECT_TERMINAL_TYPE = "directTerminalType";  // 终端类型
     private static final String KEY_DIRECT_KEEP_TERMINAL = "directKeepTerminal";  // 保持终端打开
     
+    // ==================== 终端窗口标题配置 ====================
+    private static final String KEY_TITLE_SOURCE_TYPE = "titleSourceType";     // 标题来源类型
+    private static final String KEY_TITLE_FIXED_VALUE = "titleFixedValue";     // 固定标题值
+    private static final String KEY_TITLE_PATH_SUB_START = "titlePathSubStart"; // URL路径子串起始位置
+    private static final String KEY_TITLE_PATH_SUB_END = "titlePathSubEnd";    // URL路径子串结束位置
+    private static final String KEY_TITLE_REGEX_PATTERN = "titleRegexPattern"; // 正则表达式模式
+    private static final String KEY_TITLE_REGEX_GROUP = "titleRegexGroup";     // 正则捕获组索引
+    private static final String KEY_TITLE_REGEX_SOURCE = "titleRegexSource";   // 正则匹配源
+    private static final String KEY_TITLE_JSON_PATH = "titleJsonPath";         // JSON Path 表达式
+    private static final String KEY_TITLE_XPATH = "titleXPath";                // XPath 表达式
+    private static final String KEY_TITLE_FORM_FIELD = "titleFormField";       // 表单字段名
+    private static final String KEY_TITLE_FALLBACK = "titleFallback";          // 回退标题
+    private static final String KEY_TITLE_MAX_LENGTH = "titleMaxLength";       // 标题最大长度
+    private static final String KEY_TITLE_RULES = "titleRules";                // 标题提取规则列表 (JSON)
+    
     // 历史记录数量限制
     public static final int MIN_HISTORY_SIZE = 3;
     public static final int MAX_HISTORY_SIZE = 32;
@@ -53,7 +72,7 @@ public class ConfigManager {
     private final Gson gson;
     
     // 配置数据
-    private String backendUrl = "http://localhost:5000";
+    private String backendUrl = "http://localhost:8775";
     private int maxHistorySize = DEFAULT_HISTORY_SIZE;
     private boolean autoDedupe = true; // 默认开启自动去重
     private int maxInjectionMarkCount = DEFAULT_INJECTION_MARK_COUNT; // 多选报文时允许标记注入点的最大数量
@@ -81,6 +100,21 @@ public class ConfigManager {
     private String directSqlmapPath = "";  // SQLMap脚本路径
     private TerminalType directTerminalType = TerminalType.AUTO;  // 终端类型
     private boolean directKeepTerminal = true;  // 执行后保持终端打开
+    
+    // ==================== 终端窗口标题配置 ====================
+    private TitleSourceType titleSourceType = TitleSourceType.URL_PATH;  // 标题来源类型
+    private String titleFixedValue = "SQLMap";           // 固定标题值
+    private String titlePathSubStart = "0";              // URL路径子串起始位置
+    private String titlePathSubEnd = "-0";               // URL路径子串结束位置
+    private String titleRegexPattern = "";               // 正则表达式模式
+    private int titleRegexGroup = 1;                     // 正则捕获组索引
+    private RegexSource titleRegexSource = RegexSource.URL;  // 正则匹配源
+    private String titleJsonPath = "$.api";              // JSON Path 表达式
+    private String titleXPath = "//method";              // XPath 表达式
+    private String titleFormField = "action";            // 表单字段名
+    private String titleFallback = "SQLMap";             // 回退标题
+    private int titleMaxLength = 50;                     // 标题最大长度
+    private List<TitleRule> titleRules = null;           // 标题提取规则列表 (null表示未初始化)
     
     /**
      * 扫描配置来源枚举
@@ -210,6 +244,103 @@ public class ConfigManager {
             directKeepTerminal = Boolean.parseBoolean(savedKeepTerminal);
         }
         
+        // ==================== 加载终端窗口标题配置 ====================
+        String savedTitleSourceType = persistence.getString(KEY_TITLE_SOURCE_TYPE);
+        if (savedTitleSourceType != null && !savedTitleSourceType.isEmpty()) {
+            try {
+                titleSourceType = TitleSourceType.valueOf(savedTitleSourceType);
+            } catch (IllegalArgumentException e) {
+                titleSourceType = TitleSourceType.URL_PATH;
+            }
+        }
+        
+        String savedTitleFixedValue = persistence.getString(KEY_TITLE_FIXED_VALUE);
+        if (savedTitleFixedValue != null && !savedTitleFixedValue.isEmpty()) {
+            titleFixedValue = savedTitleFixedValue;
+        }
+        
+        String savedTitlePathSubStart = persistence.getString(KEY_TITLE_PATH_SUB_START);
+        if (savedTitlePathSubStart != null && !savedTitlePathSubStart.isEmpty()) {
+            titlePathSubStart = savedTitlePathSubStart;
+        }
+        
+        String savedTitlePathSubEnd = persistence.getString(KEY_TITLE_PATH_SUB_END);
+        if (savedTitlePathSubEnd != null && !savedTitlePathSubEnd.isEmpty()) {
+            titlePathSubEnd = savedTitlePathSubEnd;
+        }
+        
+        String savedTitleRegexPattern = persistence.getString(KEY_TITLE_REGEX_PATTERN);
+        if (savedTitleRegexPattern != null && !savedTitleRegexPattern.isEmpty()) {
+            titleRegexPattern = savedTitleRegexPattern;
+        }
+        
+        String savedTitleRegexGroup = persistence.getString(KEY_TITLE_REGEX_GROUP);
+        if (savedTitleRegexGroup != null && !savedTitleRegexGroup.isEmpty()) {
+            try {
+                titleRegexGroup = Integer.parseInt(savedTitleRegexGroup);
+            } catch (NumberFormatException e) {
+                titleRegexGroup = 1;
+            }
+        }
+        
+        String savedTitleRegexSource = persistence.getString(KEY_TITLE_REGEX_SOURCE);
+        if (savedTitleRegexSource != null && !savedTitleRegexSource.isEmpty()) {
+            try {
+                titleRegexSource = RegexSource.valueOf(savedTitleRegexSource);
+            } catch (IllegalArgumentException e) {
+                titleRegexSource = RegexSource.URL;
+            }
+        }
+        
+        String savedTitleJsonPath = persistence.getString(KEY_TITLE_JSON_PATH);
+        if (savedTitleJsonPath != null && !savedTitleJsonPath.isEmpty()) {
+            titleJsonPath = savedTitleJsonPath;
+        }
+        
+        String savedTitleXPath = persistence.getString(KEY_TITLE_XPATH);
+        if (savedTitleXPath != null && !savedTitleXPath.isEmpty()) {
+            titleXPath = savedTitleXPath;
+        }
+        
+        String savedTitleFormField = persistence.getString(KEY_TITLE_FORM_FIELD);
+        if (savedTitleFormField != null && !savedTitleFormField.isEmpty()) {
+            titleFormField = savedTitleFormField;
+        }
+        
+        String savedTitleFallback = persistence.getString(KEY_TITLE_FALLBACK);
+        if (savedTitleFallback != null && !savedTitleFallback.isEmpty()) {
+            titleFallback = savedTitleFallback;
+        }
+        
+        String savedTitleMaxLength = persistence.getString(KEY_TITLE_MAX_LENGTH);
+        if (savedTitleMaxLength != null && !savedTitleMaxLength.isEmpty()) {
+            try {
+                titleMaxLength = Integer.parseInt(savedTitleMaxLength);
+            } catch (NumberFormatException e) {
+                titleMaxLength = 50;
+            }
+        }
+        
+        // 加载标题提取规则列表
+        String rulesJson = persistence.getString(KEY_TITLE_RULES);
+        if (rulesJson != null && !rulesJson.isEmpty()) {
+            try {
+                Type listType = new TypeToken<ArrayList<TitleRule>>(){}.getType();
+                titleRules = gson.fromJson(rulesJson, listType);
+                if (titleRules == null) {
+                    titleRules = new ArrayList<>();
+                }
+            } catch (Exception e) {
+                titleRules = new ArrayList<>();
+            }
+        }
+        // 如果规则列表为空，初始化默认规则
+        if (titleRules == null || titleRules.isEmpty()) {
+            titleRules = new ArrayList<>();
+            titleRules.add(TitleRule.createDefaultRule());
+            saveTitleRules();
+        }
+
         // 加载默认配置
         String defaultConfigJson = persistence.getString(KEY_DEFAULT_CONFIG);
         if (defaultConfigJson != null && !defaultConfigJson.isEmpty()) {
@@ -685,5 +816,420 @@ public class ConfigManager {
     public void setDirectKeepTerminal(boolean keepOpen) {
         this.directKeepTerminal = keepOpen;
         persistence.setString(KEY_DIRECT_KEEP_TERMINAL, String.valueOf(keepOpen));
+    }
+    
+    // ============ 终端窗口标题配置管理 ============
+    
+    /**
+     * 获取标题来源类型
+     */
+    public TitleSourceType getTitleSourceType() {
+        return titleSourceType;
+    }
+    
+    /**
+     * 设置标题来源类型
+     */
+    public void setTitleSourceType(TitleSourceType type) {
+        this.titleSourceType = type != null ? type : TitleSourceType.URL_PATH;
+        persistence.setString(KEY_TITLE_SOURCE_TYPE, this.titleSourceType.name());
+    }
+    
+    /**
+     * 获取固定标题值
+     */
+    public String getTitleFixedValue() {
+        return titleFixedValue;
+    }
+    
+    /**
+     * 设置固定标题值
+     */
+    public void setTitleFixedValue(String value) {
+        this.titleFixedValue = value != null ? value : "SQLMap";
+        persistence.setString(KEY_TITLE_FIXED_VALUE, this.titleFixedValue);
+    }
+    
+    /**
+     * 获取URL路径子串起始位置
+     */
+    public String getTitlePathSubStart() {
+        return titlePathSubStart;
+    }
+    
+    /**
+     * 设置URL路径子串起始位置
+     */
+    public void setTitlePathSubStart(String start) {
+        this.titlePathSubStart = start != null ? start : "0";
+        persistence.setString(KEY_TITLE_PATH_SUB_START, this.titlePathSubStart);
+    }
+    
+    /**
+     * 获取URL路径子串结束位置
+     */
+    public String getTitlePathSubEnd() {
+        return titlePathSubEnd;
+    }
+    
+    /**
+     * 设置URL路径子串结束位置
+     */
+    public void setTitlePathSubEnd(String end) {
+        this.titlePathSubEnd = end != null ? end : "-0";
+        persistence.setString(KEY_TITLE_PATH_SUB_END, this.titlePathSubEnd);
+    }
+    
+    /**
+     * 获取正则表达式模式
+     */
+    public String getTitleRegexPattern() {
+        return titleRegexPattern;
+    }
+    
+    /**
+     * 设置正则表达式模式
+     */
+    public void setTitleRegexPattern(String pattern) {
+        this.titleRegexPattern = pattern != null ? pattern : "";
+        persistence.setString(KEY_TITLE_REGEX_PATTERN, this.titleRegexPattern);
+    }
+    
+    /**
+     * 获取正则捕获组索引
+     */
+    public int getTitleRegexGroup() {
+        return titleRegexGroup;
+    }
+    
+    /**
+     * 设置正则捕获组索引
+     */
+    public void setTitleRegexGroup(int group) {
+        this.titleRegexGroup = Math.max(0, group);
+        persistence.setString(KEY_TITLE_REGEX_GROUP, String.valueOf(this.titleRegexGroup));
+    }
+    
+    /**
+     * 获取正则匹配源
+     */
+    public RegexSource getTitleRegexSource() {
+        return titleRegexSource;
+    }
+    
+    /**
+     * 设置正则匹配源
+     */
+    public void setTitleRegexSource(RegexSource source) {
+        this.titleRegexSource = source != null ? source : RegexSource.URL;
+        persistence.setString(KEY_TITLE_REGEX_SOURCE, this.titleRegexSource.name());
+    }
+    
+    /**
+     * 获取JSON Path表达式
+     */
+    public String getTitleJsonPath() {
+        return titleJsonPath;
+    }
+    
+    /**
+     * 设置JSON Path表达式
+     */
+    public void setTitleJsonPath(String jsonPath) {
+        this.titleJsonPath = jsonPath != null ? jsonPath : "$.api";
+        persistence.setString(KEY_TITLE_JSON_PATH, this.titleJsonPath);
+    }
+    
+    /**
+     * 获取XPath表达式
+     */
+    public String getTitleXPath() {
+        return titleXPath;
+    }
+    
+    /**
+     * 设置XPath表达式
+     */
+    public void setTitleXPath(String xpath) {
+        this.titleXPath = xpath != null ? xpath : "//method";
+        persistence.setString(KEY_TITLE_XPATH, this.titleXPath);
+    }
+    
+    /**
+     * 获取表单字段名
+     */
+    public String getTitleFormField() {
+        return titleFormField;
+    }
+    
+    /**
+     * 设置表单字段名
+     */
+    public void setTitleFormField(String field) {
+        this.titleFormField = field != null ? field : "action";
+        persistence.setString(KEY_TITLE_FORM_FIELD, this.titleFormField);
+    }
+    
+    /**
+     * 获取回退标题
+     */
+    public String getTitleFallback() {
+        return titleFallback;
+    }
+    
+    /**
+     * 设置回退标题
+     */
+    public void setTitleFallback(String fallback) {
+        this.titleFallback = fallback != null ? fallback : "SQLMap";
+        persistence.setString(KEY_TITLE_FALLBACK, this.titleFallback);
+    }
+    
+    /**
+     * 获取标题最大长度
+     */
+    public int getTitleMaxLength() {
+        return titleMaxLength;
+    }
+    
+    /**
+     * 设置标题最大长度
+     */
+    public void setTitleMaxLength(int maxLength) {
+        this.titleMaxLength = Math.max(1, Math.min(200, maxLength));
+        persistence.setString(KEY_TITLE_MAX_LENGTH, String.valueOf(this.titleMaxLength));
+    }
+    
+    /**
+     * 获取完整的标题配置对象
+     */
+    public TitleConfig getTitleConfig() {
+        return new TitleConfig(
+            titleSourceType,
+            titleFixedValue,
+            titlePathSubStart,
+            titlePathSubEnd,
+            titleRegexPattern,
+            titleRegexGroup,
+            titleRegexSource,
+            titleJsonPath,
+            titleXPath,
+            titleFormField,
+            titleFallback,
+            titleMaxLength
+        );
+    }
+    
+    /**
+     * 从标题配置对象批量设置
+     */
+    public void setTitleConfig(TitleConfig config) {
+        if (config == null) return;
+        setTitleSourceType(config.getSourceType());
+        setTitleFixedValue(config.getFixedValue());
+        setTitlePathSubStart(config.getPathSubStart());
+        setTitlePathSubEnd(config.getPathSubEnd());
+        setTitleRegexPattern(config.getRegexPattern());
+        setTitleRegexGroup(config.getRegexGroup());
+        setTitleRegexSource(config.getRegexSource());
+        setTitleJsonPath(config.getJsonPath());
+        setTitleXPath(config.getXpath());
+        setTitleFormField(config.getFormField());
+        setTitleFallback(config.getFallback());
+        setTitleMaxLength(config.getMaxLength());
+    }
+    
+    // ============ 标题提取规则列表管理 ============
+    
+    /**
+     * 获取所有标题提取规则（按优先级排序）
+     */
+    public List<TitleRule> getTitleRules() {
+        if (titleRules == null) {
+            titleRules = new ArrayList<>();
+            titleRules.add(TitleRule.createDefaultRule());
+        }
+        // 返回按优先级排序的副本
+        List<TitleRule> sorted = new ArrayList<>(titleRules);
+        sorted.sort((a, b) -> Integer.compare(a.getPriority(), b.getPriority()));
+        return sorted;
+    }
+    
+    /**
+     * 设置标题提取规则列表
+     */
+    public void setTitleRules(List<TitleRule> rules) {
+        if (rules == null) {
+            this.titleRules = new ArrayList<>();
+        } else {
+            this.titleRules = new ArrayList<>(rules);
+        }
+        saveTitleRules();
+    }
+    
+    /**
+     * 保存规则列表到持久化存储
+     */
+    private void saveTitleRules() {
+        if (titleRules == null) return;
+        String json = gson.toJson(titleRules);
+        persistence.setString(KEY_TITLE_RULES, json);
+    }
+    
+    /**
+     * 添加新规则
+     */
+    public void addTitleRule(TitleRule rule) {
+        if (rule == null) return;
+        if (titleRules == null) {
+            titleRules = new ArrayList<>();
+        }
+        // 设置优先级为新规则的最大优先级+1
+        int maxPriority = 0;
+        for (TitleRule r : titleRules) {
+            if (r.getPriority() > maxPriority) {
+                maxPriority = r.getPriority();
+            }
+        }
+        rule.setPriority(maxPriority + 1);
+        titleRules.add(rule);
+        saveTitleRules();
+    }
+    
+    /**
+     * 更新规则
+     */
+    public void updateTitleRule(TitleRule rule) {
+        if (rule == null || titleRules == null) return;
+        for (int i = 0; i < titleRules.size(); i++) {
+            if (titleRules.get(i).getId().equals(rule.getId())) {
+                rule.touch(); // 更新修改时间
+                titleRules.set(i, rule);
+                saveTitleRules();
+                return;
+            }
+        }
+    }
+    
+    /**
+     * 删除规则（不允许删除默认规则）
+     */
+    public boolean deleteTitleRule(String ruleId) {
+        if (ruleId == null || titleRules == null) return false;
+        // 不允许删除默认规则
+        if (TitleRule.DEFAULT_RULE_ID.equals(ruleId)) {
+            return false;
+        }
+        for (int i = 0; i < titleRules.size(); i++) {
+            if (titleRules.get(i).getId().equals(ruleId)) {
+                titleRules.remove(i);
+                saveTitleRules();
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * 获取规则通过ID
+     */
+    public TitleRule getTitleRuleById(String ruleId) {
+        if (ruleId == null || titleRules == null) return null;
+        for (TitleRule rule : titleRules) {
+            if (rule.getId().equals(ruleId)) {
+                return rule;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * 移动规则优先级
+     */
+    public void moveRulePriority(String ruleId, int newPriority) {
+        if (ruleId == null || titleRules == null) return;
+        // 默认规则不允许修改优先级
+        if (TitleRule.DEFAULT_RULE_ID.equals(ruleId)) return;
+        
+        TitleRule targetRule = null;
+        for (TitleRule rule : titleRules) {
+            if (rule.getId().equals(ruleId)) {
+                targetRule = rule;
+                break;
+            }
+        }
+        if (targetRule == null) return;
+        
+        // 重新计算优先级
+        newPriority = Math.max(1, newPriority); // 其他规则最低优先级为1
+        
+        // 调整其他规则的优先级
+        for (TitleRule rule : titleRules) {
+            if (rule.getId().equals(ruleId)) continue;
+            if (rule.getPriority() >= newPriority && rule.getPriority() < targetRule.getPriority()) {
+                rule.setPriority(rule.getPriority() + 1);
+            } else if (rule.getPriority() <= newPriority && rule.getPriority() > targetRule.getPriority()) {
+                rule.setPriority(rule.getPriority() - 1);
+            }
+        }
+        targetRule.setPriority(newPriority);
+        targetRule.touch();
+        saveTitleRules();
+    }
+    
+    /**
+     * 上移规则（优先级降低）
+     */
+    public void moveRuleUp(String ruleId) {
+        if (ruleId == null || titleRules == null) return;
+        if (TitleRule.DEFAULT_RULE_ID.equals(ruleId)) return;
+        
+        List<TitleRule> sorted = getTitleRules();
+        int index = -1;
+        for (int i = 0; i < sorted.size(); i++) {
+            if (sorted.get(i).getId().equals(ruleId)) {
+                index = i;
+                break;
+            }
+        }
+        if (index <= 1) return; // 已经是第一个（默认规则在位置0）
+        
+        // 交换优先级
+        TitleRule current = sorted.get(index);
+        TitleRule prev = sorted.get(index - 1);
+        int tempPriority = current.getPriority();
+        current.setPriority(prev.getPriority());
+        prev.setPriority(tempPriority);
+        current.touch();
+        prev.touch();
+        saveTitleRules();
+    }
+    
+    /**
+     * 下移规则（优先级提高）
+     */
+    public void moveRuleDown(String ruleId) {
+        if (ruleId == null || titleRules == null) return;
+        if (TitleRule.DEFAULT_RULE_ID.equals(ruleId)) return;
+        
+        List<TitleRule> sorted = getTitleRules();
+        int index = -1;
+        for (int i = 0; i < sorted.size(); i++) {
+            if (sorted.get(i).getId().equals(ruleId)) {
+                index = i;
+                break;
+            }
+        }
+        if (index < 0 || index >= sorted.size() - 1) return;
+        
+        // 交换优先级
+        TitleRule current = sorted.get(index);
+        TitleRule next = sorted.get(index + 1);
+        int tempPriority = current.getPriority();
+        current.setPriority(next.getPriority());
+        next.setPriority(tempPriority);
+        current.touch();
+        next.touch();
+        saveTitleRules();
     }
 }

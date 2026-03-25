@@ -37,6 +37,9 @@ public class DirectExecuteConfigPanel extends BaseConfigPanel {
     private JLabel pythonStatusLabel;
     private JLabel sqlmapStatusLabel;
     private JLabel terminalStatusLabel;
+    
+    // 标题规则面板
+    private TitleRulesPanel titleRulesPanel;
 
     public DirectExecuteConfigPanel(ConfigManager configManager, SqlmapApiClient apiClient, Consumer<String> logAppender) {
         super(configManager, apiClient, logAppender);
@@ -184,6 +187,19 @@ public class DirectExecuteConfigPanel extends BaseConfigPanel {
         osLabel.setForeground(new Color(52, 152, 219));
         formPanel.add(osLabel, gbc);
         row++;
+        
+        // 分隔线
+        gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 4;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        formPanel.add(new JSeparator(), gbc);
+        row++;
+        
+        // 标题配置区域
+        gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 4;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        JPanel titlePanel = createTitleConfigPanel();
+        formPanel.add(titlePanel, gbc);
+        row++;
 
         // 按钮面板
         gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 4;
@@ -223,6 +239,25 @@ public class DirectExecuteConfigPanel extends BaseConfigPanel {
             case LINUX: return "Linux";
             default: return "未知";
         }
+    }
+    
+    /**
+     * 创建标题配置面板
+     */
+    private JPanel createTitleConfigPanel() {
+        JPanel wrapperPanel = new JPanel(new BorderLayout());
+        wrapperPanel.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createEtchedBorder(),
+            "终端窗口标题规则配置",
+            TitledBorder.LEFT,
+            TitledBorder.TOP
+        ));
+        
+        // 使用新的 TitleRulesPanel
+        titleRulesPanel = new TitleRulesPanel(configManager);
+        wrapperPanel.add(titleRulesPanel, BorderLayout.CENTER);
+        
+        return wrapperPanel;
     }
 
     /**
@@ -269,14 +304,14 @@ public class DirectExecuteConfigPanel extends BaseConfigPanel {
             ".success { color: #27ae60; }" +
             "</style></head><body>" +
 
-            "<h3>📋 功能说明</h3>" +
+            "<h3>功能说明</h3>" +
             "<ul>" +
             "<li>在Burp的HTTP请求上<strong>右键</strong>，选择 <span class='code'>执行SQLMap扫描</span></li>" +
             "<li>系统会自动打开终端窗口并执行SQLMap命令</li>" +
             "<li>HTTP请求会保存为临时文件，使用 <span class='code'>-r</span> 参数传递</li>" +
             "</ul>" +
 
-            "<h3>⚙️ 配置说明</h3>" +
+            "<h3>配置说明</h3>" +
             "<h4>Python路径</h4>" +
             "<ul>" +
             "<li>可选配置，留空使用系统PATH中的Python</li>" +
@@ -298,8 +333,15 @@ public class DirectExecuteConfigPanel extends BaseConfigPanel {
             "<li>macOS: Terminal.app 或 iTerm2</li>" +
             "</ul>" +
 
+            "<h4>标题规则</h4>" +
+            "<ul>" +
+            "<li>按优先级顺序匹配规则，数字越小优先级越高</li>" +
+            "<li>默认规则 (URL路径) 不可删除，作为最终兜底</li>" +
+            "<li>首个成功匹配的规则将被用于终端标题</li>" +
+            "</ul>" +
+
             "<div class='warning'>" +
-            "<b>⚠️ 注意：</b>" +
+            "<b>注意：</b>" +
             "<ul>" +
             "<li>确保已安装Python并配置正确</li>" +
             "<li>确保SQLMap已下载到本地</li>" +
@@ -307,7 +349,7 @@ public class DirectExecuteConfigPanel extends BaseConfigPanel {
             "</ul>" +
             "</div>" +
 
-            "<h3>🔧 测试功能</h3>" +
+            "<h3>测试功能</h3>" +
             "<p>点击「测试」按钮验证配置是否正确：</p>" +
             "<ul>" +
             "<li>Python测试：检查Python是否可用并显示版本</li>" +
@@ -484,6 +526,8 @@ public class DirectExecuteConfigPanel extends BaseConfigPanel {
             }
         }
 
+        // 标题规则面板会在自己的构造函数中加载配置
+
         setLabelStatus(terminalStatusLabel, true, "配置已加载");
     }
 
@@ -521,21 +565,28 @@ public class DirectExecuteConfigPanel extends BaseConfigPanel {
             configManager.setDirectTerminalType(selectedOption.getType());
         }
         configManager.setDirectKeepTerminal(keepTerminal);
+        
+        // 保存标题规则配置（由 TitleRulesPanel 内部处理）
+        if (titleRulesPanel != null) {
+            titleRulesPanel.saveConfiguration();
+        }
 
         appendLog("[+] 直接执行配置已保存");
         appendLog("    Python路径: " + (pythonPath.isEmpty() ? "(系统默认)" : pythonPath));
         appendLog("    SQLMap路径: " + sqlmapPath);
         appendLog("    终端类型: " + (selectedOption != null ? selectedOption.getDisplayName() : "自动"));
         appendLog("    保持终端: " + (keepTerminal ? "是" : "否"));
+        appendLog("    标题规则: 已保存");
 
         setLabelStatus(terminalStatusLabel, true, "已保存");
 
         HtmlMessageDialog.showInfo(this, "保存成功",
-            "<h3 style='color: green;'>✓ 配置已保存</h3>" +
+            "<h3 style='color: green;'>配置已保存</h3>" +
             "<p><b>Python路径:</b> " + (pythonPath.isEmpty() ? "系统默认" : pythonPath) + "</p>" +
             "<p><b>SQLMap路径:</b> " + sqlmapPath + "</p>" +
             "<p><b>终端类型:</b> " + (selectedOption != null ? selectedOption.getDisplayName() : "自动") + "</p>" +
-            "<p><b>保持终端:</b> " + (keepTerminal ? "是" : "否") + "</p>");
+            "<p><b>保持终端:</b> " + (keepTerminal ? "是" : "否") + "</p>" +
+            "<p><b>标题规则:</b> 已保存</p>");
     }
 
     /**
@@ -554,6 +605,11 @@ public class DirectExecuteConfigPanel extends BaseConfigPanel {
         sqlmapPathField.setText("");
         terminalComboBox.setSelectedIndex(0); // 自动检测
         keepTerminalCheckBox.setSelected(true);
+
+        // 重置标题规则配置为默认值
+        if (titleRulesPanel != null) {
+            titleRulesPanel.resetToDefault();
+        }
 
         setLabelStatus(pythonStatusLabel, null, null);
         setLabelStatus(sqlmapStatusLabel, null, null);

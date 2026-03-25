@@ -5,6 +5,8 @@ import burp.*;
 import com.sqlmapwebui.burp.dialogs.*;
 import com.sqlmapwebui.burp.util.CommandExecutor;
 import com.sqlmapwebui.burp.util.SqlCommandBuilder;
+import com.sqlmapwebui.burp.util.TitleConfig;
+import com.sqlmapwebui.burp.util.TitleExtractor;
 
 import javax.swing.*;
 import java.awt.*;
@@ -519,6 +521,10 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
                 return;
             }
             
+            // 提取窗口标题
+            TitleConfig titleConfig = configManager.getTitleConfig();
+            String windowTitle = TitleExtractor.extract(message, helpers, titleConfig);
+            
             // 生成HTTP请求字符串
             String httpRequest = buildHttpRequest(message);
             
@@ -536,21 +542,24 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
                 buildAdditionalParams(configManager.getSelectedScanConfig())
             );
             
-            // 构建终端命令
+            // 构建终端命令（带标题）
             String terminalCommand = SqlCommandBuilder.buildTerminalCommand(
                 sqlmapCommand,
                 configManager.getDirectTerminalType(),
-                configManager.isDirectKeepTerminal()
+                configManager.isDirectKeepTerminal(),
+                windowTitle
             );
             
             uiTab.appendLog("[+] 正在启动SQLMap扫描...");
+            uiTab.appendLog("    窗口标题: " + windowTitle);
             uiTab.appendLog("    请求文件: " + requestFilePath);
             
             // 执行命令
             CommandExecutor.ExecutionResult result = CommandExecutor.executeInTerminal(
                 sqlmapCommand,
                 configManager.getDirectTerminalType(),
-                configManager.isDirectKeepTerminal()
+                configManager.isDirectKeepTerminal(),
+                windowTitle
             );
             
             if (result.isSuccess()) {

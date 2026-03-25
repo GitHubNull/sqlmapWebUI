@@ -4,6 +4,10 @@ import burp.IBurpExtenderCallbacks;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.sqlmapwebui.burp.util.TitleConfig;
+import com.sqlmapwebui.burp.util.TitleRule;
+import com.sqlmapwebui.burp.util.TitleSourceType;
+import com.sqlmapwebui.burp.util.RegexSource;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -36,6 +40,20 @@ public class ConfigManager {
     private static final String KEY_DIRECT_TERMINAL_TYPE = "directTerminalType";  // 终端类型
     private static final String KEY_DIRECT_KEEP_TERMINAL = "directKeepTerminal";  // 保持终端打开
     
+    // ==================== 标题配置 ====================
+    private static final String KEY_TITLE_SOURCE_TYPE = "titleSourceType";
+    private static final String KEY_TITLE_FIXED_VALUE = "titleFixedValue";
+    private static final String KEY_TITLE_PATH_SUB_START = "titlePathSubStart";
+    private static final String KEY_TITLE_PATH_SUB_END = "titlePathSubEnd";
+    private static final String KEY_TITLE_REGEX_PATTERN = "titleRegexPattern";
+    private static final String KEY_TITLE_REGEX_GROUP = "titleRegexGroup";
+    private static final String KEY_TITLE_REGEX_SOURCE = "titleRegexSource";
+    private static final String KEY_TITLE_JSON_PATH = "titleJsonPath";
+    private static final String KEY_TITLE_XPATH = "titleXpath";
+    private static final String KEY_TITLE_FORM_FIELD = "titleFormField";
+    private static final String KEY_TITLE_FALLBACK = "titleFallback";
+    private static final String KEY_TITLE_MAX_LENGTH = "titleMaxLength";
+    
     // 历史记录数量限制
     public static final int MIN_HISTORY_SIZE = 3;
     public static final int MAX_HISTORY_SIZE = 32;
@@ -50,7 +68,7 @@ public class ConfigManager {
     private final Gson gson;
     
     // 配置数据
-    private String backendUrl = "http://localhost:5000";
+    private String backendUrl = "http://localhost:8775";
     private int maxHistorySize = DEFAULT_HISTORY_SIZE;
     private boolean autoDedupe = true; // 默认开启自动去重
     private int maxInjectionMarkCount = DEFAULT_INJECTION_MARK_COUNT; // 多选报文时允许标记注入点的最大数量
@@ -79,6 +97,20 @@ public class ConfigManager {
     private TerminalType directTerminalType = TerminalType.AUTO;  // 终端类型
     private boolean directKeepTerminal = true;  // 执行后保持终端打开
     
+    // ==================== 标题配置 ====================
+    private TitleSourceType titleSourceType = TitleSourceType.URL_PATH;
+    private String titleFixedValue = "SQLMap";
+    private String titlePathSubStart = "0";
+    private String titlePathSubEnd = "-0";
+    private String titleRegexPattern = "";
+    private int titleRegexGroup = 1;
+    private RegexSource titleRegexSource = RegexSource.URL;
+    private String titleJsonPath = "$.api";
+    private String titleXpath = "//method";
+    private String titleFormField = "action";
+    private String titleFallback = "SQLMap";
+    private int titleMaxLength = 50;
+    
     /**
      * 终端类型枚举
      */
@@ -91,7 +123,7 @@ public class ConfigManager {
         TERMINAL_APP,   // macOS Terminal.app
         ITERM            // macOS iTerm2
     }
-    
+
     /**
      * 扫描配置来源枚举
      */
@@ -252,6 +284,83 @@ public class ConfigManager {
         String savedDirectKeepTerminal = callbacks.loadExtensionSetting(KEY_DIRECT_KEEP_TERMINAL);
         if (savedDirectKeepTerminal != null && !savedDirectKeepTerminal.isEmpty()) {
             directKeepTerminal = Boolean.parseBoolean(savedDirectKeepTerminal);
+        }
+        
+        // ==================== 加载标题配置 ====================
+        String savedTitleSourceType = callbacks.loadExtensionSetting(KEY_TITLE_SOURCE_TYPE);
+        if (savedTitleSourceType != null && !savedTitleSourceType.isEmpty()) {
+            try {
+                titleSourceType = TitleSourceType.valueOf(savedTitleSourceType);
+            } catch (IllegalArgumentException e) {
+                titleSourceType = TitleSourceType.URL_PATH;
+            }
+        }
+        
+        String savedTitleFixedValue = callbacks.loadExtensionSetting(KEY_TITLE_FIXED_VALUE);
+        if (savedTitleFixedValue != null && !savedTitleFixedValue.isEmpty()) {
+            titleFixedValue = savedTitleFixedValue;
+        }
+        
+        String savedTitlePathSubStart = callbacks.loadExtensionSetting(KEY_TITLE_PATH_SUB_START);
+        if (savedTitlePathSubStart != null && !savedTitlePathSubStart.isEmpty()) {
+            titlePathSubStart = savedTitlePathSubStart;
+        }
+        
+        String savedTitlePathSubEnd = callbacks.loadExtensionSetting(KEY_TITLE_PATH_SUB_END);
+        if (savedTitlePathSubEnd != null && !savedTitlePathSubEnd.isEmpty()) {
+            titlePathSubEnd = savedTitlePathSubEnd;
+        }
+        
+        String savedTitleRegexPattern = callbacks.loadExtensionSetting(KEY_TITLE_REGEX_PATTERN);
+        if (savedTitleRegexPattern != null) {
+            titleRegexPattern = savedTitleRegexPattern;
+        }
+        
+        String savedTitleRegexGroup = callbacks.loadExtensionSetting(KEY_TITLE_REGEX_GROUP);
+        if (savedTitleRegexGroup != null && !savedTitleRegexGroup.isEmpty()) {
+            try {
+                titleRegexGroup = Integer.parseInt(savedTitleRegexGroup);
+            } catch (NumberFormatException e) {
+                titleRegexGroup = 1;
+            }
+        }
+        
+        String savedTitleRegexSource = callbacks.loadExtensionSetting(KEY_TITLE_REGEX_SOURCE);
+        if (savedTitleRegexSource != null && !savedTitleRegexSource.isEmpty()) {
+            try {
+                titleRegexSource = RegexSource.valueOf(savedTitleRegexSource);
+            } catch (IllegalArgumentException e) {
+                titleRegexSource = RegexSource.URL;
+            }
+        }
+        
+        String savedTitleJsonPath = callbacks.loadExtensionSetting(KEY_TITLE_JSON_PATH);
+        if (savedTitleJsonPath != null && !savedTitleJsonPath.isEmpty()) {
+            titleJsonPath = savedTitleJsonPath;
+        }
+        
+        String savedTitleXpath = callbacks.loadExtensionSetting(KEY_TITLE_XPATH);
+        if (savedTitleXpath != null && !savedTitleXpath.isEmpty()) {
+            titleXpath = savedTitleXpath;
+        }
+        
+        String savedTitleFormField = callbacks.loadExtensionSetting(KEY_TITLE_FORM_FIELD);
+        if (savedTitleFormField != null && !savedTitleFormField.isEmpty()) {
+            titleFormField = savedTitleFormField;
+        }
+        
+        String savedTitleFallback = callbacks.loadExtensionSetting(KEY_TITLE_FALLBACK);
+        if (savedTitleFallback != null && !savedTitleFallback.isEmpty()) {
+            titleFallback = savedTitleFallback;
+        }
+        
+        String savedTitleMaxLength = callbacks.loadExtensionSetting(KEY_TITLE_MAX_LENGTH);
+        if (savedTitleMaxLength != null && !savedTitleMaxLength.isEmpty()) {
+            try {
+                titleMaxLength = Integer.parseInt(savedTitleMaxLength);
+            } catch (NumberFormatException e) {
+                titleMaxLength = 50;
+            }
         }
     }
     
@@ -675,5 +784,314 @@ public class ConfigManager {
     public void setDirectKeepTerminal(boolean keepTerminal) {
         this.directKeepTerminal = keepTerminal;
         callbacks.saveExtensionSetting(KEY_DIRECT_KEEP_TERMINAL, String.valueOf(keepTerminal));
+    }
+    
+    // ============ 标题配置管理 ============
+    
+    public TitleSourceType getTitleSourceType() {
+        return titleSourceType;
+    }
+    
+    public void setTitleSourceType(TitleSourceType type) {
+        this.titleSourceType = type != null ? type : TitleSourceType.URL_PATH;
+        callbacks.saveExtensionSetting(KEY_TITLE_SOURCE_TYPE, this.titleSourceType.name());
+    }
+    
+    public String getTitleFixedValue() {
+        return titleFixedValue;
+    }
+    
+    public void setTitleFixedValue(String value) {
+        this.titleFixedValue = value != null ? value : "SQLMap";
+        callbacks.saveExtensionSetting(KEY_TITLE_FIXED_VALUE, this.titleFixedValue);
+    }
+    
+    public String getTitlePathSubStart() {
+        return titlePathSubStart;
+    }
+    
+    public void setTitlePathSubStart(String start) {
+        this.titlePathSubStart = start != null ? start : "0";
+        callbacks.saveExtensionSetting(KEY_TITLE_PATH_SUB_START, this.titlePathSubStart);
+    }
+    
+    public String getTitlePathSubEnd() {
+        return titlePathSubEnd;
+    }
+    
+    public void setTitlePathSubEnd(String end) {
+        this.titlePathSubEnd = end != null ? end : "-0";
+        callbacks.saveExtensionSetting(KEY_TITLE_PATH_SUB_END, this.titlePathSubEnd);
+    }
+    
+    public String getTitleRegexPattern() {
+        return titleRegexPattern;
+    }
+    
+    public void setTitleRegexPattern(String pattern) {
+        this.titleRegexPattern = pattern != null ? pattern : "";
+        callbacks.saveExtensionSetting(KEY_TITLE_REGEX_PATTERN, this.titleRegexPattern);
+    }
+    
+    public int getTitleRegexGroup() {
+        return titleRegexGroup;
+    }
+    
+    public void setTitleRegexGroup(int group) {
+        this.titleRegexGroup = Math.max(0, group);
+        callbacks.saveExtensionSetting(KEY_TITLE_REGEX_GROUP, String.valueOf(this.titleRegexGroup));
+    }
+    
+    public RegexSource getTitleRegexSource() {
+        return titleRegexSource;
+    }
+    
+    public void setTitleRegexSource(RegexSource source) {
+        this.titleRegexSource = source != null ? source : RegexSource.URL;
+        callbacks.saveExtensionSetting(KEY_TITLE_REGEX_SOURCE, this.titleRegexSource.name());
+    }
+    
+    public String getTitleJsonPath() {
+        return titleJsonPath;
+    }
+    
+    public void setTitleJsonPath(String path) {
+        this.titleJsonPath = path != null ? path : "$.api";
+        callbacks.saveExtensionSetting(KEY_TITLE_JSON_PATH, this.titleJsonPath);
+    }
+    
+    public String getTitleXPath() {
+        return titleXpath;
+    }
+    
+    public void setTitleXPath(String path) {
+        this.titleXpath = path != null ? path : "//method";
+        callbacks.saveExtensionSetting(KEY_TITLE_XPATH, this.titleXpath);
+    }
+    
+    public String getTitleFormField() {
+        return titleFormField;
+    }
+    
+    public void setTitleFormField(String field) {
+        this.titleFormField = field != null ? field : "action";
+        callbacks.saveExtensionSetting(KEY_TITLE_FORM_FIELD, this.titleFormField);
+    }
+    
+    public String getTitleFallback() {
+        return titleFallback;
+    }
+    
+    public void setTitleFallback(String fallback) {
+        this.titleFallback = fallback != null ? fallback : "SQLMap";
+        callbacks.saveExtensionSetting(KEY_TITLE_FALLBACK, this.titleFallback);
+    }
+    
+    public int getTitleMaxLength() {
+        return titleMaxLength;
+    }
+    
+    public void setTitleMaxLength(int maxLength) {
+        this.titleMaxLength = Math.max(1, Math.min(200, maxLength));
+        callbacks.saveExtensionSetting(KEY_TITLE_MAX_LENGTH, String.valueOf(this.titleMaxLength));
+    }
+    
+    /**
+     * 获取标题配置对象
+     */
+    public TitleConfig getTitleConfig() {
+        return new TitleConfig(
+            titleSourceType,
+            titleFixedValue,
+            titlePathSubStart,
+            titlePathSubEnd,
+            titleRegexPattern,
+            titleRegexGroup,
+            titleRegexSource,
+            titleJsonPath,
+            titleXpath,
+            titleFormField,
+            titleFallback,
+            titleMaxLength
+        );
+    }
+    
+    /**
+     * 从标题配置对象批量设置
+     */
+    public void setTitleConfig(TitleConfig config) {
+        if (config == null) return;
+        setTitleSourceType(config.getSourceType());
+        setTitleFixedValue(config.getFixedValue());
+        setTitlePathSubStart(config.getPathSubStart());
+        setTitlePathSubEnd(config.getPathSubEnd());
+        setTitleRegexPattern(config.getRegexPattern());
+        setTitleRegexGroup(config.getRegexGroup());
+        setTitleRegexSource(config.getRegexSource());
+        setTitleJsonPath(config.getJsonPath());
+        setTitleXPath(config.getXpath());
+        setTitleFormField(config.getFormField());
+        setTitleFallback(config.getFallback());
+        setTitleMaxLength(config.getMaxLength());
+    }
+    
+    // ==================== 标题规则列表管理 ====================
+    
+    private static final String KEY_TITLE_RULES = "titleRules";
+    private List<TitleRule> titleRules = null;
+    
+    /**
+     * 获取标题规则列表
+     * 首次访问时从存储加载，如果为空则创建默认规则
+     */
+    public List<TitleRule> getTitleRules() {
+        if (titleRules == null) {
+            loadTitleRules();
+        }
+        return new ArrayList<>(titleRules);
+    }
+    
+    /**
+     * 加载标题规则列表
+     */
+    private void loadTitleRules() {
+        String json = callbacks.loadExtensionSetting(KEY_TITLE_RULES);
+        if (json != null && !json.isEmpty()) {
+            try {
+                Type listType = new TypeToken<List<TitleRule>>() {}.getType();
+                List<TitleRule> loaded = gson.fromJson(json, listType);
+                if (loaded != null && !loaded.isEmpty()) {
+                    titleRules = loaded;
+                    // 确保有默认规则
+                    boolean hasDefault = titleRules.stream()
+                        .anyMatch(r -> TitleRule.DEFAULT_RULE_ID.equals(r.getId()));
+                    if (!hasDefault) {
+                        titleRules.add(0, TitleRule.createDefaultRule());
+                    }
+                    return;
+                }
+            } catch (Exception e) {
+                // 加载失败，使用默认
+            }
+        }
+        // 创建默认规则列表
+        titleRules = new ArrayList<>();
+        titleRules.add(TitleRule.createDefaultRule());
+    }
+    
+    /**
+     * 保存标题规则列表
+     */
+    public void setTitleRules(List<TitleRule> rules) {
+        if (rules == null) {
+            titleRules = new ArrayList<>();
+            titleRules.add(TitleRule.createDefaultRule());
+        } else {
+            titleRules = new ArrayList<>(rules);
+        }
+        String json = gson.toJson(titleRules);
+        callbacks.saveExtensionSetting(KEY_TITLE_RULES, json);
+    }
+    
+    /**
+     * 添加标题规则
+     */
+    public void addTitleRule(TitleRule rule) {
+        if (titleRules == null) loadTitleRules();
+        if (rule.getPriority() == 999) {
+            rule.setPriority(titleRules.size());
+        }
+        titleRules.add(rule);
+        String json = gson.toJson(titleRules);
+        callbacks.saveExtensionSetting(KEY_TITLE_RULES, json);
+    }
+    
+    /**
+     * 更新标题规则
+     */
+    public void updateTitleRule(TitleRule rule) {
+        if (titleRules == null) loadTitleRules();
+        for (int i = 0; i < titleRules.size(); i++) {
+            if (titleRules.get(i).getId().equals(rule.getId())) {
+                rule.touch();
+                titleRules.set(i, rule);
+                break;
+            }
+        }
+        String json = gson.toJson(titleRules);
+        callbacks.saveExtensionSetting(KEY_TITLE_RULES, json);
+    }
+    
+    /**
+     * 删除标题规则
+     */
+    public void deleteTitleRule(String ruleId) {
+        if (titleRules == null) loadTitleRules();
+        titleRules.removeIf(r -> r.getId().equals(ruleId) && !r.isDefaultRule());
+        String json = gson.toJson(titleRules);
+        callbacks.saveExtensionSetting(KEY_TITLE_RULES, json);
+    }
+    
+    /**
+     * 根据ID获取标题规则
+     */
+    public TitleRule getTitleRuleById(String id) {
+        if (titleRules == null) loadTitleRules();
+        return titleRules.stream()
+            .filter(r -> r.getId().equals(id))
+            .findFirst()
+            .orElse(null);
+    }
+    
+    /**
+     * 移动规则向上（减小优先级数字）
+     */
+    public void moveRuleUp(String ruleId) {
+        if (titleRules == null) loadTitleRules();
+        for (int i = 1; i < titleRules.size(); i++) {
+            if (titleRules.get(i).getId().equals(ruleId)) {
+                TitleRule rule = titleRules.get(i);
+                if (!rule.isDefaultRule()) {
+                    TitleRule prev = titleRules.get(i - 1);
+                    if (!prev.isDefaultRule()) {
+                        int temp = rule.getPriority();
+                        rule.setPriority(prev.getPriority());
+                        prev.setPriority(temp);
+                        titleRules.sort(Comparator.comparingInt(TitleRule::getPriority));
+                        saveTitleRulesInternal();
+                    }
+                }
+                break;
+            }
+        }
+    }
+    
+    /**
+     * 移动规则向下（增大优先级数字）
+     */
+    public void moveRuleDown(String ruleId) {
+        if (titleRules == null) loadTitleRules();
+        for (int i = 0; i < titleRules.size() - 1; i++) {
+            if (titleRules.get(i).getId().equals(ruleId)) {
+                TitleRule rule = titleRules.get(i);
+                if (!rule.isDefaultRule()) {
+                    TitleRule next = titleRules.get(i + 1);
+                    int temp = rule.getPriority();
+                    rule.setPriority(next.getPriority());
+                    next.setPriority(temp);
+                    titleRules.sort(Comparator.comparingInt(TitleRule::getPriority));
+                    saveTitleRulesInternal();
+                }
+                break;
+            }
+        }
+    }
+    
+    /**
+     * 内部保存规则列表
+     */
+    private void saveTitleRulesInternal() {
+        String json = gson.toJson(titleRules);
+        callbacks.saveExtensionSetting(KEY_TITLE_RULES, json);
     }
 }
