@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.8.45-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.46-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -287,6 +287,18 @@ sqlmapWebUI/
 请在使用前阅读 [免责声明](DISCLAIMER.md)。
 
 ## 📝 更新日志
+
+### v1.8.46 (2026-03-26)
+
+**修复 (扫描任务)**
+- 修复 XML body 截断问题（Windows 换行符导致 Content-Length 不匹配）
+- 移除 Content-Length 头，让 sqlmap 根据实际 body 自动计算
+- 使用二进制模式写入请求文件，避免 Windows 自动换行转换
+- 规范化 body 换行符，统一使用标准 HTTP 换行符
+
+**改进 (Burp 插件)**
+- 使用 Gson/PayloadBuilder 替代手动 JSON 字符串拼接
+- 消除特殊字符（如 XML 内容）转义不完备的风险
 
 ### v1.8.45 (2026-03-26)
 
