@@ -7,7 +7,11 @@ import burp.api.montoya.ui.contextmenu.ContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
 
 import com.sqlmapwebui.burp.dialogs.*;
+import com.sqlmapwebui.burp.util.CommandExecutor;
 import com.sqlmapwebui.burp.util.PayloadBuilder;
+import com.sqlmapwebui.burp.util.SqlCommandBuilder;
+import com.sqlmapwebui.burp.util.TitleRule;
+import com.sqlmapwebui.burp.util.TitleExtractor;
 
 import javax.swing.*;
 import java.awt.*;
@@ -105,11 +109,6 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
     public List<Component> provideMenuItems(ContextMenuEvent event) {
         List<Component> menuItems = new ArrayList<>();
         
-        // 只有已连接状态才显示菜单
-        if (!configManager.isConnected()) {
-            return menuItems;
-        }
-        
         // 获取选中的请求
         List<HttpRequestResponse> selectedMessages = event.selectedRequestResponses();
         if (selectedMessages == null || selectedMessages.isEmpty()) {
@@ -129,10 +128,16 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
         // 过滤二进制请求
         FilterResult filterResult = filterBinaryRequests(messages);
         String menuSuffix = filterResult.getMenuSuffix();
+
+        // ==================== 需要后端连接的菜单项（未连接时置灰） ====================
+        boolean connected = configManager.isConnected();
         
         // 菜单项1: 使用用户选择的配置发送
         JMenuItem sendWithDefault = new JMenuItem("Send to SQLMap WebUI" + menuSuffix);
-        if (filterResult.allBinary()) {
+        if (!connected) {
+            sendWithDefault.setEnabled(false);
+            sendWithDefault.setToolTipText("未连接到SQLMap WebUI后端，请检查连接配置");
+        } else if (filterResult.allBinary()) {
             sendWithDefault.setEnabled(false);
             sendWithDefault.setToolTipText("所有选中的报文都是二进制格式，无法发起扫描任务");
         } else {
@@ -145,7 +150,10 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
         
         // 菜单项2: 标记注入点并扫描 - 支持多选报文
         JMenuItem markInjectionPoints = new JMenuItem("标记注入点并扫描 (*)" + menuSuffix);
-        if (filterResult.allBinary()) {
+        if (!connected) {
+            markInjectionPoints.setEnabled(false);
+            markInjectionPoints.setToolTipText("未连接到SQLMap WebUI后端，请检查连接配置");
+        } else if (filterResult.allBinary()) {
             markInjectionPoints.setEnabled(false);
             markInjectionPoints.setToolTipText("所有选中的报文都是二进制格式，无法发起扫描任务");
         } else {
@@ -169,7 +177,10 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
         
         // 菜单项3: 配置扫描发送（高级配置对话框）
         JMenuItem sendWithOptions = new JMenuItem("Send to SQLMap WebUI (配置扫描)..." + menuSuffix);
-        if (filterResult.allBinary()) {
+        if (!connected) {
+            sendWithOptions.setEnabled(false);
+            sendWithOptions.setToolTipText("未连接到SQLMap WebUI后端，请检查连接配置");
+        } else if (filterResult.allBinary()) {
             sendWithOptions.setEnabled(false);
             sendWithOptions.setToolTipText("所有选中的报文都是二进制格式，无法发起扫描任务");
         } else {
@@ -184,22 +195,67 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
         }
         menuItems.add(sendWithOptions);
         
-        // 菜单项4和5: 提交会话Header 和 Header规则 - 仅在选中单条请求时显示
+        // 菜单项4和5: 提交会话Header 和 Header规则 - 仅在选中单条请求时显示，且需要后端连接
         if (messages.size() == 1 && filterResult.hasTextMessages()) {
             JMenuItem submitSessionHeaders = new JMenuItem("提交会话Header");
-            submitSessionHeaders.addActionListener(e -> {
-                SessionHeaderDialog dialog = new SessionHeaderDialog(api, apiClient, uiTab);
-                dialog.show(filterResult.textMessages.get(0).request());
-            });
+            if (!connected) {
+                submitSessionHeaders.setEnabled(false);
+                submitSessionHeaders.setToolTipText("未连接到SQLMap WebUI后端，请检查连接配置");
+            } else {
+                submitSessionHeaders.addActionListener(e -> {
+                    SessionHeaderDialog dialog = new SessionHeaderDialog(api, apiClient, uiTab);
+                    dialog.show(filterResult.textMessages.get(0).request());
+                });
+            }
             menuItems.add(submitSessionHeaders);
             
             JMenuItem submitHeaderRule = new JMenuItem("提交Header规则");
-            submitHeaderRule.addActionListener(e -> {
-                HeaderRuleDialog dialog = new HeaderRuleDialog(api, apiClient, uiTab);
-                dialog.show(filterResult.textMessages.get(0).request());
-            });
+            if (!connected) {
+                submitHeaderRule.setEnabled(false);
+                submitHeaderRule.setToolTipText("未连接到SQLMap WebUI后端，请检查连接配置");
+            } else {
+                submitHeaderRule.addActionListener(e -> {
+                    HeaderRuleDialog dialog = new HeaderRuleDialog(api, apiClient, uiTab);
+                    dialog.show(filterResult.textMessages.get(0).request());
+                });
+            }
             menuItems.add(submitHeaderRule);
         }
+        
+        // ==================== 不依赖后端的菜单项（始终可用） ====================
+        // 添加分隔线
+        menuItems.add(new JSeparator());
+        
+        // 菜单项6: 复制SQLMap命令 - 使用 -r 参数生成命令
+        JMenuItem copySqlCommand = new JMenuItem("复制SQLMap命令" + menuSuffix);
+        if (filterResult.allBinary()) {
+            copySqlCommand.setEnabled(false);
+            copySqlCommand.setToolTipText("所有选中的报文都是二进制格式，无法生成SQLMap命令");
+        } else {
+            copySqlCommand.addActionListener(e -> {
+                handleCopySqlCommand(filterResult.textMessages);
+            });
+        }
+        menuItems.add(copySqlCommand);
+        
+        // 菜单项7: 执行SQLMap扫描 - 在终端中执行
+        JMenuItem executeSqlmap = new JMenuItem("执行SQLMap扫描" + menuSuffix);
+        if (filterResult.allBinary()) {
+            executeSqlmap.setEnabled(false);
+            executeSqlmap.setToolTipText("所有选中的报文都是二进制格式，无法执行SQLMap扫描");
+        } else {
+            // 检查配置是否完整
+            String sqlmapPath = configManager.getDirectSqlmapPath();
+            if (sqlmapPath == null || sqlmapPath.trim().isEmpty()) {
+                executeSqlmap.setEnabled(false);
+                executeSqlmap.setToolTipText("请先配置SQLMap路径（在\"直接执行配置\"选项卡中设置）");
+            } else {
+                executeSqlmap.addActionListener(e -> {
+                    handleExecuteSqlmap(filterResult.textMessages);
+                });
+            }
+        }
+        menuItems.add(executeSqlmap);
         
         return menuItems;
     }
@@ -325,5 +381,216 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
             uiTab.appendLog("[-] 处理请求失败: " + e.getMessage());
             api.logging().logToError("[-] Error: " + e.getMessage());
         }
+    }
+    
+    /**
+     * 处理复制SQLMap命令
+     * 生成HTTP请求临时文件并构建SQLMap命令
+     */
+    private void handleCopySqlCommand(List<HttpRequestResponse> messages) {
+        if (messages.isEmpty()) {
+            return;
+        }
+
+        // 检查SQLMap路径是否配置（在UI线程中执行弹框）
+        String sqlmapPath = configManager.getDirectSqlmapPath();
+        if (sqlmapPath == null || sqlmapPath.trim().isEmpty()) {
+            SwingUtilities.invokeLater(() -> {
+                if (CommandPreviewDialog.showConfigWarning(null, "SQLMap路径（请在\"直接执行配置\"选项卡中配置）")) {
+                    uiTab.appendLog("[*] 请在\"直接执行配置\"选项卡中配置SQLMap路径");
+                }
+            });
+            return;
+        }
+
+        new Thread(() -> {
+            try {
+                String pythonPath = configManager.getDirectPythonPath();
+                String tempDir = configManager.getClipboardTempDir();
+                boolean autoCopy = configManager.isClipboardAutoCopy();
+
+                // 获取扫描配置参数
+                ScanConfig scanConfig = configManager.getSelectedScanConfig();
+                String additionalParams = (scanConfig != null) ? scanConfig.toCommandLineString().trim() : "";
+
+                // 为每个请求生成命令
+                StringBuilder allCommands = new StringBuilder();
+                java.util.List<String> tempFiles = new ArrayList<>();
+
+                for (HttpRequestResponse message : messages) {
+                    HttpRequest request = message.request();
+                    
+                    // 构建HTTP请求内容
+                    String httpRequest = buildHttpRequestContent(request);
+                    
+                    // 生成临时文件
+                    String tempFilePath = SqlCommandBuilder.generateRequestFile(httpRequest, tempDir);
+                    tempFiles.add(tempFilePath);
+                    
+                    // 构建SQLMap命令（含扫描参数）
+                    String command = SqlCommandBuilder.buildCopyableCommand(pythonPath, sqlmapPath, tempFilePath, additionalParams);
+                    
+                    allCommands.append(command).append("\n\n");
+                    
+                    final String url = request.url();
+                    SwingUtilities.invokeLater(() -> {
+                        uiTab.appendLog("[+] 已生成SQLMap命令: " + url);
+                        uiTab.appendLog("    临时文件: " + tempFilePath);
+                    });
+                }
+
+                String finalCommands = allCommands.toString().trim();
+
+                // 根据配置决定是否自动复制
+                if (autoCopy) {
+                    CommandExecutor.copyToClipboard(finalCommands);
+                    SwingUtilities.invokeLater(() -> {
+                        CommandPreviewDialog.showCopySuccess(null);
+                        uiTab.appendLog("[+] SQLMap命令已复制到剪贴板");
+                    });
+                } else {
+                    // 显示预览对话框
+                    String firstTempFile = tempFiles.isEmpty() ? null : tempFiles.get(0);
+                    SwingUtilities.invokeLater(() -> {
+                        CommandPreviewDialog.quickShowCopy(null, finalCommands, firstTempFile);
+                    });
+                }
+
+            } catch (Exception e) {
+                SwingUtilities.invokeLater(() -> {
+                    uiTab.appendLog("[-] 生成SQLMap命令失败: " + e.getMessage());
+                    CommandPreviewDialog.showError(null, "错误", "生成命令失败: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+    
+    /**
+     * 处理执行SQLMap扫描
+     * 生成HTTP请求临时文件并在终端中执行SQLMap
+     */
+    private void handleExecuteSqlmap(List<HttpRequestResponse> messages) {
+        if (messages.isEmpty()) {
+            return;
+        }
+
+        // 检查配置
+        String sqlmapPath = configManager.getDirectSqlmapPath();
+        if (sqlmapPath == null || sqlmapPath.trim().isEmpty()) {
+            if (CommandPreviewDialog.showConfigWarning(null, "SQLMap路径")) {
+                // 用户想配置，这里可以打开配置面板（需要扩展实现）
+                uiTab.appendLog("[*] 请在\"直接执行配置\"选项卡中配置SQLMap路径");
+            }
+            return;
+        }
+
+        new Thread(() -> {
+            try {
+                String pythonPath = configManager.getDirectPythonPath();
+                ConfigManager.TerminalType terminalType = configManager.getDirectTerminalType();
+                boolean keepTerminal = configManager.isDirectKeepTerminal();
+                String tempDir = configManager.getClipboardTempDir();
+                String scriptTempDir = configManager.getScriptTempDir();
+                
+                // 获取标题配置（使用多规则匹配）
+                List<TitleRule> rules = configManager.getTitleRules();
+                String fallback = configManager.getTitleFallback();
+                int maxLength = configManager.getTitleMaxLength();
+
+                // 为每个请求执行SQLMap
+                int index = 0;
+                for (HttpRequestResponse message : messages) {
+                    index++;
+                    HttpRequest request = message.request();
+                    
+                    // 构建HTTP请求内容
+                    String httpRequest = buildHttpRequestContent(request);
+                    
+                    // 生成临时文件
+                    String tempFilePath = SqlCommandBuilder.generateRequestFile(httpRequest, tempDir);
+                    
+                    // 获取扫描配置参数
+                    ScanConfig scanConfig = configManager.getSelectedScanConfig();
+                    String additionalParams = (scanConfig != null) ? scanConfig.toCommandLineString().trim() : "";
+                    
+                    // 构建SQLMap命令
+                    String sqlmapCommand = SqlCommandBuilder.buildSqlMapCommand(
+                        pythonPath, sqlmapPath, tempFilePath, additionalParams);
+                    
+                    // 提取窗口标题（使用多规则匹配）
+                    String baseTitle = TitleExtractor.extract(request, rules, fallback, maxLength);
+                    
+                    // 批量执行时添加序号后缀
+                    String windowTitle;
+                    if (messages.size() > 1) {
+                        windowTitle = baseTitle + "-" + index;
+                    } else {
+                        windowTitle = baseTitle;
+                    }
+                    
+                    // 执行命令（使用脚本文件方式设置标题）
+                    CommandExecutor.ExecutionResult result = CommandExecutor.executeInTerminal(
+                        sqlmapCommand, terminalType, keepTerminal, windowTitle, scriptTempDir);
+
+                    final String url = request.url();
+                    final String finalWindowTitle = windowTitle;
+                    SwingUtilities.invokeLater(() -> {
+                        uiTab.appendLog("[+] 执行SQLMap扫描: " + url);
+                        uiTab.appendLog("    窗口标题: " + finalWindowTitle);
+                        uiTab.appendLog("    临时文件: " + tempFilePath);
+                        if (result.isSuccess() && result.getMessage().contains("脚本文件")) {
+                            uiTab.appendLog("    " + result.getMessage());
+                        }
+                    });
+                    
+                    if (!result.isSuccess()) {
+                        SwingUtilities.invokeLater(() -> {
+                            uiTab.appendLog("[-] 启动SQLMap失败: " + result.getMessage());
+                        });
+                    }
+                    
+                    // 每个请求之间稍微延迟
+                    Thread.sleep(500);
+                }
+
+                SwingUtilities.invokeLater(() -> {
+                    uiTab.appendLog("[+] 所有SQLMap命令已启动 (" + messages.size() + " 个)");
+                });
+
+            } catch (Exception e) {
+                SwingUtilities.invokeLater(() -> {
+                    uiTab.appendLog("[-] 执行SQLMap失败: " + e.getMessage());
+                    CommandPreviewDialog.showError(null, "错误", "执行失败: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+    
+    /**
+     * 构建HTTP请求内容字符串
+     */
+    private String buildHttpRequestContent(HttpRequest request) {
+        StringBuilder sb = new StringBuilder();
+        
+        // 请求行
+        sb.append(request.method()).append(" ")
+          .append(request.path()).append(" ")
+          .append(request.httpVersion()).append("\r\n");
+        
+        // 请求头
+        request.headers().forEach(header -> {
+            sb.append(header.name()).append(": ").append(header.value()).append("\r\n");
+        });
+        
+        // 空行
+        sb.append("\r\n");
+        
+        // 请求体
+        String body = HttpRequestUtils.getBodyAsUtf8(request);
+        if (body != null && !body.isEmpty()) {
+            sb.append(body);
+        }
+        
+        return sb.toString();
     }
 }

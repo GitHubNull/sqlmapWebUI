@@ -9,7 +9,7 @@ import java.io.IOException;
 public class SqlmapApiClient {
     
     private ApiClient apiClient;
-    private String baseUrl = "http://localhost:5000";
+    private String baseUrl = "http://localhost:8775";
     
     public SqlmapApiClient() {
         this.apiClient = new ApiClient(baseUrl);

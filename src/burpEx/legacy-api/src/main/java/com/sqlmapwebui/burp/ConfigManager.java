@@ -4,6 +4,10 @@ import burp.IBurpExtenderCallbacks;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.sqlmapwebui.burp.util.TitleConfig;
+import com.sqlmapwebui.burp.util.TitleRule;
+import com.sqlmapwebui.burp.util.TitleSourceType;
+import com.sqlmapwebui.burp.util.RegexSource;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -26,6 +30,31 @@ public class ConfigManager {
     private static final String KEY_SCAN_CONFIG_SOURCE = "scanConfigSource";  // 扫描配置来源
     private static final String KEY_SELECTED_PRESET_NAME = "selectedPresetName";  // 选中的常用配置名称
     
+    // ==================== 剪贴板功能配置 ====================
+    private static final String KEY_CLIPBOARD_AUTO_COPY = "clipboardAutoCopy";  // 是否自动复制
+    private static final String KEY_CLIPBOARD_TEMP_DIR = "clipboardTempDir";  // 临时目录
+    
+    // ==================== 直接执行功能配置 ====================
+    private static final String KEY_DIRECT_PYTHON_PATH = "directPythonPath";  // Python路径
+    private static final String KEY_DIRECT_SQLMAP_PATH = "directSqlmapPath";  // SQLMap路径
+    private static final String KEY_DIRECT_TERMINAL_TYPE = "directTerminalType";  // 终端类型
+    private static final String KEY_DIRECT_KEEP_TERMINAL = "directKeepTerminal";  // 保持终端打开
+    private static final String KEY_SCRIPT_TEMP_DIR = "scriptTempDir";  // 执行脚本临时目录
+    
+    // ==================== 标题配置 ====================
+    private static final String KEY_TITLE_SOURCE_TYPE = "titleSourceType";
+    private static final String KEY_TITLE_FIXED_VALUE = "titleFixedValue";
+    private static final String KEY_TITLE_PATH_SUB_START = "titlePathSubStart";
+    private static final String KEY_TITLE_PATH_SUB_END = "titlePathSubEnd";
+    private static final String KEY_TITLE_REGEX_PATTERN = "titleRegexPattern";
+    private static final String KEY_TITLE_REGEX_GROUP = "titleRegexGroup";
+    private static final String KEY_TITLE_REGEX_SOURCE = "titleRegexSource";
+    private static final String KEY_TITLE_JSON_PATH = "titleJsonPath";
+    private static final String KEY_TITLE_XPATH = "titleXpath";
+    private static final String KEY_TITLE_FORM_FIELD = "titleFormField";
+    private static final String KEY_TITLE_FALLBACK = "titleFallback";
+    private static final String KEY_TITLE_MAX_LENGTH = "titleMaxLength";
+    
     // 历史记录数量限制
     public static final int MIN_HISTORY_SIZE = 3;
     public static final int MAX_HISTORY_SIZE = 32;
@@ -40,7 +69,7 @@ public class ConfigManager {
     private final Gson gson;
     
     // 配置数据
-    private String backendUrl = "http://localhost:5000";
+    private String backendUrl = "http://localhost:8775";
     private int maxHistorySize = DEFAULT_HISTORY_SIZE;
     private boolean autoDedupe = true; // 默认开启自动去重
     private int maxInjectionMarkCount = DEFAULT_INJECTION_MARK_COUNT; // 多选报文时允许标记注入点的最大数量
@@ -55,10 +84,51 @@ public class ConfigManager {
     
     // 常用配置数据库引用
     private PresetConfigDatabase presetDatabase;
+
+    // 命令行执行配置（从数据库加载）
+    private CommandExecConfig commandExecConfig;
     
     // 连接状态
     private boolean connected = false;
     
+    // ==================== 剪贴板功能配置 ====================
+    private boolean clipboardAutoCopy = true;  // 是否自动复制到剪贴板（默认自动）
+    private String clipboardTempDir = "";  // 临时文件目录（空则使用系统默认）
+    
+    // ==================== 直接执行功能配置 ====================
+    private String directPythonPath = "";  // Python解释器路径
+    private String directSqlmapPath = "";  // SQLMap脚本路径
+    private TerminalType directTerminalType = TerminalType.AUTO;  // 终端类型
+    private boolean directKeepTerminal = true;  // 执行后保持终端打开
+    private String scriptTempDir = "";  // 执行脚本临时目录
+    
+    // ==================== 标题配置 ====================
+    private TitleSourceType titleSourceType = TitleSourceType.URL_PATH;
+    private String titleFixedValue = "SQLMap";
+    private String titlePathSubStart = "0";
+    private String titlePathSubEnd = "-0";
+    private String titleRegexPattern = "";
+    private int titleRegexGroup = 1;
+    private RegexSource titleRegexSource = RegexSource.URL;
+    private String titleJsonPath = "$.api";
+    private String titleXpath = "//method";
+    private String titleFormField = "action";
+    private String titleFallback = "SQLMap";
+    private int titleMaxLength = 50;
+    
+    /**
+     * 终端类型枚举
+     */
+    public enum TerminalType {
+        AUTO,           // 自动检测操作系统
+        CMD,            // Windows CMD
+        POWERSHELL,     // Windows PowerShell
+        GNOME_TERMINAL, // Linux GNOME Terminal
+        XTERM,          // Linux xterm
+        TERMINAL_APP,   // macOS Terminal.app
+        ITERM            // macOS iTerm2
+    }
+
     /**
      * 扫描配置来源枚举
      */
@@ -184,6 +254,119 @@ public class ConfigManager {
                 historyConfigs = new ArrayList<>();
             }
         }
+
+        // ==================== 加载剪贴板功能配置 ====================
+        String savedClipboardAutoCopy = callbacks.loadExtensionSetting(KEY_CLIPBOARD_AUTO_COPY);
+        if (savedClipboardAutoCopy != null && !savedClipboardAutoCopy.isEmpty()) {
+            clipboardAutoCopy = Boolean.parseBoolean(savedClipboardAutoCopy);
+        }
+
+        String savedClipboardTempDir = callbacks.loadExtensionSetting(KEY_CLIPBOARD_TEMP_DIR);
+        if (savedClipboardTempDir != null && !savedClipboardTempDir.isEmpty()) {
+            clipboardTempDir = savedClipboardTempDir;
+        }
+
+        // ==================== 加载直接执行功能配置 ====================
+        String savedDirectPythonPath = callbacks.loadExtensionSetting(KEY_DIRECT_PYTHON_PATH);
+        if (savedDirectPythonPath != null && !savedDirectPythonPath.isEmpty()) {
+            directPythonPath = savedDirectPythonPath;
+        }
+
+        String savedDirectSqlmapPath = callbacks.loadExtensionSetting(KEY_DIRECT_SQLMAP_PATH);
+        if (savedDirectSqlmapPath != null && !savedDirectSqlmapPath.isEmpty()) {
+            directSqlmapPath = savedDirectSqlmapPath;
+        }
+
+        String savedDirectTerminalType = callbacks.loadExtensionSetting(KEY_DIRECT_TERMINAL_TYPE);
+        if (savedDirectTerminalType != null && !savedDirectTerminalType.isEmpty()) {
+            try {
+                directTerminalType = TerminalType.valueOf(savedDirectTerminalType);
+            } catch (IllegalArgumentException e) {
+                directTerminalType = TerminalType.AUTO;
+            }
+        }
+
+        String savedDirectKeepTerminal = callbacks.loadExtensionSetting(KEY_DIRECT_KEEP_TERMINAL);
+        if (savedDirectKeepTerminal != null && !savedDirectKeepTerminal.isEmpty()) {
+            directKeepTerminal = Boolean.parseBoolean(savedDirectKeepTerminal);
+        }
+        
+        // ==================== 加载标题配置 ====================
+        String savedTitleSourceType = callbacks.loadExtensionSetting(KEY_TITLE_SOURCE_TYPE);
+        if (savedTitleSourceType != null && !savedTitleSourceType.isEmpty()) {
+            try {
+                titleSourceType = TitleSourceType.valueOf(savedTitleSourceType);
+            } catch (IllegalArgumentException e) {
+                titleSourceType = TitleSourceType.URL_PATH;
+            }
+        }
+        
+        String savedTitleFixedValue = callbacks.loadExtensionSetting(KEY_TITLE_FIXED_VALUE);
+        if (savedTitleFixedValue != null && !savedTitleFixedValue.isEmpty()) {
+            titleFixedValue = savedTitleFixedValue;
+        }
+        
+        String savedTitlePathSubStart = callbacks.loadExtensionSetting(KEY_TITLE_PATH_SUB_START);
+        if (savedTitlePathSubStart != null && !savedTitlePathSubStart.isEmpty()) {
+            titlePathSubStart = savedTitlePathSubStart;
+        }
+        
+        String savedTitlePathSubEnd = callbacks.loadExtensionSetting(KEY_TITLE_PATH_SUB_END);
+        if (savedTitlePathSubEnd != null && !savedTitlePathSubEnd.isEmpty()) {
+            titlePathSubEnd = savedTitlePathSubEnd;
+        }
+        
+        String savedTitleRegexPattern = callbacks.loadExtensionSetting(KEY_TITLE_REGEX_PATTERN);
+        if (savedTitleRegexPattern != null) {
+            titleRegexPattern = savedTitleRegexPattern;
+        }
+        
+        String savedTitleRegexGroup = callbacks.loadExtensionSetting(KEY_TITLE_REGEX_GROUP);
+        if (savedTitleRegexGroup != null && !savedTitleRegexGroup.isEmpty()) {
+            try {
+                titleRegexGroup = Integer.parseInt(savedTitleRegexGroup);
+            } catch (NumberFormatException e) {
+                titleRegexGroup = 1;
+            }
+        }
+        
+        String savedTitleRegexSource = callbacks.loadExtensionSetting(KEY_TITLE_REGEX_SOURCE);
+        if (savedTitleRegexSource != null && !savedTitleRegexSource.isEmpty()) {
+            try {
+                titleRegexSource = RegexSource.valueOf(savedTitleRegexSource);
+            } catch (IllegalArgumentException e) {
+                titleRegexSource = RegexSource.URL;
+            }
+        }
+        
+        String savedTitleJsonPath = callbacks.loadExtensionSetting(KEY_TITLE_JSON_PATH);
+        if (savedTitleJsonPath != null && !savedTitleJsonPath.isEmpty()) {
+            titleJsonPath = savedTitleJsonPath;
+        }
+        
+        String savedTitleXpath = callbacks.loadExtensionSetting(KEY_TITLE_XPATH);
+        if (savedTitleXpath != null && !savedTitleXpath.isEmpty()) {
+            titleXpath = savedTitleXpath;
+        }
+        
+        String savedTitleFormField = callbacks.loadExtensionSetting(KEY_TITLE_FORM_FIELD);
+        if (savedTitleFormField != null && !savedTitleFormField.isEmpty()) {
+            titleFormField = savedTitleFormField;
+        }
+        
+        String savedTitleFallback = callbacks.loadExtensionSetting(KEY_TITLE_FALLBACK);
+        if (savedTitleFallback != null && !savedTitleFallback.isEmpty()) {
+            titleFallback = savedTitleFallback;
+        }
+        
+        String savedTitleMaxLength = callbacks.loadExtensionSetting(KEY_TITLE_MAX_LENGTH);
+        if (savedTitleMaxLength != null && !savedTitleMaxLength.isEmpty()) {
+            try {
+                titleMaxLength = Integer.parseInt(savedTitleMaxLength);
+            } catch (NumberFormatException e) {
+                titleMaxLength = 50;
+            }
+        }
     }
     
     // ============ 后端URL管理 ============
@@ -269,9 +452,11 @@ public class ConfigManager {
     
     /**
      * 设置常用配置数据库引用
+     * 同时从数据库加载命令行执行配置
      */
     public void setPresetDatabase(PresetConfigDatabase database) {
         this.presetDatabase = database;
+        loadCommandExecConfig();
     }
     
     /**
@@ -512,5 +697,483 @@ public class ConfigManager {
         public String toString() {
             return displayName;
         }
+    }
+
+    // ============ 剪贴板功能配置管理 ============
+
+    /**
+     * 获取是否自动复制到剪贴板
+     */
+    public boolean isClipboardAutoCopy() {
+        return clipboardAutoCopy;
+    }
+
+    /**
+     * 设置是否自动复制到剪贴板
+     */
+    public void setClipboardAutoCopy(boolean autoCopy) {
+        this.clipboardAutoCopy = autoCopy;
+        callbacks.saveExtensionSetting(KEY_CLIPBOARD_AUTO_COPY, String.valueOf(autoCopy));
+    }
+
+    /**
+     * 获取临时文件目录
+     */
+    public String getClipboardTempDir() {
+        return clipboardTempDir;
+    }
+
+    /**
+     * 设置临时文件目录
+     */
+    public void setClipboardTempDir(String tempDir) {
+        this.clipboardTempDir = tempDir != null ? tempDir : "";
+        callbacks.saveExtensionSetting(KEY_CLIPBOARD_TEMP_DIR, this.clipboardTempDir);
+    }
+
+    // ============ 直接执行功能配置管理 ============
+
+    /**
+     * 获取 Python 解释器路径
+     */
+    public String getDirectPythonPath() {
+        return directPythonPath;
+    }
+
+    /**
+     * 设置 Python 解释器路径
+     */
+    public void setDirectPythonPath(String path) {
+        this.directPythonPath = path != null ? path : "";
+        callbacks.saveExtensionSetting(KEY_DIRECT_PYTHON_PATH, this.directPythonPath);
+    }
+
+    /**
+     * 获取 SQLMap 脚本路径
+     */
+    public String getDirectSqlmapPath() {
+        return directSqlmapPath;
+    }
+
+    /**
+     * 设置 SQLMap 脚本路径
+     */
+    public void setDirectSqlmapPath(String path) {
+        this.directSqlmapPath = path != null ? path : "";
+        callbacks.saveExtensionSetting(KEY_DIRECT_SQLMAP_PATH, this.directSqlmapPath);
+    }
+
+    /**
+     * 获取终端类型
+     */
+    public TerminalType getDirectTerminalType() {
+        return directTerminalType;
+    }
+
+    /**
+     * 设置终端类型
+     */
+    public void setDirectTerminalType(TerminalType type) {
+        this.directTerminalType = type != null ? type : TerminalType.AUTO;
+        callbacks.saveExtensionSetting(KEY_DIRECT_TERMINAL_TYPE, this.directTerminalType.name());
+    }
+
+    /**
+     * 获取执行后是否保持终端打开
+     */
+    public boolean isDirectKeepTerminal() {
+        return directKeepTerminal;
+    }
+
+    /**
+     * 设置执行后是否保持终端打开
+     */
+    public void setDirectKeepTerminal(boolean keepTerminal) {
+        this.directKeepTerminal = keepTerminal;
+        callbacks.saveExtensionSetting(KEY_DIRECT_KEEP_TERMINAL, String.valueOf(keepTerminal));
+    }
+
+    /**
+     * 获取执行脚本临时目录
+     */
+    public String getScriptTempDir() {
+        return scriptTempDir;
+    }
+
+    /**
+     * 设置执行脚本临时目录
+     */
+    public void setScriptTempDir(String scriptTempDir) {
+        this.scriptTempDir = scriptTempDir != null ? scriptTempDir : "";
+    }
+    
+    // ============ 标题配置管理 ============
+    
+    public TitleSourceType getTitleSourceType() {
+        return titleSourceType;
+    }
+    
+    public void setTitleSourceType(TitleSourceType type) {
+        this.titleSourceType = type != null ? type : TitleSourceType.URL_PATH;
+        callbacks.saveExtensionSetting(KEY_TITLE_SOURCE_TYPE, this.titleSourceType.name());
+    }
+    
+    public String getTitleFixedValue() {
+        return titleFixedValue;
+    }
+    
+    public void setTitleFixedValue(String value) {
+        this.titleFixedValue = value != null ? value : "SQLMap";
+        callbacks.saveExtensionSetting(KEY_TITLE_FIXED_VALUE, this.titleFixedValue);
+    }
+    
+    public String getTitlePathSubStart() {
+        return titlePathSubStart;
+    }
+    
+    public void setTitlePathSubStart(String start) {
+        this.titlePathSubStart = start != null ? start : "0";
+        callbacks.saveExtensionSetting(KEY_TITLE_PATH_SUB_START, this.titlePathSubStart);
+    }
+    
+    public String getTitlePathSubEnd() {
+        return titlePathSubEnd;
+    }
+    
+    public void setTitlePathSubEnd(String end) {
+        this.titlePathSubEnd = end != null ? end : "-0";
+        callbacks.saveExtensionSetting(KEY_TITLE_PATH_SUB_END, this.titlePathSubEnd);
+    }
+    
+    public String getTitleRegexPattern() {
+        return titleRegexPattern;
+    }
+    
+    public void setTitleRegexPattern(String pattern) {
+        this.titleRegexPattern = pattern != null ? pattern : "";
+        callbacks.saveExtensionSetting(KEY_TITLE_REGEX_PATTERN, this.titleRegexPattern);
+    }
+    
+    public int getTitleRegexGroup() {
+        return titleRegexGroup;
+    }
+    
+    public void setTitleRegexGroup(int group) {
+        this.titleRegexGroup = Math.max(0, group);
+        callbacks.saveExtensionSetting(KEY_TITLE_REGEX_GROUP, String.valueOf(this.titleRegexGroup));
+    }
+    
+    public RegexSource getTitleRegexSource() {
+        return titleRegexSource;
+    }
+    
+    public void setTitleRegexSource(RegexSource source) {
+        this.titleRegexSource = source != null ? source : RegexSource.URL;
+        callbacks.saveExtensionSetting(KEY_TITLE_REGEX_SOURCE, this.titleRegexSource.name());
+    }
+    
+    public String getTitleJsonPath() {
+        return titleJsonPath;
+    }
+    
+    public void setTitleJsonPath(String path) {
+        this.titleJsonPath = path != null ? path : "$.api";
+        callbacks.saveExtensionSetting(KEY_TITLE_JSON_PATH, this.titleJsonPath);
+    }
+    
+    public String getTitleXPath() {
+        return titleXpath;
+    }
+    
+    public void setTitleXPath(String path) {
+        this.titleXpath = path != null ? path : "//method";
+        callbacks.saveExtensionSetting(KEY_TITLE_XPATH, this.titleXpath);
+    }
+    
+    public String getTitleFormField() {
+        return titleFormField;
+    }
+    
+    public void setTitleFormField(String field) {
+        this.titleFormField = field != null ? field : "action";
+        callbacks.saveExtensionSetting(KEY_TITLE_FORM_FIELD, this.titleFormField);
+    }
+    
+    public String getTitleFallback() {
+        return titleFallback;
+    }
+    
+    public void setTitleFallback(String fallback) {
+        this.titleFallback = fallback != null ? fallback : "SQLMap";
+        callbacks.saveExtensionSetting(KEY_TITLE_FALLBACK, this.titleFallback);
+    }
+    
+    public int getTitleMaxLength() {
+        return titleMaxLength;
+    }
+    
+    public void setTitleMaxLength(int maxLength) {
+        this.titleMaxLength = Math.max(1, Math.min(200, maxLength));
+        callbacks.saveExtensionSetting(KEY_TITLE_MAX_LENGTH, String.valueOf(this.titleMaxLength));
+    }
+    
+    /**
+     * 获取标题配置对象
+     */
+    public TitleConfig getTitleConfig() {
+        return new TitleConfig(
+            titleSourceType,
+            titleFixedValue,
+            titlePathSubStart,
+            titlePathSubEnd,
+            titleRegexPattern,
+            titleRegexGroup,
+            titleRegexSource,
+            titleJsonPath,
+            titleXpath,
+            titleFormField,
+            titleFallback,
+            titleMaxLength
+        );
+    }
+    
+    /**
+     * 从标题配置对象批量设置
+     */
+    public void setTitleConfig(TitleConfig config) {
+        if (config == null) return;
+        setTitleSourceType(config.getSourceType());
+        setTitleFixedValue(config.getFixedValue());
+        setTitlePathSubStart(config.getPathSubStart());
+        setTitlePathSubEnd(config.getPathSubEnd());
+        setTitleRegexPattern(config.getRegexPattern());
+        setTitleRegexGroup(config.getRegexGroup());
+        setTitleRegexSource(config.getRegexSource());
+        setTitleJsonPath(config.getJsonPath());
+        setTitleXPath(config.getXpath());
+        setTitleFormField(config.getFormField());
+        setTitleFallback(config.getFallback());
+        setTitleMaxLength(config.getMaxLength());
+    }
+    
+    // ==================== 标题规则列表管理 ====================
+    
+    private static final String KEY_TITLE_RULES = "titleRules";
+    private List<TitleRule> titleRules = null;
+    
+    /**
+     * 获取标题规则列表
+     * 首次访问时从存储加载，如果为空则创建默认规则
+     */
+    public List<TitleRule> getTitleRules() {
+        if (titleRules == null) {
+            loadTitleRules();
+        }
+        return new ArrayList<>(titleRules);
+    }
+    
+    /**
+     * 加载标题规则列表
+     */
+    private void loadTitleRules() {
+        String json = callbacks.loadExtensionSetting(KEY_TITLE_RULES);
+        if (json != null && !json.isEmpty()) {
+            try {
+                Type listType = new TypeToken<List<TitleRule>>() {}.getType();
+                List<TitleRule> loaded = gson.fromJson(json, listType);
+                if (loaded != null && !loaded.isEmpty()) {
+                    titleRules = loaded;
+                    // 确保有默认规则
+                    boolean hasDefault = titleRules.stream()
+                        .anyMatch(r -> TitleRule.DEFAULT_RULE_ID.equals(r.getId()));
+                    if (!hasDefault) {
+                        titleRules.add(0, TitleRule.createDefaultRule());
+                    }
+                    return;
+                }
+            } catch (Exception e) {
+                // 加载失败，使用默认
+            }
+        }
+        // 创建默认规则列表
+        titleRules = new ArrayList<>();
+        titleRules.add(TitleRule.createDefaultRule());
+    }
+    
+    /**
+     * 保存标题规则列表
+     */
+    public void setTitleRules(List<TitleRule> rules) {
+        if (rules == null) {
+            titleRules = new ArrayList<>();
+            titleRules.add(TitleRule.createDefaultRule());
+        } else {
+            titleRules = new ArrayList<>(rules);
+        }
+        String json = gson.toJson(titleRules);
+        callbacks.saveExtensionSetting(KEY_TITLE_RULES, json);
+    }
+    
+    /**
+     * 添加标题规则
+     */
+    public void addTitleRule(TitleRule rule) {
+        if (titleRules == null) loadTitleRules();
+        if (rule.getPriority() == 999) {
+            rule.setPriority(titleRules.size());
+        }
+        titleRules.add(rule);
+        String json = gson.toJson(titleRules);
+        callbacks.saveExtensionSetting(KEY_TITLE_RULES, json);
+    }
+    
+    /**
+     * 更新标题规则
+     */
+    public void updateTitleRule(TitleRule rule) {
+        if (titleRules == null) loadTitleRules();
+        for (int i = 0; i < titleRules.size(); i++) {
+            if (titleRules.get(i).getId().equals(rule.getId())) {
+                rule.touch();
+                titleRules.set(i, rule);
+                break;
+            }
+        }
+        String json = gson.toJson(titleRules);
+        callbacks.saveExtensionSetting(KEY_TITLE_RULES, json);
+    }
+    
+    /**
+     * 删除标题规则
+     */
+    public void deleteTitleRule(String ruleId) {
+        if (titleRules == null) loadTitleRules();
+        titleRules.removeIf(r -> r.getId().equals(ruleId) && !r.isDefaultRule());
+        String json = gson.toJson(titleRules);
+        callbacks.saveExtensionSetting(KEY_TITLE_RULES, json);
+    }
+    
+    /**
+     * 根据ID获取标题规则
+     */
+    public TitleRule getTitleRuleById(String id) {
+        if (titleRules == null) loadTitleRules();
+        return titleRules.stream()
+            .filter(r -> r.getId().equals(id))
+            .findFirst()
+            .orElse(null);
+    }
+    
+    /**
+     * 移动规则向上（减小优先级数字）
+     */
+    public void moveRuleUp(String ruleId) {
+        if (titleRules == null) loadTitleRules();
+        for (int i = 1; i < titleRules.size(); i++) {
+            if (titleRules.get(i).getId().equals(ruleId)) {
+                TitleRule rule = titleRules.get(i);
+                if (!rule.isDefaultRule()) {
+                    TitleRule prev = titleRules.get(i - 1);
+                    if (!prev.isDefaultRule()) {
+                        int temp = rule.getPriority();
+                        rule.setPriority(prev.getPriority());
+                        prev.setPriority(temp);
+                        titleRules.sort(Comparator.comparingInt(TitleRule::getPriority));
+                        saveTitleRulesInternal();
+                    }
+                }
+                break;
+            }
+        }
+    }
+    
+    /**
+     * 移动规则向下（增大优先级数字）
+     */
+    public void moveRuleDown(String ruleId) {
+        if (titleRules == null) loadTitleRules();
+        for (int i = 0; i < titleRules.size() - 1; i++) {
+            if (titleRules.get(i).getId().equals(ruleId)) {
+                TitleRule rule = titleRules.get(i);
+                if (!rule.isDefaultRule()) {
+                    TitleRule next = titleRules.get(i + 1);
+                    int temp = rule.getPriority();
+                    rule.setPriority(next.getPriority());
+                    next.setPriority(temp);
+                    titleRules.sort(Comparator.comparingInt(TitleRule::getPriority));
+                    saveTitleRulesInternal();
+                }
+                break;
+            }
+        }
+    }
+    
+    /**
+     * 内部保存规则列表
+     */
+    private void saveTitleRulesInternal() {
+        String json = gson.toJson(titleRules);
+        callbacks.saveExtensionSetting(KEY_TITLE_RULES, json);
+    }
+
+    /**
+     * 从数据库加载命令行执行配置
+     */
+    public void loadCommandExecConfig() {
+        if (presetDatabase == null) {
+            return;
+        }
+
+        CommandExecConfig config = presetDatabase.getCommandExecConfig();
+        if (config != null) {
+            this.commandExecConfig = config;
+
+            // 同步到内存字段
+            this.clipboardAutoCopy = config.isAutoCopy();
+            this.clipboardTempDir = config.getTempDir();
+            this.directPythonPath = config.getPythonPath();
+            this.directSqlmapPath = config.getSqlmapPath();
+            try {
+                this.directTerminalType = TerminalType.valueOf(config.getTerminalType());
+            } catch (IllegalArgumentException e) {
+                this.directTerminalType = TerminalType.AUTO;
+            }
+            this.directKeepTerminal = config.isKeepTerminal();
+            this.scriptTempDir = config.getScriptTempDir();
+            this.titleFallback = config.getTitleFallback();
+            this.titleMaxLength = config.getTitleMaxLength();
+
+            // 加载标题规则
+            List<TitleRule> rules = config.getTitleRules();
+            if (rules != null && !rules.isEmpty()) {
+                this.titleRules = new ArrayList<>(rules);
+            }
+        }
+    }
+
+    /**
+     * 保存命令行执行配置到数据库
+     */
+    public void saveCommandExecConfig() {
+        if (presetDatabase == null) {
+            return;
+        }
+
+        CommandExecConfig config = new CommandExecConfig();
+        config.setAutoCopy(clipboardAutoCopy);
+        config.setTempDir(clipboardTempDir);
+        config.setScriptTempDir(scriptTempDir);
+        config.setPythonPath(directPythonPath);
+        config.setSqlmapPath(directSqlmapPath);
+        config.setTerminalType(directTerminalType.name());
+        config.setKeepTerminal(directKeepTerminal);
+        config.setTitleFallback(titleFallback);
+        config.setTitleMaxLength(titleMaxLength);
+        if (titleRules != null) {
+            config.setTitleRules(new ArrayList<>(titleRules));
+        }
+
+        presetDatabase.saveCommandExecConfig(config);
+        this.commandExecConfig = config;
     }
 }

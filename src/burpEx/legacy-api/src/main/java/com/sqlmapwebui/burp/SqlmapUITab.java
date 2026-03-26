@@ -34,6 +34,10 @@ public class SqlmapUITab extends JPanel {
     private PresetConfigPanel presetConfigPanel;
     private HistoryConfigPanel historyConfigPanel;
     private LogPanel logPanel;
+    private CommandExecConfigPanel commandExecConfigPanel;
+    
+    // 选项卡面板
+    private JTabbedPane tabbedPane;
     
     // 状态标签
     private JLabel statusLabel;
@@ -63,7 +67,7 @@ public class SqlmapUITab extends JPanel {
         logPanel = new LogPanel();
         
         // 创建选项卡面板
-        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane = new JTabbedPane();
         
         // Tab 1: 服务器配置
         serverConfigPanel = new ServerConfigPanel(
@@ -91,8 +95,15 @@ public class SqlmapUITab extends JPanel {
         // Tab 4: 历史配置管理
         historyConfigPanel = new HistoryConfigPanel(configManager, apiClient, this::appendLog);
         tabbedPane.addTab("历史配置", historyConfigPanel);
-        
-        // Tab 5: 活动日志
+
+        // Tab 5: 命令行执行配置（合并剪贴板配置和直接执行配置）
+        commandExecConfigPanel = new CommandExecConfigPanel(configManager, apiClient, this::appendLog);
+        tabbedPane.addTab("命令行执行配置", commandExecConfigPanel);
+
+        // 将数据库引用传递给命令行执行配置面板
+        commandExecConfigPanel.setDatabase(presetDatabase);
+
+        // Tab 6: 活动日志
         tabbedPane.addTab("活动日志", logPanel);
         
         add(tabbedPane, BorderLayout.CENTER);
@@ -183,5 +194,23 @@ public class SqlmapUITab extends JPanel {
             return presetConfigPanel.getDatabase();
         }
         return null;
+    }
+    
+    /**
+     * 切换到命令行执行配置Tab页
+     */
+    public void switchToCommandExecTab() {
+        if (tabbedPane != null && commandExecConfigPanel != null) {
+            tabbedPane.setSelectedComponent(commandExecConfigPanel);
+        }
+    }
+
+    /**
+     * 切换到命令行执行配置Tab页（兼容旧方法名）
+     * @deprecated 使用 {@link #switchToCommandExecTab()} 代替
+     */
+    @Deprecated
+    public void switchToDirectExecuteTab() {
+        switchToCommandExecTab();
     }
 }

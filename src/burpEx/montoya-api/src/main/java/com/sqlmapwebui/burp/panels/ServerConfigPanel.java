@@ -104,7 +104,7 @@ public class ServerConfigPanel extends BaseConfigPanel {
         gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
         JPanel portPanel = new JPanel(new BorderLayout(5, 0));
         serverPortField = new JTextField(8);
-        serverPortField.setToolTipText("输入端口号 (1-65535)，默认: 5000");
+        serverPortField.setToolTipText("输入端口号 (1-65535)，默认: 8775");
         portPanel.add(serverPortField, BorderLayout.CENTER);
         portValidationLabel = new JLabel();
         portValidationLabel.setPreferredSize(new Dimension(20, 20));
@@ -249,7 +249,7 @@ public class ServerConfigPanel extends BaseConfigPanel {
             "<h4>服务器端口</h4>" +
             "<ul>" +
             "<li>有效范围：<span class='code'>1 - 65535</span></li>" +
-            "<li>默认端口：<span class='code'>5000</span>（SQLMap WebUI后端默认端口）</li>" +
+            "<li>默认端口：<span class='code'>8775</span>（SQLMap WebUI后端默认端口）</li>" +
             "</ul>" +
             
             "<h4>配置持久化</h4>" +
@@ -361,11 +361,11 @@ public class ServerConfigPanel extends BaseConfigPanel {
                 serverPortField.setText(address.substring(colonIndex + 1));
             } else {
                 serverIpField.setText(address);
-                serverPortField.setText("5000");
+                serverPortField.setText("8775");
             }
         } catch (Exception e) {
             serverIpField.setText("localhost");
-            serverPortField.setText("5000");
+            serverPortField.setText("8775");
         }
     }
     
@@ -378,7 +378,7 @@ public class ServerConfigPanel extends BaseConfigPanel {
         
         if (props != null && !props.isEmpty()) {
             serverIpField.setText(props.getProperty(KEY_SERVER_IP, "localhost"));
-            serverPortField.setText(props.getProperty(KEY_SERVER_PORT, "5000"));
+            serverPortField.setText(props.getProperty(KEY_SERVER_PORT, "8775"));
             
             try {
                 int maxHistory = Integer.parseInt(props.getProperty(KEY_MAX_HISTORY, "20"));
@@ -463,7 +463,7 @@ public class ServerConfigPanel extends BaseConfigPanel {
      */
     private void resetToDefault() {
         serverIpField.setText("localhost");
-        serverPortField.setText("5000");
+        serverPortField.setText("8775");
         maxHistorySpinner.setValue(20);
         persistConfigCheckBox.setSelected(true);
         
