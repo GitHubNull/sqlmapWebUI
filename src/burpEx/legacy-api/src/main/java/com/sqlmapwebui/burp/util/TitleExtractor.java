@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * 终端窗口标题提取器
@@ -143,7 +144,7 @@ public final class TitleExtractor {
         List<TitleRule> sortedEnabledRules = rules.stream()
             .filter(TitleRule::isEnabled)
             .sorted(Comparator.comparingInt(TitleRule::getPriority))
-            .toList();
+            .collect(Collectors.toList());
 
         LOGGER.debug("启用的规则数量: {}", sortedEnabledRules.size());
 
@@ -403,8 +404,8 @@ public final class TitleExtractor {
         List<TitleRule> sortedEnabledRules = rules.stream()
             .filter(TitleRule::isEnabled)
             .sorted(Comparator.comparingInt(TitleRule::getPriority))
-            .toList();
-        
+            .collect(Collectors.toList());
+
         // 依次尝试每个规则
         for (TitleRule rule : sortedEnabledRules) {
             try {
