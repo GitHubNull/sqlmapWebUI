@@ -277,13 +277,17 @@ class Task(object):
     def _build_raw_http_request(self):
         """
         根据headers和body构建HTTP原始报文
-        格式:
-        POST /path HTTP/1.1
-        Host: example.com
-        Header1: Value1
-        ...
-        
+        格式（使用标准HTTP换行符 \\r\\n）:
+        POST /path HTTP/1.1\\r\\n
+        Host: example.com\\r\\n
+        Header1: Value1\\r\\n
+        \\r\\n
         body_content
+        
+        注意：
+        - 移除 Content-Length 头，让 sqlmap 根据实际 body 长度自动计算
+        - body 中的换行符统一规范化为 \\n（避免 \\r\\n 被重复转换）
+        - 使用 \\r\\n 作为 HTTP 标准行分隔符
         """
         # 解析URL获取请求路径
         parsed_url = urlparse(self.scanUrl)
@@ -297,11 +301,15 @@ class Task(object):
         # 构建请求行
         request_line = f"{method} {path} HTTP/1.1"
         
-        # 构建headers部分
+        # 构建headers部分（移除 Content-Length，让 sqlmap 自动计算）
         headers_list = []
         if self.headers:
             for header in self.headers:
                 if header and ":" in header:
+                    # 跳过 Content-Length，由 sqlmap 根据实际 body 重新计算
+                    if header.lower().startswith("content-length:"):
+                        logger.debug(f"[{self.taskid}] Removing Content-Length header, sqlmap will recalculate")
+                        continue
                     # 如果启用了randomAgent，跳过原始User-Agent头
                     # 让SQLMap的_setHTTPUserAgent()添加随机UA
                     if self.options.randomAgent and header.lower().startswith("user-agent:"):
@@ -319,15 +327,21 @@ class Task(object):
             if host:
                 headers_list.insert(0, f"Host: {host}")
         
-        # 组装完整报文
-        raw_request = request_line + "\n"
-        raw_request += "\n".join(headers_list)
+        # 规范化 body 中的换行符：统一为 \n，避免混合换行符导致字节数不一致
+        body = self.body
+        if body:
+            body = body.replace("\r\n", "\n").replace("\r", "\n")
+        
+        # 使用 \r\n 作为 HTTP 标准行分隔符组装报文
+        CRLF = "\r\n"
+        raw_request = request_line + CRLF
+        raw_request += CRLF.join(headers_list)
         
         # 如果有body，添加空行和body
-        if self.body:
-            raw_request += "\n\n" + self.body
+        if body:
+            raw_request += CRLF + CRLF + body
         else:
-            raw_request += "\n\n"
+            raw_request += CRLF + CRLF
         
         return raw_request
 
@@ -351,9 +365,10 @@ class Task(object):
         # 构建原始HTTP报文
         raw_request = self._build_raw_http_request()
         
-        # 写入文件
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(raw_request)
+        # 使用二进制模式写入，避免 Windows 文本模式自动将 \n 转换为 \r\n
+        # 导致 body 字节数与 Content-Length 不匹配（XML 等多行 body 的截断根因）
+        with open(file_path, 'wb') as f:
+            f.write(raw_request.encode('utf-8'))
         
         logger.info(f"[{self.taskid}] Created HTTP request file: {file_path}")
         logger.debug(f"[{self.taskid}] HTTP request content:\n{raw_request}")

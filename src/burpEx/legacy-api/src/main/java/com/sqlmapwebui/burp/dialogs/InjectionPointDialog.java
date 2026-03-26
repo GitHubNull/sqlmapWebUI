@@ -6,6 +6,9 @@ import com.sqlmapwebui.burp.ScanConfig;
 import com.sqlmapwebui.burp.SqlmapApiClient;
 import com.sqlmapwebui.burp.SqlmapUITab;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.PrintWriter;
@@ -194,38 +197,26 @@ public class InjectionPointDialog {
             ScanConfig config = configManager.getDefaultConfig().copy();
             Map<String, Object> options = config.toOptionsMap();
             
-            // 构建JSON
-            StringBuilder headersJson = new StringBuilder("[");
-            for (int i = 0; i < headersList.size(); i++) {
-                headersJson.append("\"").append(JsonUtils.escapeJson(headersList.get(i))).append("\"");
-                if (i < headersList.size() - 1) headersJson.append(",");
-            }
-            headersJson.append("]");
-            
-            StringBuilder optionsJson = new StringBuilder("{");
-            boolean first = true;
-            for (Map.Entry<String, Object> entry : options.entrySet()) {
-                if (!first) optionsJson.append(",");
-                first = false;
-                optionsJson.append("\"").append(entry.getKey()).append("\":");
-                if (entry.getValue() instanceof String) {
-                    optionsJson.append("\"").append(JsonUtils.escapeJson((String)entry.getValue())).append("\"");
-                } else if (entry.getValue() instanceof Boolean) {
-                    optionsJson.append(entry.getValue());
-                } else {
-                    optionsJson.append(entry.getValue());
+            // 提取HTTP方法（从headers的第一行）
+            String method = "GET";
+            if (!headersList.isEmpty()) {
+                String firstHeader = headersList.get(0);
+                if (firstHeader != null && firstHeader.contains(" ")) {
+                    method = firstHeader.substring(0, firstHeader.indexOf(" "));
                 }
             }
-            optionsJson.append("}");
             
-            String jsonPayload = String.format(
-                "{\"scanUrl\":\"%s\",\"host\":\"%s\",\"headers\":%s,\"body\":\"%s\",\"options\":%s}",
-                JsonUtils.escapeJson(url),
-                JsonUtils.escapeJson(host),
-                headersJson.toString(),
-                JsonUtils.escapeJson(body),
-                optionsJson.toString()
-            );
+            // 使用 Gson 构建 JSON，避免手动拼接导致特殊字符转义不完备
+            Gson gson = new Gson();
+            JsonObject payload = new JsonObject();
+            payload.addProperty("scanUrl", url);
+            payload.addProperty("host", host);
+            payload.addProperty("method", method);
+            payload.add("headers", gson.toJsonTree(headersList));
+            payload.addProperty("body", body);
+            payload.add("options", gson.toJsonTree(options));
+            
+            String jsonPayload = gson.toJson(payload);
             
             long markCount = markedRequestText.chars().filter(ch -> ch == '*').count();
             

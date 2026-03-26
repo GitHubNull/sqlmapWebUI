@@ -8,6 +8,9 @@ import com.sqlmapwebui.burp.util.SqlCommandBuilder;
 import com.sqlmapwebui.burp.util.TitleRule;
 import com.sqlmapwebui.burp.util.TitleExtractor;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
 import javax.swing.*;
 import java.awt.*;
 import java.nio.charset.StandardCharsets;
@@ -378,29 +381,7 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
                 body = new String(request, bodyOffset, request.length - bodyOffset, StandardCharsets.UTF_8);
             }
             
-            StringBuilder headersJson = new StringBuilder("[");
-            for (int i = 0; i < headers.size(); i++) {
-                headersJson.append("\"").append(JsonUtils.escapeJson(headers.get(i))).append("\"");
-                if (i < headers.size() - 1) headersJson.append(",");
-            }
-            headersJson.append("]");
-            
             Map<String, Object> options = config.toOptionsMap();
-            StringBuilder optionsJson = new StringBuilder("{");
-            boolean first = true;
-            for (Map.Entry<String, Object> entry : options.entrySet()) {
-                if (!first) optionsJson.append(",");
-                first = false;
-                optionsJson.append("\"").append(entry.getKey()).append("\":");
-                if (entry.getValue() instanceof String) {
-                    optionsJson.append("\"").append(JsonUtils.escapeJson((String)entry.getValue())).append("\"");
-                } else if (entry.getValue() instanceof Boolean) {
-                    optionsJson.append(entry.getValue());
-                } else {
-                    optionsJson.append(entry.getValue());
-                }
-            }
-            optionsJson.append("}");
             
             // 提取HTTP方法（从headers的第一行）
             String method = "GET";
@@ -411,15 +392,17 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
                 }
             }
             
-            String jsonPayload = String.format(
-                "{\"scanUrl\":\"%s\",\"host\":\"%s\",\"method\":\"%s\",\"headers\":%s,\"body\":\"%s\",\"options\":%s}",
-                JsonUtils.escapeJson(url),
-                JsonUtils.escapeJson(requestInfo.getUrl().getHost()),
-                JsonUtils.escapeJson(method),
-                headersJson.toString(),
-                JsonUtils.escapeJson(body),
-                optionsJson.toString()
-            );
+            // 使用 Gson 构建 JSON，避免手动拼接导致 XML 等特殊字符转义不完备
+            Gson gson = new Gson();
+            JsonObject payload = new JsonObject();
+            payload.addProperty("scanUrl", url);
+            payload.addProperty("host", requestInfo.getUrl().getHost());
+            payload.addProperty("method", method);
+            payload.add("headers", gson.toJsonTree(headers));
+            payload.addProperty("body", body);
+            payload.add("options", gson.toJsonTree(options));
+            
+            String jsonPayload = gson.toJson(payload);
             
             new Thread(() -> {
                 try {
