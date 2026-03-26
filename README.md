@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.8.41-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.44-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -287,6 +287,29 @@ sqlmapWebUI/
 请在使用前阅读 [免责声明](DISCLAIMER.md)。
 
 ## 📝 更新日志
+
+### v1.8.44 (2026-03-26)
+
+**新功能 (Burp 插件)**
+- 新增命令执行配置功能，支持自定义 SQLMap 命令执行方式
+- 新增命令执行配置面板，提供可视化配置界面
+- 新增命令执行帮助对话框，提供详细的配置说明
+- 新增请求标题提取功能，支持从请求中提取自定义标题
+- 新增标题规则管理功能，支持创建、编辑、删除标题提取规则
+- 新增标题规则测试对话框，支持实时测试规则效果
+- 新增命令预览对话框，支持预览生成的 SQLMap 命令
+- 新增直接执行配置面板，支持一键执行扫描
+
+**重构 (Burp 插件)**
+- 移除废弃的剪贴板配置面板，替换为更灵活的命令执行配置
+- 重构命令执行器，支持配置化的命令执行
+- 重构 SQL 命令构建器，增强命令构建能力
+- 重构标题提取器，支持多种标题源类型和正则匹配
+
+**改进 (Burp 插件)**
+- 优化上下文菜单集成，提供更丰富的扫描选项
+- 改进配置管理器，支持更多配置类型
+- 优化预设配置数据库，支持标题规则存储
 
 ### v1.8.41 (2026-02-28)
 
