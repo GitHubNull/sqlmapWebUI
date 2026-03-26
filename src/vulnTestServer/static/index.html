@@ -58,6 +58,7 @@
                     <li><a href="#" data-api="register"><span class="icon">📝</span> 用户注册 (2nd Order)</a></li>
                     <li><a href="#" data-api="checkout"><span class="icon">💳</span> 结算下单 (Error)</a></li>
                     <li><a href="#" data-api="cart"><span class="icon">🛒</span> 购物车 (Union)</a></li>
+                    <li><a href="#" data-api="shipping"><span class="icon">🚚</span> 物流查询 (XML)</a></li>
                 </ul>
             </div>
             <div class="sidebar-section">
@@ -169,6 +170,15 @@
                                 <span class="vuln-tag second">2nd Order</span>
                                 <p>POST /api/user/register</p>
                                 <code>admin'--</code>
+                            </div>
+                        </div>
+                        <div class="vuln-card" data-api="shipping">
+                            <div class="vuln-card-icon xml">🚚</div>
+                            <div class="vuln-card-content">
+                                <h3>物流查询</h3>
+                                <span class="vuln-tag xml">XML Injection</span>
+                                <p>POST /api/shipping/query</p>
+                                <code>&lt;trackingNumber&gt;TRK'--&lt;/&gt;</code>
                             </div>
                         </div>
                     </div>
@@ -587,6 +597,39 @@
                     </div>
                 </form>
                 <div id="checkoutResult" class="result-message" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 物流查询弹窗 -->
+    <div id="shippingModal" class="modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3>🚚 物流查询 (XML SQL注入)</h3>
+                <button class="cart-close" onclick="ui.hideModal('shippingModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="vuln-hint">
+                    <strong>💡 漏洞提示:</strong> XML请求中的 trackingNumber 参数存在SQL注入<br>
+                    <strong>Error-based:</strong> <code>TRK' AND 1=1--</code><br>
+                    <strong>Boolean-blind:</strong> <code>TRK' AND (SELECT 1)=1--</code><br>
+                    <strong>CDATA绕过:</strong> <code>&lt;![CDATA[TRK' OR '1'='1']]>]&gt;</code>
+                </div>
+
+                <!-- XML编辑器 -->
+                <div class="form-group">
+                    <label>XML 请求报文 (约30个参数，只有 trackingNumber 存在注入)</label>
+                    <textarea id="shippingXmlInput" class="code-editor" rows="18" placeholder="输入XML请求报文..."></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" id="sendShippingQuery">📤 发送查询</button>
+                    <button class="btn btn-outline" id="loadShippingTemplate">📋 加载模板</button>
+                    <button class="btn btn-outline" id="loadCdataPayload">🔓 CDATA Payload</button>
+                    <button class="btn btn-outline" id="loadEntityPayload">🔐 实体编码</button>
+                </div>
+
+                <div id="shippingResult" class="result-area" style="margin-top:20px;"></div>
             </div>
         </div>
     </div>

@@ -45,6 +45,7 @@ from handlers.order_handlers import OrderHandlerMixin
 from handlers.cart_handlers import CartHandlerMixin
 from handlers.system_handlers import SystemHandlerMixin
 from handlers.secrets_handlers import SecretsHandlerMixin
+from handlers.shipping_handlers import ShippingHandlerMixin
 
 
 class VulnShopHandler(
@@ -55,6 +56,7 @@ class VulnShopHandler(
     CartHandlerMixin,
     SystemHandlerMixin,
     SecretsHandlerMixin,
+    ShippingHandlerMixin,
     BaseHTTPRequestHandler
 ):
     """
@@ -253,7 +255,11 @@ class VulnShopHandler(
                 self.handle_secrets_query(data)
             elif path == '/api/secrets/search':
                 self.handle_secrets_search(data)
-            
+
+            # 物流查询模块接口（XML SQL注入演示）
+            elif path == '/api/shipping/query':
+                self.handle_shipping_query(data)
+
             else:
                 self.send_error(404, 'Not Found')
         except WAFBlockedException as e:
@@ -326,6 +332,7 @@ def run_server():
 ║  • POST /api/feedback/search      - SQL注入 (只读)                                      ║
 ║  • POST /api/secrets/query        - SQL注入 (只读 - 可获取Flag)                        ║
 ║  • POST /api/secrets/search       - SQL注入 (只读 - 可搜索Flag)                        ║
+║  • POST /api/shipping/query       - XML SQL注入 (30参数/1注入点) (只读)                ║
 ║                                                                                       ║
 ║  [安全接口 - 参数化查询保护]                                                           ║
 ║  • POST /api/user/register        - 安全 (session_id, captcha_token)                   ║

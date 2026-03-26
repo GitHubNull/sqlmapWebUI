@@ -9,6 +9,7 @@ VulnShop 基础处理器 - 公共方法和工具函数
 import json
 import os
 import time
+import html
 import xml.etree.ElementTree as ET
 from urllib.parse import unquote
 
@@ -179,13 +180,10 @@ class BaseHandlerMixin:
                 except:
                     return {}
             elif 'application/xml' in content_type or 'text/xml' in content_type:
-                # XML解析
+                # XML解析 - 支持多层嵌套、CDATA和实体编码
                 try:
                     root = ET.fromstring(post_data)
-                    result = {}
-                    for child in root:
-                        result[child.tag] = child.text or ''
-                    return result
+                    return self._parse_xml_element(root)
                 except:
                     return {}
             else:
@@ -214,3 +212,26 @@ class BaseHandlerMixin:
             return 'xml'
         else:
             return 'form'
+
+    def _parse_xml_element(self, element):
+        """
+        递归解析XML元素，支持多层嵌套、CDATA和实体编码
+        
+        Args:
+            element: xml.etree.ElementTree.Element 对象
+            
+        Returns:
+            dict: 解析后的字典数据
+        """
+        result = {}
+        for child in element:
+            if len(child) > 0:
+                # 有子元素，递归解析
+                result[child.tag] = self._parse_xml_element(child)
+            else:
+                # 叶子节点，提取文本内容
+                text = child.text or ''
+                # XML实体解码 (如 &#84; -> T)
+                # CDATA 已被 ET 解析器自动处理
+                result[child.tag] = html.unescape(text.strip()) if text else ''
+        return result

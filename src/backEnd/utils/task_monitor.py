@@ -46,7 +46,7 @@ def get_max_tasks_count():
 
 
 def monitor(max_tasks_count=None):
-    logger.debug("monitor triggered...")
+    # logger.debug("monitor triggered...")
     # logger.debug(f"monitor -> id(DataStore.tasks): {id(DataStore.tasks)}")
     # logger.debug(f"monitor -> id(DataStore.current_db): {id(DataStore.current_db)}")
     local_max_tasks_count = 0

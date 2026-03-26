@@ -135,6 +135,21 @@ def init_database():
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
     ''')
+
+    # 创建物流日志表（用于 XML SQL 注入演示）
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS shipping_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tracking_number TEXT NOT NULL,
+            carrier_code TEXT,
+            status TEXT DEFAULT 'in_transit',
+            location TEXT,
+            update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            estimated_delivery TIMESTAMP,
+            weight REAL,
+            notes TEXT
+        )
+    ''')
     
     # 插入测试用户
     test_users = [
@@ -211,7 +226,25 @@ def init_database():
             ''', secret)
         except:
             pass
-    
+
+    # 插入物流测试数据（用于 XML SQL 注入演示）
+    test_shipping = [
+        ('TRK202403150001', 'SF', 'in_transit', '深圳转运中心', 1.5, '预计3天内送达'),
+        ('TRK202403150002', 'YT', 'delivered', '北京朝阳区派送站', 0.8, '已签收'),
+        ('TRK202403150003', 'ZT', 'pending', '等待揽收', 2.0, '等待快递员上门'),
+        ('TRK202403150004', 'JD', 'in_transit', '上海分拨中心', 1.2, '运输中'),
+        ('TRK202403150005', 'EMS', 'customs', '海关清关中', 3.5, '国际包裹清关'),
+    ]
+
+    for shipping in test_shipping:
+        try:
+            cursor.execute('''
+                INSERT INTO shipping_logs (tracking_number, carrier_code, status, location, weight, notes)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', shipping)
+        except:
+            pass
+
     conn.commit()
     conn.close()
     print("[*] Database initialized with test data")

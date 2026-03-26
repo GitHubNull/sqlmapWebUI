@@ -361,6 +361,186 @@ const cart = {
     }
 };
 
+// ==================== 物流查询模块 ====================
+const shipping = {
+    // 获取默认XML模板
+    getTemplate() {
+        const timestamp = Date.now();
+        return `<?xml version="1.0" encoding="UTF-8"?>
+<shippingQuery>
+    <version>1.0</version>
+    <requestId>req_${timestamp}</requestId>
+    <timestamp>${timestamp}</timestamp>
+    <clientId>web_client_001</clientId>
+    <apiKey>ak_live_test123</apiKey>
+    <trackingNumber>TRK202403150001</trackingNumber>
+    <carrierCode>SF</carrierCode>
+    <queryType>realtime</queryType>
+    <senderProvince>广东省</senderProvince>
+    <senderCity>深圳市</senderCity>
+    <senderDistrict>南山区</senderDistrict>
+    <receiverProvince>北京市</receiverProvince>
+    <receiverCity>北京市</receiverCity>
+    <receiverDistrict>朝阳区</receiverDistrict>
+    <userId>10001</userId>
+    <userName>测试用户</userName>
+    <userPhone>138****8888</userPhone>
+    <userEmail>test@example.com</userEmail>
+    <orderNo>ORD202403150001</orderNo>
+    <orderId>100001</orderId>
+    <shopId>SHOP001</shopId>
+    <deliveryMethod>standard</deliveryMethod>
+    <priority>normal</priority>
+    <signature>required</signature>
+    <insurance>true</insurance>
+    <sessionId>sess_${timestamp}</sessionId>
+    <deviceFingerprint>fp_win_chrome_test</deviceFingerprint>
+    <userAgent>Mozilla/5.0</userAgent>
+    <clientIp>127.0.0.1</clientIp>
+    <extraData><![CDATA[{"source":"web"}]]></extraData>
+</shippingQuery>`;
+    },
+
+    // 获取CDATA绕过Payload
+    getCdataPayload() {
+        const timestamp = Date.now();
+        return `<?xml version="1.0" encoding="UTF-8"?>
+<shippingQuery>
+    <version>1.0</version>
+    <requestId>req_${timestamp}</requestId>
+    <timestamp>${timestamp}</timestamp>
+    <clientId>web_client_001</clientId>
+    <apiKey>ak_live_test123</apiKey>
+    <trackingNumber><![CDATA[TRK' OR '1'='1']]></trackingNumber>
+    <carrierCode>SF</carrierCode>
+    <queryType>realtime</queryType>
+    <userId>10001</userId>
+    <sessionId>sess_${timestamp}</sessionId>
+</shippingQuery>`;
+    },
+
+    // 获取XML实体编码绕过Payload
+    getEntityPayload() {
+        const timestamp = Date.now();
+        return `<?xml version="1.0" encoding="UTF-8"?>
+<shippingQuery>
+    <version>1.0</version>
+    <requestId>req_${timestamp}</requestId>
+    <timestamp>${timestamp}</timestamp>
+    <clientId>web_client_001</clientId>
+    <apiKey>ak_live_test123</apiKey>
+    <trackingNumber>&#84;&#82;&#75;' OR '1'='1'</trackingNumber>
+    <carrierCode>SF</carrierCode>
+    <queryType>realtime</queryType>
+    <userId>10001</userId>
+    <sessionId>sess_${timestamp}</sessionId>
+</shippingQuery>`;
+    },
+
+    // 加载默认模板
+    loadTemplate() {
+        const textarea = document.getElementById('shippingXmlInput');
+        if (textarea) {
+            textarea.value = this.getTemplate();
+        }
+    },
+
+    // 加载CDATA Payload
+    loadCdataPayload() {
+        const textarea = document.getElementById('shippingXmlInput');
+        if (textarea) {
+            textarea.value = this.getCdataPayload();
+        }
+    },
+
+    // 加载实体编码Payload
+    loadEntityPayload() {
+        const textarea = document.getElementById('shippingXmlInput');
+        if (textarea) {
+            textarea.value = this.getEntityPayload();
+        }
+    },
+
+    // 发送查询
+    async sendQuery() {
+        const textarea = document.getElementById('shippingXmlInput');
+        const resultDiv = document.getElementById('shippingResult');
+
+        if (!textarea || !textarea.value.trim()) {
+            cart.showToast('请输入XML请求报文', 'warning');
+            return;
+        }
+
+        const xmlData = textarea.value.trim();
+
+        try {
+            resultDiv.innerHTML = '<div style="text-align:center;padding:20px;color:#888;">查询中...</div>';
+
+            const response = await fetch('/api/shipping/query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/xml'
+                },
+                body: xmlData
+            });
+
+            const result = await response.json();
+
+            // 格式化显示结果
+            let html = '<div class="result-success">';
+
+            if (result.success) {
+                if (result.data) {
+                    html += `<h4>📦 物流信息</h4>`;
+                    html += `<div style="background:var(--code-bg);padding:15px;border-radius:8px;margin:10px 0;">`;
+                    html += `<p><strong>运单号:</strong> ${result.data.tracking_number || 'N/A'}</p>`;
+                    html += `<p><strong>快递公司:</strong> ${result.data.carrier_code || 'N/A'}</p>`;
+                    html += `<p><strong>状态:</strong> <span class="status-badge">${result.data.status || 'N/A'}</span></p>`;
+                    html += `<p><strong>当前位置:</strong> ${result.data.location || 'N/A'}</p>`;
+                    html += `<p><strong>重量:</strong> ${result.data.weight || 'N/A'} kg</p>`;
+                    html += `<p><strong>备注:</strong> ${result.data.notes || 'N/A'}</p>`;
+                    html += `</div>`;
+                    html += `<p style="color:var(--success-color);">✅ 查询成功 - 返回 ${result.count} 条记录</p>`;
+                } else {
+                    html += `<p style="color:var(--text-muted);">📭 未找到物流信息</p>`;
+                    html += `<p style="color:#f39c12;">提示: 这可能是 Boolean-blind 注入条件为假的结果</p>`;
+                }
+
+                if (result.request_info) {
+                    html += `<details style="margin-top:10px;"><summary>请求信息</summary>`;
+                    html += `<pre style="background:var(--code-bg);padding:10px;border-radius:4px;font-size:12px;">`;
+                    html += JSON.stringify(result.request_info, null, 2);
+                    html += `</pre></details>`;
+                }
+            } else {
+                html = '<div class="result-error">';
+                html += `<h4>❌ 错误</h4>`;
+                html += `<p style="color:var(--error-color);">${result.message || '未知错误'}</p>`;
+
+                if (result.debug && result.debug.sql_error) {
+                    html += `<details open style="margin-top:10px;"><summary style="color:var(--error-color);">SQL错误信息 (Error-based)</summary>`;
+                    html += `<pre style="background:#2d1f1f;padding:10px;border-radius:4px;color:#ff6b6b;font-size:12px;overflow-x:auto;">`;
+                    html += this.escapeHtml(result.debug.sql_error);
+                    html += `</pre></details>`;
+                }
+            }
+
+            html += '</div>';
+            resultDiv.innerHTML = html;
+
+        } catch (error) {
+            resultDiv.innerHTML = `<div class="result-error"><p>请求失败: ${error.message}</p></div>`;
+        }
+    },
+
+    // HTML转义
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+};
+
 // ==================== UI 操作 ====================
 const ui = {
     // 页面切换
@@ -1005,6 +1185,9 @@ function initEventListeners() {
                 case 'cart':
                     cart.open();
                     break;
+                case 'shipping':
+                    ui.showModal('shippingModal');
+                    break;
             }
         });
     });
@@ -1113,10 +1296,31 @@ function initEventListeners() {
                 case 'cart':
                     cart.open();
                     break;
+                case 'shipping':
+                    ui.showModal('shippingModal');
+                    shipping.loadTemplate();
+                    break;
                 default:
                     break;
             }
         });
+    });
+
+    // 物流查询相关事件
+    document.getElementById('loadShippingTemplate')?.addEventListener('click', () => {
+        shipping.loadTemplate();
+    });
+
+    document.getElementById('loadCdataPayload')?.addEventListener('click', () => {
+        shipping.loadCdataPayload();
+    });
+
+    document.getElementById('loadEntityPayload')?.addEventListener('click', () => {
+        shipping.loadEntityPayload();
+    });
+
+    document.getElementById('sendShippingQuery')?.addEventListener('click', async () => {
+        await shipping.sendQuery();
     });
 }
 
