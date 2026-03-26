@@ -170,9 +170,11 @@ public class CommandPreviewDialog {
     private void executeCommand(JDialog dialog, String command) {
         ConfigManager.TerminalType terminalType = configManager.getDirectTerminalType();
         boolean keepTerminal = configManager.isDirectKeepTerminal();
+        String scriptTempDir = configManager.getScriptTempDir();
 
+        // 使用默认标题 "SQLMap"
         CommandExecutor.ExecutionResult result = CommandExecutor.executeInTerminal(
-            command, terminalType, keepTerminal);
+            command, terminalType, keepTerminal, "SQLMap", scriptTempDir);
 
         if (result.isSuccess()) {
             dialog.dispose();

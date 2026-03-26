@@ -7,9 +7,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 /**
  * SQLMap 命令行构建器
@@ -124,6 +127,202 @@ public final class SqlCommandBuilder {
             } catch (IOException ignored) {
                 // 忽略删除失败
             }
+        }
+    }
+
+    // ==================== 执行脚本文件生成 ====================
+
+    /**
+     * 生成带标题设置的执行脚本文件
+     * 脚本文件名格式: sqlmap_exec_YYYYMMDDHHMMSS_随机数.扩展名
+     *
+     * @param sqlmapCommand SQLMap 命令
+     * @param terminalType 终端类型
+     * @param keepTerminal 执行后是否保持终端打开
+     * @param title 终端窗口标题
+     * @param scriptTempDir 脚本临时目录，为空则使用系统默认
+     * @return 生成的脚本文件路径
+     * @throws IOException 文件写入失败时抛出
+     */
+    public static String generateExecScript(
+            String sqlmapCommand,
+            TerminalType terminalType,
+            boolean keepTerminal,
+            String title,
+            String scriptTempDir) throws IOException {
+
+        TerminalType effectiveType = getEffectiveTerminalType(terminalType);
+        String safeTitle = sanitizeTitleForTerminal(title != null ? title : "SQLMap");
+        
+        // 生成文件名：sqlmap_exec_YYYYMMDDHHMMSS_随机数
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        String randomSuffix = String.format("%04d", new Random().nextInt(10000));
+        String fileName = "sqlmap_exec_" + timestamp + "_" + randomSuffix;
+        
+        // 根据终端类型确定文件扩展名和内容
+        String extension;
+        String scriptContent;
+        
+        switch (effectiveType) {
+            case CMD:
+                extension = ".bat";
+                scriptContent = buildCmdScriptContent(sqlmapCommand, safeTitle, keepTerminal);
+                break;
+            case POWERSHELL:
+                extension = ".ps1";
+                scriptContent = buildPowerShellScriptContent(sqlmapCommand, safeTitle, keepTerminal);
+                break;
+            case GNOME_TERMINAL:
+            case XTERM:
+            case TERMINAL_APP:
+            case ITERM:
+            default:
+                extension = ".sh";
+                scriptContent = buildBashScriptContent(sqlmapCommand, safeTitle, keepTerminal);
+                break;
+        }
+        
+        fileName += extension;
+        
+        // 创建脚本文件
+        Path scriptPath;
+        if (scriptTempDir != null && !scriptTempDir.trim().isEmpty()) {
+            File dir = new File(scriptTempDir);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            scriptPath = new File(dir, fileName).toPath();
+        } else {
+            scriptPath = Files.createTempFile("sqlmap_exec_", extension);
+        }
+        
+        // 写入脚本内容
+        Files.writeString(scriptPath, scriptContent, StandardCharsets.UTF_8);
+        
+        // 对于 Unix 脚本，设置可执行权限
+        if (extension.equals(".sh")) {
+            try {
+                scriptPath.toFile().setExecutable(true);
+            } catch (Exception ignored) {
+                // 忽略权限设置失败
+            }
+        }
+        
+        return scriptPath.toAbsolutePath().toString();
+    }
+
+    /**
+     * 构建 CMD 批处理脚本内容
+     */
+    private static String buildCmdScriptContent(String sqlmapCommand, String title, boolean keepTerminal) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("@echo off\r\n");
+        sb.append("chcp 65001 >nul 2>&1\r\n");  // 设置 UTF-8 编码
+        sb.append("title ").append(title).append("\r\n");
+        sb.append("\r\n");
+        sb.append("echo ========================================\r\n");
+        sb.append("echo SQLMap Scan - ").append(title).append("\r\n");
+        sb.append("echo ========================================\r\n");
+        sb.append("echo.\r\n");
+        sb.append("\r\n");
+        sb.append(sqlmapCommand).append("\r\n");
+        sb.append("\r\n");
+        if (keepTerminal) {
+            sb.append("echo.\r\n");
+            sb.append("echo ========================================\r\n");
+            sb.append("echo Scan completed. Press any key to close...\r\n");
+            sb.append("echo ========================================\r\n");
+            sb.append("pause >nul\r\n");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 构建 PowerShell 脚本内容
+     */
+    private static String buildPowerShellScriptContent(String sqlmapCommand, String title, boolean keepTerminal) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("# SQLMap Execution Script\n");
+        sb.append("$host.UI.RawUI.WindowTitle = \"").append(title).append("\"\n");
+        sb.append("\n");
+        sb.append("Write-Host \"========================================\"\n");
+        sb.append("Write-Host \"SQLMap Scan - ").append(title).append("\"\n");
+        sb.append("Write-Host \"========================================\"\n");
+        sb.append("Write-Host \"\"\n");
+        sb.append("\n");
+        sb.append(sqlmapCommand).append("\n");
+        sb.append("\n");
+        if (keepTerminal) {
+            sb.append("Write-Host \"\"\n");
+            sb.append("Write-Host \"========================================\"\n");
+            sb.append("Write-Host \"Scan completed. Press Enter to close...\"\n");
+            sb.append("Write-Host \"========================================\"\n");
+            sb.append("Read-Host\n");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 构建 Bash 脚本内容（适用于 Linux/macOS）
+     */
+    private static String buildBashScriptContent(String sqlmapCommand, String title, boolean keepTerminal) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("#!/bin/bash\n");
+        sb.append("# SQLMap Execution Script\n");
+        sb.append("\n");
+        // 设置终端标题（兼容大多数终端）
+        sb.append("# Set terminal title\n");
+        sb.append("echo -ne \"\\033]0;").append(title).append("\\007\"\n");
+        sb.append("\n");
+        sb.append("echo \"========================================\"\n");
+        sb.append("echo \"SQLMap Scan - ").append(title).append("\"\n");
+        sb.append("echo \"========================================\"\n");
+        sb.append("echo \"\"\n");
+        sb.append("\n");
+        sb.append(sqlmapCommand).append("\n");
+        sb.append("\n");
+        if (keepTerminal) {
+            sb.append("echo \"\"\n");
+            sb.append("echo \"========================================\"\n");
+            sb.append("echo \"Scan completed. Press Enter to close...\"\n");
+            sb.append("echo \"========================================\"\n");
+            sb.append("read -p \"\"\n");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 构建执行脚本文件的终端命令
+     * 根据终端类型返回启动脚本文件的命令
+     *
+     * @param scriptFilePath 脚本文件路径
+     * @param terminalType 终端类型
+     * @return 启动脚本的终端命令
+     */
+    public static String buildScriptLaunchCommand(String scriptFilePath, TerminalType terminalType) {
+        TerminalType effectiveType = getEffectiveTerminalType(terminalType);
+        String escapedPath = escapePath(scriptFilePath);
+        
+        switch (effectiveType) {
+            case CMD:
+                // Windows start 命令的特殊行为：如果参数带引号，第一个带引号的参数会被当作窗口标题
+                // 所以我们需要提供一个空的标题 "" 作为第一个参数
+                // 格式: start "" cmd /k "script_path"
+                return "start \"\" cmd /k " + escapedPath;
+            case POWERSHELL:
+                // 使用 start 启动新的 powershell 窗口执行 ps1 脚本
+                // 同样需要提供空标题
+                return "start \"\" powershell -NoExit -ExecutionPolicy Bypass -File " + escapedPath;
+            case GNOME_TERMINAL:
+                return "gnome-terminal -- bash -c \"" + escapedPath + "; exec bash\"";
+            case XTERM:
+                return "xterm -e \"" + escapedPath + "\"";
+            case TERMINAL_APP:
+                return "open -a Terminal " + escapedPath;
+            case ITERM:
+                return "open -a iTerm " + escapedPath;
+            default:
+                return "start \"\" cmd /k " + escapedPath;
         }
     }
 

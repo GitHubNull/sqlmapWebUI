@@ -10,7 +10,7 @@ import com.sqlmapwebui.burp.dialogs.*;
 import com.sqlmapwebui.burp.util.CommandExecutor;
 import com.sqlmapwebui.burp.util.PayloadBuilder;
 import com.sqlmapwebui.burp.util.SqlCommandBuilder;
-import com.sqlmapwebui.burp.util.TitleConfig;
+import com.sqlmapwebui.burp.util.TitleRule;
 import com.sqlmapwebui.burp.util.TitleExtractor;
 
 import javax.swing.*;
@@ -490,9 +490,12 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
                 ConfigManager.TerminalType terminalType = configManager.getDirectTerminalType();
                 boolean keepTerminal = configManager.isDirectKeepTerminal();
                 String tempDir = configManager.getClipboardTempDir();
+                String scriptTempDir = configManager.getScriptTempDir();
                 
-                // 获取标题配置
-                TitleConfig titleConfig = configManager.getTitleConfig();
+                // 获取标题配置（使用多规则匹配）
+                List<TitleRule> rules = configManager.getTitleRules();
+                String fallback = configManager.getTitleFallback();
+                int maxLength = configManager.getTitleMaxLength();
 
                 // 为每个请求执行SQLMap
                 int index = 0;
@@ -514,8 +517,8 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
                     String sqlmapCommand = SqlCommandBuilder.buildSqlMapCommand(
                         pythonPath, sqlmapPath, tempFilePath, additionalParams);
                     
-                    // 提取窗口标题
-                    String baseTitle = TitleExtractor.extract(request, titleConfig);
+                    // 提取窗口标题（使用多规则匹配）
+                    String baseTitle = TitleExtractor.extract(request, rules, fallback, maxLength);
                     
                     // 批量执行时添加序号后缀
                     String windowTitle;
@@ -525,21 +528,20 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
                         windowTitle = baseTitle;
                     }
                     
-                    // 构建完整的终端命令（带标题）
-                    String terminalCommand = SqlCommandBuilder.buildTerminalCommand(
-                        sqlmapCommand, terminalType, keepTerminal, windowTitle);
-                    
+                    // 执行命令（使用脚本文件方式设置标题）
+                    CommandExecutor.ExecutionResult result = CommandExecutor.executeInTerminal(
+                        sqlmapCommand, terminalType, keepTerminal, windowTitle, scriptTempDir);
+
                     final String url = request.url();
                     final String finalWindowTitle = windowTitle;
                     SwingUtilities.invokeLater(() -> {
                         uiTab.appendLog("[+] 执行SQLMap扫描: " + url);
                         uiTab.appendLog("    窗口标题: " + finalWindowTitle);
                         uiTab.appendLog("    临时文件: " + tempFilePath);
+                        if (result.isSuccess() && result.getMessage().contains("脚本文件")) {
+                            uiTab.appendLog("    " + result.getMessage());
+                        }
                     });
-
-                    // 执行命令
-                    CommandExecutor.ExecutionResult result = CommandExecutor.executeInTerminal(
-                        sqlmapCommand, terminalType, keepTerminal);
                     
                     if (!result.isSuccess()) {
                         SwingUtilities.invokeLater(() -> {

@@ -929,22 +929,58 @@ public final class TitleExtractor {
         
         try {
             int len = str.length();
-            int start = parseIndex(rule.getPathSubStart(), len);
-            int end = parseIndex(rule.getPathSubEnd(), len);
+            String startStr = rule.getPathSubStart();
+            String endStr = rule.getPathSubEnd();
+            
+            LOGGER.debug("路径子串提取: str='{}', len={}, start='{}', end='{}'", str, len, startStr, endStr);
+            
+            // 默认值：start=0（从头开始），end=length（到结尾）
+            int start = parseIndexForPath(startStr, len, true);
+            int end = parseIndexForPath(endStr, len, false);
+            
+            LOGGER.debug("解析后: start={}, end={}", start, end);
             
             start = Math.max(0, Math.min(start, len));
             end = Math.max(0, Math.min(end, len));
             
             if (start >= end) {
+                LOGGER.debug("start >= end, 返回 null");
                 return null;
             }
             
-            return str.substring(start, end);
+            String result = str.substring(start, end);
+            LOGGER.debug("提取结果: '{}'", result);
+            return result;
         } catch (Exception e) {
+            LOGGER.warn("路径子串提取异常: {}", e.getMessage());
             return null;
         }
     }
     
+    /**
+     * 解析索引值（路径子串专用）
+     * @param value 索引字符串
+     * @param length 字符串总长度
+     * @param isStart 是否为起始位置（true=起始，false=结束）
+     * @return 解析后的索引值
+     */
+    private static int parseIndexForPath(String value, int length, boolean isStart) {
+        // 对于结束位置，空值或 "-0" 表示取到结尾
+        if (value == null || value.isEmpty() || "-0".equals(value)) {
+            return isStart ? 0 : length;
+        }
+        
+        try {
+            int idx = Integer.parseInt(value.trim());
+            if (idx < 0) {
+                return length + idx;
+            }
+            return idx;
+        } catch (NumberFormatException e) {
+            return isStart ? 0 : length;
+        }
+    }
+
     /**
      * 解析索引值
      */

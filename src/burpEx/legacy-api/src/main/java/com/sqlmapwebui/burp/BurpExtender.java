@@ -5,7 +5,7 @@ import burp.*;
 import com.sqlmapwebui.burp.dialogs.*;
 import com.sqlmapwebui.burp.util.CommandExecutor;
 import com.sqlmapwebui.burp.util.SqlCommandBuilder;
-import com.sqlmapwebui.burp.util.TitleConfig;
+import com.sqlmapwebui.burp.util.TitleRule;
 import com.sqlmapwebui.burp.util.TitleExtractor;
 
 import javax.swing.*;
@@ -521,9 +521,21 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
                 return;
             }
             
-            // 提取窗口标题
-            TitleConfig titleConfig = configManager.getTitleConfig();
-            String windowTitle = TitleExtractor.extract(message, helpers, titleConfig);
+            // 提取窗口标题（使用多规则匹配）
+            List<TitleRule> rules = configManager.getTitleRules();
+            String fallback = configManager.getTitleFallback();
+            int maxLength = configManager.getTitleMaxLength();
+
+            // 调试日志：打印规则列表
+            uiTab.appendLog("[DEBUG] 标题规则数量: " + rules.size());
+            for (TitleRule r : rules) {
+                uiTab.appendLog("[DEBUG]   - 规则: " + r.getName() + ", 类型: " + r.getSourceType() +
+                    ", 启用: " + r.isEnabled() + ", 优先级: " + r.getPriority());
+            }
+            uiTab.appendLog("[DEBUG] Fallback: " + fallback + ", MaxLength: " + maxLength);
+
+            String windowTitle = TitleExtractor.extract(message, helpers, rules, fallback, maxLength);
+            uiTab.appendLog("[DEBUG] 提取到的标题: " + windowTitle);
             
             // 生成HTTP请求字符串
             String httpRequest = buildHttpRequest(message);
@@ -553,19 +565,23 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
             uiTab.appendLog("[+] 正在启动SQLMap扫描...");
             uiTab.appendLog("    窗口标题: " + windowTitle);
             uiTab.appendLog("    请求文件: " + requestFilePath);
+            uiTab.appendLog("    脚本目录: " + (configManager.getScriptTempDir().isEmpty() ? "(使用临时目录)" : configManager.getScriptTempDir()));
             
             // 执行命令
             CommandExecutor.ExecutionResult result = CommandExecutor.executeInTerminal(
                 sqlmapCommand,
                 configManager.getDirectTerminalType(),
                 configManager.isDirectKeepTerminal(),
-                windowTitle
+                windowTitle,
+                configManager.getScriptTempDir()
             );
             
             if (result.isSuccess()) {
                 uiTab.appendLog("[+] SQLMap扫描已在终端中启动");
+                uiTab.appendLog("    " + result.getMessage());
                 JOptionPane.showMessageDialog(uiTab, 
                     "SQLMap扫描已在终端中启动!\n\n" +
+                    result.getMessage() + "\n\n" +
                     "终端窗口会独立运行，您可以继续使用Burp。",
                     "执行成功", JOptionPane.INFORMATION_MESSAGE);
             } else {

@@ -34,8 +34,7 @@ public class SqlmapUITab extends JPanel {
     private PresetConfigPanel presetConfigPanel;
     private HistoryConfigPanel historyConfigPanel;
     private LogPanel logPanel;
-    private ClipboardConfigPanel clipboardConfigPanel;
-    private DirectExecuteConfigPanel directExecuteConfigPanel;
+    private CommandExecConfigPanel commandExecConfigPanel;
     
     // 选项卡面板
     private JTabbedPane tabbedPane;
@@ -96,16 +95,15 @@ public class SqlmapUITab extends JPanel {
         // Tab 4: 历史配置管理
         historyConfigPanel = new HistoryConfigPanel(configManager, apiClient, this::appendLog);
         tabbedPane.addTab("历史配置", historyConfigPanel);
-        
-        // Tab 5: 剪贴板配置
-        clipboardConfigPanel = new ClipboardConfigPanel(configManager, apiClient, this::appendLog);
-        tabbedPane.addTab("剪贴板配置", clipboardConfigPanel);
-        
-        // Tab 6: 直接执行配置
-        directExecuteConfigPanel = new DirectExecuteConfigPanel(configManager, apiClient, this::appendLog);
-        tabbedPane.addTab("直接执行配置", directExecuteConfigPanel);
-        
-        // Tab 7: 活动日志
+
+        // Tab 5: 命令行执行配置（合并剪贴板配置和直接执行配置）
+        commandExecConfigPanel = new CommandExecConfigPanel(configManager, apiClient, this::appendLog);
+        tabbedPane.addTab("命令行执行配置", commandExecConfigPanel);
+
+        // 将数据库引用传递给命令行执行配置面板
+        commandExecConfigPanel.setDatabase(presetDatabase);
+
+        // Tab 6: 活动日志
         tabbedPane.addTab("活动日志", logPanel);
         
         add(tabbedPane, BorderLayout.CENTER);
@@ -199,11 +197,20 @@ public class SqlmapUITab extends JPanel {
     }
     
     /**
-     * 切换到直接执行配置Tab页
+     * 切换到命令行执行配置Tab页
      */
-    public void switchToDirectExecuteTab() {
-        if (tabbedPane != null && directExecuteConfigPanel != null) {
-            tabbedPane.setSelectedComponent(directExecuteConfigPanel);
+    public void switchToCommandExecTab() {
+        if (tabbedPane != null && commandExecConfigPanel != null) {
+            tabbedPane.setSelectedComponent(commandExecConfigPanel);
         }
+    }
+
+    /**
+     * 切换到命令行执行配置Tab页（兼容旧方法名）
+     * @deprecated 使用 {@link #switchToCommandExecTab()} 代替
+     */
+    @Deprecated
+    public void switchToDirectExecuteTab() {
+        switchToCommandExecTab();
     }
 }

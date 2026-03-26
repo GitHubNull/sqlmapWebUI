@@ -34,6 +34,7 @@ public class ConfigManager {
     // ==================== 剪贴板功能配置 ====================
     private static final String KEY_CLIPBOARD_AUTO_COPY = "clipboardAutoCopy";  // 是否自动复制
     private static final String KEY_CLIPBOARD_TEMP_DIR = "clipboardTempDir";  // 临时目录
+    private static final String KEY_SCRIPT_TEMP_DIR = "scriptTempDir";  // 执行脚本临时目录
     
     // ==================== 直接执行功能配置 ====================
     private static final String KEY_DIRECT_PYTHON_PATH = "directPythonPath";  // Python路径
@@ -87,6 +88,9 @@ public class ConfigManager {
     
     // 常用配置数据库引用
     private PresetConfigDatabase presetDatabase;
+
+    // 命令行执行配置（从数据库加载）
+    private CommandExecConfig commandExecConfig;
     
     // 连接状态
     private boolean connected = false;
@@ -94,6 +98,7 @@ public class ConfigManager {
     // ==================== 剪贴板功能配置 ====================
     private boolean clipboardAutoCopy = true;  // 是否自动复制到剪贴板（默认自动）
     private String clipboardTempDir = "";  // 临时文件目录（空则使用系统默认）
+    private String scriptTempDir = "";  // 执行脚本临时目录（空则使用临时目录）
     
     // ==================== 直接执行功能配置 ====================
     private String directPythonPath = "";  // Python解释器路径
@@ -473,11 +478,74 @@ public class ConfigManager {
     
     /**
      * 设置常用配置数据库引用
+     * 同时从数据库加载命令行执行配置
      */
     public void setPresetDatabase(PresetConfigDatabase database) {
         this.presetDatabase = database;
+        loadCommandExecConfig();
     }
-    
+
+    /**
+     * 从数据库加载命令行执行配置
+     */
+    public void loadCommandExecConfig() {
+        if (presetDatabase == null) {
+            return;
+        }
+
+        CommandExecConfig config = presetDatabase.getCommandExecConfig();
+        if (config != null) {
+            this.commandExecConfig = config;
+
+            // 同步到内存字段
+            this.clipboardAutoCopy = config.isAutoCopy();
+            this.clipboardTempDir = config.getTempDir();
+            this.scriptTempDir = config.getScriptTempDir();
+            this.directPythonPath = config.getPythonPath();
+            this.directSqlmapPath = config.getSqlmapPath();
+            try {
+                this.directTerminalType = TerminalType.valueOf(config.getTerminalType());
+            } catch (IllegalArgumentException e) {
+                this.directTerminalType = TerminalType.AUTO;
+            }
+            this.directKeepTerminal = config.isKeepTerminal();
+            this.titleFallback = config.getTitleFallback();
+            this.titleMaxLength = config.getTitleMaxLength();
+
+            // 加载标题规则
+            List<TitleRule> rules = config.getTitleRules();
+            if (rules != null && !rules.isEmpty()) {
+                this.titleRules = new ArrayList<>(rules);
+            }
+        }
+    }
+
+    /**
+     * 保存命令行执行配置到数据库
+     */
+    public void saveCommandExecConfig() {
+        if (presetDatabase == null) {
+            return;
+        }
+
+        CommandExecConfig config = new CommandExecConfig();
+        config.setAutoCopy(clipboardAutoCopy);
+        config.setTempDir(clipboardTempDir);
+        config.setScriptTempDir(scriptTempDir);
+        config.setPythonPath(directPythonPath);
+        config.setSqlmapPath(directSqlmapPath);
+        config.setTerminalType(directTerminalType.name());
+        config.setKeepTerminal(directKeepTerminal);
+        config.setTitleFallback(titleFallback);
+        config.setTitleMaxLength(titleMaxLength);
+        if (titleRules != null) {
+            config.setTitleRules(new ArrayList<>(titleRules));
+        }
+
+        presetDatabase.saveCommandExecConfig(config);
+        this.commandExecConfig = config;
+    }
+
     /**
      * 根据用户选择的配置来源获取扫描配置
      * 这是右键菜单发送扫描时应该使用的方法
@@ -752,6 +820,23 @@ public class ConfigManager {
         persistence.setString(KEY_CLIPBOARD_TEMP_DIR, this.clipboardTempDir);
     }
     
+    /**
+     * 获取执行脚本临时目录
+     * @return 脚本临时目录路径，空字符串表示使用临时目录
+     */
+    public String getScriptTempDir() {
+        return scriptTempDir;
+    }
+    
+    /**
+     * 设置执行脚本临时目录
+     * @param scriptTempDir 脚本临时目录路径，空字符串表示使用临时目录
+     */
+    public void setScriptTempDir(String scriptTempDir) {
+        this.scriptTempDir = scriptTempDir != null ? scriptTempDir : "";
+        persistence.setString(KEY_SCRIPT_TEMP_DIR, this.scriptTempDir);
+    }
+
     // ============ 直接执行功能配置管理 ============
     
     /**

@@ -39,6 +39,7 @@ public class ConfigManager {
     private static final String KEY_DIRECT_SQLMAP_PATH = "directSqlmapPath";  // SQLMap路径
     private static final String KEY_DIRECT_TERMINAL_TYPE = "directTerminalType";  // 终端类型
     private static final String KEY_DIRECT_KEEP_TERMINAL = "directKeepTerminal";  // 保持终端打开
+    private static final String KEY_SCRIPT_TEMP_DIR = "scriptTempDir";  // 执行脚本临时目录
     
     // ==================== 标题配置 ====================
     private static final String KEY_TITLE_SOURCE_TYPE = "titleSourceType";
@@ -83,6 +84,9 @@ public class ConfigManager {
     
     // 常用配置数据库引用
     private PresetConfigDatabase presetDatabase;
+
+    // 命令行执行配置（从数据库加载）
+    private CommandExecConfig commandExecConfig;
     
     // 连接状态
     private boolean connected = false;
@@ -96,6 +100,7 @@ public class ConfigManager {
     private String directSqlmapPath = "";  // SQLMap脚本路径
     private TerminalType directTerminalType = TerminalType.AUTO;  // 终端类型
     private boolean directKeepTerminal = true;  // 执行后保持终端打开
+    private String scriptTempDir = "";  // 执行脚本临时目录
     
     // ==================== 标题配置 ====================
     private TitleSourceType titleSourceType = TitleSourceType.URL_PATH;
@@ -447,9 +452,11 @@ public class ConfigManager {
     
     /**
      * 设置常用配置数据库引用
+     * 同时从数据库加载命令行执行配置
      */
     public void setPresetDatabase(PresetConfigDatabase database) {
         this.presetDatabase = database;
+        loadCommandExecConfig();
     }
     
     /**
@@ -785,6 +792,20 @@ public class ConfigManager {
         this.directKeepTerminal = keepTerminal;
         callbacks.saveExtensionSetting(KEY_DIRECT_KEEP_TERMINAL, String.valueOf(keepTerminal));
     }
+
+    /**
+     * 获取执行脚本临时目录
+     */
+    public String getScriptTempDir() {
+        return scriptTempDir;
+    }
+
+    /**
+     * 设置执行脚本临时目录
+     */
+    public void setScriptTempDir(String scriptTempDir) {
+        this.scriptTempDir = scriptTempDir != null ? scriptTempDir : "";
+    }
     
     // ============ 标题配置管理 ============
     
@@ -1093,5 +1114,66 @@ public class ConfigManager {
     private void saveTitleRulesInternal() {
         String json = gson.toJson(titleRules);
         callbacks.saveExtensionSetting(KEY_TITLE_RULES, json);
+    }
+
+    /**
+     * 从数据库加载命令行执行配置
+     */
+    public void loadCommandExecConfig() {
+        if (presetDatabase == null) {
+            return;
+        }
+
+        CommandExecConfig config = presetDatabase.getCommandExecConfig();
+        if (config != null) {
+            this.commandExecConfig = config;
+
+            // 同步到内存字段
+            this.clipboardAutoCopy = config.isAutoCopy();
+            this.clipboardTempDir = config.getTempDir();
+            this.directPythonPath = config.getPythonPath();
+            this.directSqlmapPath = config.getSqlmapPath();
+            try {
+                this.directTerminalType = TerminalType.valueOf(config.getTerminalType());
+            } catch (IllegalArgumentException e) {
+                this.directTerminalType = TerminalType.AUTO;
+            }
+            this.directKeepTerminal = config.isKeepTerminal();
+            this.scriptTempDir = config.getScriptTempDir();
+            this.titleFallback = config.getTitleFallback();
+            this.titleMaxLength = config.getTitleMaxLength();
+
+            // 加载标题规则
+            List<TitleRule> rules = config.getTitleRules();
+            if (rules != null && !rules.isEmpty()) {
+                this.titleRules = new ArrayList<>(rules);
+            }
+        }
+    }
+
+    /**
+     * 保存命令行执行配置到数据库
+     */
+    public void saveCommandExecConfig() {
+        if (presetDatabase == null) {
+            return;
+        }
+
+        CommandExecConfig config = new CommandExecConfig();
+        config.setAutoCopy(clipboardAutoCopy);
+        config.setTempDir(clipboardTempDir);
+        config.setScriptTempDir(scriptTempDir);
+        config.setPythonPath(directPythonPath);
+        config.setSqlmapPath(directSqlmapPath);
+        config.setTerminalType(directTerminalType.name());
+        config.setKeepTerminal(directKeepTerminal);
+        config.setTitleFallback(titleFallback);
+        config.setTitleMaxLength(titleMaxLength);
+        if (titleRules != null) {
+            config.setTitleRules(new ArrayList<>(titleRules));
+        }
+
+        presetDatabase.saveCommandExecConfig(config);
+        this.commandExecConfig = config;
     }
 }

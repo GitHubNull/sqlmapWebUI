@@ -122,11 +122,33 @@ public final class CommandExecutor {
             TerminalType terminalType,
             boolean keepTerminal,
             String title) {
+        return executeInTerminal(command, terminalType, keepTerminal, title, null);
+    }
+
+    /**
+     * 在新终端窗口中执行命令（使用脚本文件方式设置标题）
+     *
+     * @param command 要执行的命令
+     * @param terminalType 终端类型
+     * @param keepTerminal 执行后是否保持终端打开
+     * @param title 终端窗口标题
+     * @param scriptTempDir 脚本临时目录
+     * @return 执行结果
+     */
+    public static ExecutionResult executeInTerminal(
+            String command,
+            TerminalType terminalType,
+            boolean keepTerminal,
+            String title,
+            String scriptTempDir) {
 
         try {
-            // 构建完整的终端命令
-            String terminalCommand = SqlCommandBuilder.buildTerminalCommand(
-                    command, terminalType, keepTerminal, title);
+            // 生成带标题设置的脚本文件
+            String scriptFilePath = SqlCommandBuilder.generateExecScript(
+                    command, terminalType, keepTerminal, title, scriptTempDir);
+
+            // 构建启动脚本的终端命令
+            String launchCommand = SqlCommandBuilder.buildScriptLaunchCommand(scriptFilePath, terminalType);
 
             // 获取操作系统类型
             SqlCommandBuilder.OsType osType = SqlCommandBuilder.detectOs();
@@ -134,10 +156,10 @@ public final class CommandExecutor {
             ProcessBuilder processBuilder;
             if (osType == SqlCommandBuilder.OsType.WINDOWS) {
                 // Windows 使用 cmd.exe 执行
-                processBuilder = new ProcessBuilder("cmd.exe", "/c", terminalCommand);
+                processBuilder = new ProcessBuilder("cmd.exe", "/c", launchCommand);
             } else {
                 // Unix/Linux/macOS 使用 sh 执行
-                processBuilder = new ProcessBuilder("sh", "-c", terminalCommand);
+                processBuilder = new ProcessBuilder("sh", "-c", launchCommand);
             }
 
             // 设置工作目录为用户主目录
@@ -147,9 +169,8 @@ public final class CommandExecutor {
             Process process = processBuilder.start();
 
             // 不等待进程完成，因为终端会独立运行
-            // 但需要验证进程是否成功启动
 
-            return ExecutionResult.success("命令已在终端中启动");
+            return ExecutionResult.success("命令已在终端中启动\n脚本文件: " + scriptFilePath);
 
         } catch (IOException e) {
             return ExecutionResult.failure("启动终端失败: " + e.getMessage(), e);
@@ -185,9 +206,28 @@ public final class CommandExecutor {
             TerminalType terminalType,
             boolean keepTerminal,
             String title) {
+        return executeInTerminalAsync(command, terminalType, keepTerminal, title, null);
+    }
+
+    /**
+     * 异步在新终端窗口中执行命令（使用脚本文件方式设置标题）
+     *
+     * @param command 要执行的命令
+     * @param terminalType 终端类型
+     * @param keepTerminal 执行后是否保持终端打开
+     * @param title 终端窗口标题
+     * @param scriptTempDir 脚本临时目录
+     * @return 异步执行结果
+     */
+    public static CompletableFuture<ExecutionResult> executeInTerminalAsync(
+            String command,
+            TerminalType terminalType,
+            boolean keepTerminal,
+            String title,
+            String scriptTempDir) {
 
         return CompletableFuture.supplyAsync(() ->
-                executeInTerminal(command, terminalType, keepTerminal, title));
+                executeInTerminal(command, terminalType, keepTerminal, title, scriptTempDir));
     }
 
     /**

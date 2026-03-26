@@ -153,7 +153,7 @@ public class TitleRulesPanel extends JPanel {
         updateButtonStates();
     }
     
-    private void loadRules() {
+    public void loadRules() {
         List<TitleRule> rules = configManager.getTitleRules();
         tableModel.setRules(rules);
         fallbackField.setText(configManager.getTitleFallback());
@@ -174,6 +174,27 @@ public class TitleRulesPanel extends JPanel {
      */
     public void saveConfiguration() {
         saveRules();
+    }
+    
+    /**
+     * 获取当前规则列表
+     */
+    public List<TitleRule> getCurrentRules() {
+        return tableModel.getRules();
+    }
+    
+    /**
+     * 获取当前回退标题
+     */
+    public String getCurrentFallback() {
+        return fallbackField.getText().trim();
+    }
+    
+    /**
+     * 获取当前标题最大长度
+     */
+    public int getCurrentMaxLength() {
+        return (Integer) maxLengthSpinner.getValue();
     }
     
     /**

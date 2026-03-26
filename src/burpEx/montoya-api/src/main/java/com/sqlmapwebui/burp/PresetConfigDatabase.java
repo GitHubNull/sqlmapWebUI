@@ -15,6 +15,7 @@ public class PresetConfigDatabase {
     
     private static final String DB_FILE_NAME = "sqlmap-webui-presets.db";
     private static final String TABLE_NAME = "preset_configs";
+    private static final String CONFIG_TABLE_NAME = "command_exec_config";
     
     /** SQLite JDBC 驱动是否已加载 */
     private static boolean driverLoaded = false;
@@ -57,7 +58,7 @@ public class PresetConfigDatabase {
      * 初始化数据库
      */
     private void initializeDatabase() {
-        String createTableSQL = 
+        String createTableSQL =
             "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" +
             "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
             "name TEXT NOT NULL, " +
@@ -66,10 +67,27 @@ public class PresetConfigDatabase {
             "created_time TEXT NOT NULL, " +
             "modified_time TEXT NOT NULL" +
             ")";
-        
+
+        // 命令行执行配置表（单行存储）
+        String createConfigTableSQL =
+            "CREATE TABLE IF NOT EXISTS " + CONFIG_TABLE_NAME + " (" +
+            "id INTEGER PRIMARY KEY CHECK (id = 1), " +
+            "auto_copy INTEGER DEFAULT 1, " +
+            "temp_dir TEXT DEFAULT '', " +
+            "script_temp_dir TEXT DEFAULT '', " +
+            "python_path TEXT DEFAULT '', " +
+            "sqlmap_path TEXT DEFAULT '', " +
+            "terminal_type TEXT DEFAULT 'AUTO', " +
+            "keep_terminal INTEGER DEFAULT 1, " +
+            "title_rules TEXT DEFAULT '[]', " +
+            "title_fallback TEXT DEFAULT 'SQLMap', " +
+            "title_max_length INTEGER DEFAULT 50" +
+            ")";
+
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.execute(createTableSQL);
+            stmt.execute(createConfigTableSQL);
             log("[+] 常用配置数据库初始化成功: " + dbPath);
         } catch (SQLException e) {
             log("[-] 数据库初始化失败: " + e.getMessage());
@@ -457,5 +475,108 @@ public class PresetConfigDatabase {
      */
     public String getDbPath() {
         return dbPath;
+    }
+
+    // ==================== 命令行执行配置管理 ====================
+
+    /**
+     * 获取命令行执行配置
+     * 如果不存在则返回默认配置
+     */
+    public CommandExecConfig getCommandExecConfig() {
+        String sql = "SELECT * FROM " + CONFIG_TABLE_NAME + " WHERE id = 1";
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                CommandExecConfig config = new CommandExecConfig();
+                config.setAutoCopy(rs.getInt("auto_copy") == 1);
+                config.setTempDir(rs.getString("temp_dir"));
+                config.setScriptTempDir(rs.getString("script_temp_dir"));
+                config.setPythonPath(rs.getString("python_path"));
+                config.setSqlmapPath(rs.getString("sqlmap_path"));
+                config.setTerminalType(rs.getString("terminal_type"));
+                config.setKeepTerminal(rs.getInt("keep_terminal") == 1);
+                config.setTitleRules(CommandExecConfig.parseTitleRules(rs.getString("title_rules")));
+                config.setTitleFallback(rs.getString("title_fallback"));
+                config.setTitleMaxLength(rs.getInt("title_max_length"));
+                return config;
+            }
+        } catch (SQLException e) {
+            log("[-] 获取命令行执行配置失败: " + e.getMessage());
+        }
+        return CommandExecConfig.createDefault();
+    }
+
+    /**
+     * 保存命令行执行配置
+     * 使用 REPLACE 策略（插入或替换）
+     * @return 保存成功返回 true，失败返回 false
+     */
+    public boolean saveCommandExecConfig(CommandExecConfig config) {
+        if (config == null) {
+            return false;
+        }
+
+        // 先尝试更新
+        String updateSql =
+            "UPDATE " + CONFIG_TABLE_NAME + " SET " +
+            "auto_copy = ?, temp_dir = ?, script_temp_dir = ?, python_path = ?, " +
+            "sqlmap_path = ?, terminal_type = ?, keep_terminal = ?, " +
+            "title_rules = ?, title_fallback = ?, title_max_length = ? " +
+            "WHERE id = 1";
+
+        try (Connection conn = getConnection()) {
+            // 先尝试更新
+            try (PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
+                pstmt.setInt(1, config.isAutoCopy() ? 1 : 0);
+                pstmt.setString(2, config.getTempDir());
+                pstmt.setString(3, config.getScriptTempDir());
+                pstmt.setString(4, config.getPythonPath());
+                pstmt.setString(5, config.getSqlmapPath());
+                pstmt.setString(6, config.getTerminalType());
+                pstmt.setInt(7, config.isKeepTerminal() ? 1 : 0);
+                pstmt.setString(8, CommandExecConfig.titleRulesToJson(config.getTitleRules()));
+                pstmt.setString(9, config.getTitleFallback());
+                pstmt.setInt(10, config.getTitleMaxLength());
+
+                int affected = pstmt.executeUpdate();
+                if (affected > 0) {
+                    log("[+] 命令行执行配置已更新");
+                    return true;
+                }
+            }
+
+            // 如果更新失败（记录不存在），则插入
+            String insertSql =
+                "INSERT INTO " + CONFIG_TABLE_NAME + " " +
+                "(id, auto_copy, temp_dir, script_temp_dir, python_path, sqlmap_path, " +
+                "terminal_type, keep_terminal, title_rules, title_fallback, title_max_length) " +
+                "VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
+                pstmt.setInt(1, config.isAutoCopy() ? 1 : 0);
+                pstmt.setString(2, config.getTempDir());
+                pstmt.setString(3, config.getScriptTempDir());
+                pstmt.setString(4, config.getPythonPath());
+                pstmt.setString(5, config.getSqlmapPath());
+                pstmt.setString(6, config.getTerminalType());
+                pstmt.setInt(7, config.isKeepTerminal() ? 1 : 0);
+                pstmt.setString(8, CommandExecConfig.titleRulesToJson(config.getTitleRules()));
+                pstmt.setString(9, config.getTitleFallback());
+                pstmt.setInt(10, config.getTitleMaxLength());
+
+                int insertAffected = pstmt.executeUpdate();
+                if (insertAffected > 0) {
+                    log("[+] 命令行执行配置已保存");
+                    return true;
+                }
+            }
+        } catch (SQLException e) {
+            log("[-] 保存命令行执行配置失败: " + e.getMessage());
+        }
+        return false;
     }
 }

@@ -116,6 +116,211 @@ public final class TitleExtractor {
     }
     
     /**
+     * 使用规则列表提取标题（多规则优先级匹配）
+     * 按优先级依次尝试每个启用的规则，第一个成功提取的规则生效
+     *
+     * @param httpRequestResponse HTTP 请求响应对象
+     * @param helpers             Burp 扩展助手
+     * @param rules               规则列表
+     * @param fallback            全局回退标题
+     * @param maxLength           标题最大长度
+     * @return 提取的标题
+     */
+    public static String extract(IHttpRequestResponse httpRequestResponse, IExtensionHelpers helpers,
+                                  List<TitleRule> rules, String fallback, int maxLength) {
+        if (httpRequestResponse == null) {
+            LOGGER.debug("提取失败: httpRequestResponse 为 null");
+            return sanitizeAndTruncate(fallback != null ? fallback : "SQLMap", maxLength);
+        }
+
+        if (rules == null || rules.isEmpty()) {
+            // 没有规则，使用默认规则
+            LOGGER.debug("没有规则，使用默认规则");
+            return extractByRule(httpRequestResponse, helpers, TitleRule.createDefaultRule(), fallback, maxLength);
+        }
+
+        // 按优先级排序启用的规则
+        List<TitleRule> sortedEnabledRules = rules.stream()
+            .filter(TitleRule::isEnabled)
+            .sorted(Comparator.comparingInt(TitleRule::getPriority))
+            .toList();
+
+        LOGGER.debug("启用的规则数量: {}", sortedEnabledRules.size());
+
+        // 依次尝试每个规则
+        for (TitleRule rule : sortedEnabledRules) {
+            try {
+                LOGGER.debug("尝试规则: {} (类型: {}, 优先级: {})", rule.getName(), rule.getSourceType(), rule.getPriority());
+                String title = extractByRule(httpRequestResponse, helpers, rule, null, maxLength);
+                LOGGER.debug("规则 '{}' 提取结果: {}", rule.getName(), title);
+                if (title != null && !title.trim().isEmpty()) {
+                    LOGGER.debug("规则 '{}' (优先级{}) 提取成功: {}", rule.getName(), rule.getPriority(), title);
+                    return title;
+                }
+            } catch (Exception e) {
+                LOGGER.debug("规则 '{}' 提取失败: {}", rule.getName(), e.getMessage());
+            }
+        }
+
+        // 所有规则都失败，使用全局 fallback
+        LOGGER.debug("所有规则都失败，使用 fallback: {}", fallback);
+        return sanitizeAndTruncate(fallback != null ? fallback : "SQLMap", maxLength);
+    }
+    
+    /**
+     * 使用单个规则提取标题
+     */
+    private static String extractByRule(IHttpRequestResponse httpRequestResponse, IExtensionHelpers helpers,
+                                         TitleRule rule, String fallback, int maxLength) {
+        if (httpRequestResponse == null || rule == null) {
+            return sanitizeAndTruncate(fallback != null ? fallback : "SQLMap", maxLength);
+        }
+        
+        String title = null;
+        
+        try {
+            IRequestInfo requestInfo = helpers.analyzeRequest(httpRequestResponse);
+            
+            switch (rule.getSourceType()) {
+                case URL_PATH:
+                    title = extractFromUrlPath(requestInfo);
+                    break;
+                case URL_PATH_SUB:
+                    title = extractFromUrlPathSubByRule(requestInfo, rule);
+                    break;
+                case FIXED:
+                    title = rule.getFixedValue();
+                    break;
+                case REGEX:
+                    title = extractFromRegexByRule(httpRequestResponse, helpers, requestInfo, rule);
+                    break;
+                case JSON_PATH:
+                    title = extractFromJsonPathByRule(httpRequestResponse, helpers, rule);
+                    break;
+                case XPATH:
+                    title = extractFromXPathByRule(httpRequestResponse, helpers, rule);
+                    break;
+                case FORM_FIELD:
+                    title = extractFromFormFieldByRule(httpRequestResponse, helpers, requestInfo, rule);
+                    break;
+                default:
+                    title = extractFromUrlPath(requestInfo);
+            }
+        } catch (Exception e) {
+            LOGGER.debug("规则 '{}' 提取异常: {}", rule.getName(), e.getMessage());
+            title = null;
+        }
+        
+        if (title == null || title.trim().isEmpty()) {
+            if (fallback != null) {
+                return sanitizeAndTruncate(fallback, maxLength);
+            }
+            return null;
+        }
+        
+        return sanitizeAndTruncate(title, maxLength);
+    }
+    
+    /**
+     * 从请求中提取 URL 路径子串（使用规则参数）
+     */
+    private static String extractFromUrlPathSubByRule(IRequestInfo requestInfo, TitleRule rule) {
+        try {
+            URL url = requestInfo.getUrl();
+            String path = url.getPath();
+            
+            if (path.startsWith("/")) {
+                path = path.substring(1);
+            }
+            
+            return extractSubstringByRule(path, rule);
+        } catch (Exception e) {
+            LOGGER.warn("URL路径子串提取失败: {}", e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * 使用正则表达式从请求中提取（使用规则参数）
+     */
+    private static String extractFromRegexByRule(IHttpRequestResponse httpRequestResponse, IExtensionHelpers helpers,
+                                                  IRequestInfo requestInfo, TitleRule rule) {
+        if (rule.getRegexPattern() == null || rule.getRegexPattern().isEmpty()) {
+            return null;
+        }
+        
+        String content = null;
+        
+        if (rule.getRegexSource() == RegexSource.URL) {
+            content = requestInfo.getUrl().toString();
+        } else if (rule.getRegexSource() == RegexSource.REQUEST_BODY) {
+            content = getBodyAsString(httpRequestResponse, helpers);
+        } else {
+            // FULL_REQUEST
+            content = getRequestAsString(httpRequestResponse, helpers);
+        }
+        
+        if (content == null || content.isEmpty()) {
+            return null;
+        }
+        
+        return extractRegexValue(content, rule.getRegexPattern(), rule.getRegexGroup());
+    }
+    
+    /**
+     * 使用 JSON Path 从请求体中提取（使用规则参数）
+     */
+    private static String extractFromJsonPathByRule(IHttpRequestResponse httpRequestResponse, IExtensionHelpers helpers,
+                                                     TitleRule rule) {
+        if (rule.getJsonPath() == null || rule.getJsonPath().isEmpty()) {
+            return null;
+        }
+        
+        String body = getBodyAsString(httpRequestResponse, helpers);
+        return extractJsonPathValue(body, rule.getJsonPath());
+    }
+    
+    /**
+     * 使用 XPath 从请求体中提取（使用规则参数）
+     */
+    private static String extractFromXPathByRule(IHttpRequestResponse httpRequestResponse, IExtensionHelpers helpers,
+                                                  TitleRule rule) {
+        if (rule.getXpath() == null || rule.getXpath().isEmpty()) {
+            return null;
+        }
+        
+        String body = getBodyAsString(httpRequestResponse, helpers);
+        return extractXPathValue(body, rule.getXpath());
+    }
+    
+    /**
+     * 从表单请求体中提取字段值（使用规则参数）
+     */
+    private static String extractFromFormFieldByRule(IHttpRequestResponse httpRequestResponse, IExtensionHelpers helpers,
+                                                      IRequestInfo requestInfo, TitleRule rule) {
+        if (rule.getFormField() == null || rule.getFormField().isEmpty()) {
+            return null;
+        }
+        
+        // 检查 Content-Type
+        List<String> headers = requestInfo.getHeaders();
+        String contentType = null;
+        for (String header : headers) {
+            if (header.toLowerCase().startsWith("content-type:")) {
+                contentType = header.substring("content-type:".length()).trim().toLowerCase();
+                break;
+            }
+        }
+        
+        if (contentType == null || !contentType.contains("application/x-www-form-urlencoded")) {
+            return null;
+        }
+        
+        String body = getBodyAsString(httpRequestResponse, helpers);
+        return extractFormFieldValue(body, rule.getFormField());
+    }
+    
+    /**
      * 从原始请求字符串提取标题（用于测试对话框）
      *
      * @param rawRequest 原始请求字符串
@@ -373,8 +578,12 @@ public final class TitleExtractor {
         
         try {
             int len = str.length();
-            int start = parseIndex(rule.getPathSubStart(), len);
-            int end = parseIndex(rule.getPathSubEnd(), len);
+            String startStr = rule.getPathSubStart();
+            String endStr = rule.getPathSubEnd();
+            
+            // 默认值：start=0（从头开始），end=length（到结尾）
+            int start = parseIndexForPath(startStr, len, true);
+            int end = parseIndexForPath(endStr, len, false);
             
             start = Math.max(0, Math.min(start, len));
             end = Math.max(0, Math.min(end, len));
@@ -389,6 +598,30 @@ public final class TitleExtractor {
         }
     }
     
+    /**
+     * 解析索引值（路径子串专用）
+     * @param value 索引字符串
+     * @param length 字符串总长度
+     * @param isStart 是否为起始位置（true=起始，false=结束）
+     * @return 解析后的索引值
+     */
+    private static int parseIndexForPath(String value, int length, boolean isStart) {
+        // 对于结束位置，空值或 "-0" 表示取到结尾
+        if (value == null || value.isEmpty() || "-0".equals(value)) {
+            return isStart ? 0 : length;
+        }
+        
+        try {
+            int idx = Integer.parseInt(value.trim());
+            if (idx < 0) {
+                return length + idx;
+            }
+            return idx;
+        } catch (NumberFormatException e) {
+            return isStart ? 0 : length;
+        }
+    }
+
     /**
      * 解析索引值
      */
