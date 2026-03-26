@@ -11,7 +11,7 @@ import java.awt.geom.*;
  */
 public class AboutDialog extends JDialog {
     
-    private static final String VERSION = "1.8.45";
+    private static final String VERSION = "1.8.46";
     
     // 帮助内容HTML模板 - 使用模块化组织
     private static final String HELP_CONTENT_HTML = "<html><head><style>" +
