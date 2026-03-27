@@ -288,6 +288,12 @@ sqlmapWebUI/
 
 ## 📝 更新日志
 
+### v1.8.48 (2026-03-27)
+
+**修复 (CI/CD)**
+- 修复 GitHub Actions 构建 Burp Legacy 插件时 `maven-clean-plugin:3.2.0` 下载 403 Forbidden 错误
+- 在两个 Burp 插件 pom.xml 中显式声明 `maven-clean-plugin:3.4.0`
+
 ### v1.8.47 (2026-03-26)
 
 **修复 (扫描任务)**
