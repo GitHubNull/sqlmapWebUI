@@ -46,6 +46,7 @@ from handlers.cart_handlers import CartHandlerMixin
 from handlers.system_handlers import SystemHandlerMixin
 from handlers.secrets_handlers import SecretsHandlerMixin
 from handlers.shipping_handlers import ShippingHandlerMixin
+from handlers.encrypted_handlers import EncryptedHandlerMixin
 
 
 class VulnShopHandler(
@@ -57,6 +58,7 @@ class VulnShopHandler(
     SystemHandlerMixin,
     SecretsHandlerMixin,
     ShippingHandlerMixin,
+    EncryptedHandlerMixin,
     BaseHTTPRequestHandler
 ):
     """
@@ -260,6 +262,18 @@ class VulnShopHandler(
             elif path == '/api/shipping/query':
                 self.handle_shipping_query(data)
 
+            # 加密参数模块接口（嵌套加密参数 SQL 注入演示）
+            elif path == '/api/encrypted/user/query':
+                self.handle_encrypted_user_query(data)  # 基于错误的注入
+            elif path == '/api/encrypted/product/search':
+                self.handle_encrypted_product_search(data)  # 布尔盲注
+            elif path == '/api/encrypted/order/query':
+                self.handle_encrypted_order_query(data)  # 时间盲注
+            elif path == '/api/encrypted/debug/decode':
+                self.handle_encrypted_debug_decode(data)  # 调试：解码
+            elif path == '/api/encrypted/debug/encode':
+                self.handle_encrypted_debug_encode(data)  # 调试：编码
+
             else:
                 self.send_error(404, 'Not Found')
         except WAFBlockedException as e:
@@ -333,6 +347,13 @@ def run_server():
 ║  • POST /api/secrets/query        - SQL注入 (只读 - 可获取Flag)                        ║
 ║  • POST /api/secrets/search       - SQL注入 (只读 - 可搜索Flag)                        ║
 ║  • POST /api/shipping/query       - XML SQL注入 (30参数/1注入点) (只读)                ║
+║                                                                                       ║
+║  [加密参数接口 - 嵌套Base64编码参数 SQL注入]                                           ║
+║  • POST /api/encrypted/user/query    - 基于错误的注入 (content字段Base64编码)          ║
+║  • POST /api/encrypted/product/search - 布尔盲注 (content字段Base64编码)               ║
+║  • POST /api/encrypted/order/query   - 时间盲注 (content字段Base64编码)                ║
+║  • POST /api/encrypted/debug/decode  - 调试：解码content字段                           ║
+║  • POST /api/encrypted/debug/encode  - 调试：编码content字段                           ║
 ║                                                                                       ║
 ║  [安全接口 - 参数化查询保护]                                                           ║
 ║  • POST /api/user/register        - 安全 (session_id, captcha_token)                   ║
