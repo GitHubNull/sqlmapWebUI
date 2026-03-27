@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.8.49-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.50-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -287,6 +287,23 @@ sqlmapWebUI/
 请在使用前阅读 [免责声明](DISCLAIMER.md)。
 
 ## 📝 更新日志
+
+### v1.8.50 (2026-03-27)
+
+**新功能 (VulnShop 靶场)**
+- 新增嵌套加密参数 SQL 注入测试场景
+- 新增 5 个加密参数测试接口（用户查询、商品搜索、订单查询、调试编码/解码）
+- 支持 Base64 编码的嵌套 JSON 参数注入测试
+- 提供完整的 Tamper 和 Preprocess 脚本示例
+- 配套详细的使用文档和测试场景说明
+
+**文档**
+- 新增 `doc/encrypted_params/` 目录，包含：
+  - README.md - 使用教程
+  - USAGE_SCENARIOS.md - 各种使用场景
+  - CAUTIONS.md - 注意事项
+  - tamper_script.py - Tamper 脚本
+  - preprocess_script.py - Preprocess 脚本
 
 ### v1.8.49 (2026-03-27)
 
