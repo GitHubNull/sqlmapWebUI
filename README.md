@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.8.46-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.47-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -287,6 +287,13 @@ sqlmapWebUI/
 请在使用前阅读 [免责声明](DISCLAIMER.md)。
 
 ## 📝 更新日志
+
+### v1.8.47 (2026-03-26)
+
+**修复 (扫描任务)**
+- 修复通过 Burp 插件提交扫描时代理连接超时问题
+- 根因：`apply_header_rules()` 将全部请求头（含 `Connection: keep-alive`、`Content-Length`）写入 sqlmap 配置文件的 `headers` 选项，与请求文件 (`-r`) 中的 headers 重复，导致 `Connection: keep-alive` 绕过 sqlmap 的 `parseRequestFile` 过滤被强制添加，耗尽代理连接池
+- 现在 headers 仅通过请求文件传递，与命令行直接执行行为一致
 
 ### v1.8.46 (2026-03-26)
 
