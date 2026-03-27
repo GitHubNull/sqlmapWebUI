@@ -6,7 +6,7 @@
 
     <groupId>com.sqlmapwebui</groupId>
     <artifactId>sqlmap-webui-burp-montoya</artifactId>
-    <version>1.8.47</version>
+    <version>1.8.48</version>
     <packaging>jar</packaging>
 
     <name>SQLMap WebUI Burp Extension (Montoya API)</name>
@@ -85,6 +85,13 @@
 
     <build>
         <plugins>
+            <!-- Clean Plugin - explicitly set version to avoid 403 on older defaults -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.4.0</version>
+            </plugin>
+
             <!-- Compiler Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
