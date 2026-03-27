@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.8.41-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.49-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -287,6 +287,81 @@ Includes complete feature descriptions, operation steps, configuration guides, a
 Please read the [Disclaimer](DISCLAIMER.md) before use.
 
 ## 📝 Changelog
+
+### v1.8.49 (2026-03-27)
+
+**Documentation**
+- Comprehensive update of project documentation to reflect latest features
+- Updated README version numbers and changelogs in both Chinese and English
+- Updated user guide with Burp plugin command execution configuration details
+- Updated frontend About page version number
+- Updated Burp plugin help documentation
+
+### v1.8.48 (2026-03-27)
+
+**Fixes (CI/CD)**
+- Fixed GitHub Actions build Burp Legacy plugin `maven-clean-plugin:3.2.0` download 403 Forbidden error
+- Explicitly declared `maven-clean-plugin:3.4.0` in both Burp plugin pom.xml files
+
+**New Features (Burp Plugin)**
+- Added command execution configuration, support direct SQLMap scan execution in terminal
+- Added terminal window title rule configuration, support custom title extraction rules
+- Added command preview dialog, real-time preview of generated SQLMap commands
+- Added configuration import/export functionality for easy backup and sharing
+
+### v1.8.47 (2026-03-26)
+
+**Fixes (Scan Tasks)**
+- Fixed proxy connection timeout issue when submitting scans via Burp plugin
+- Root cause: `apply_header_rules()` wrote all request headers to sqlmap config file's `headers` option, conflicting with request file (`-r`) headers
+- Now headers are only passed through request file, consistent with command line execution behavior
+
+### v1.8.46 (2026-03-26)
+
+**Fixes (Scan Tasks)**
+- Fixed XML body truncation issue (Windows line endings causing Content-Length mismatch)
+- Removed Content-Length header, allowing sqlmap to auto-calculate based on actual body
+- Use binary mode to write request files, avoiding Windows automatic line ending conversion
+- Normalized body line endings to standard HTTP line endings
+
+**Improvements (Burp Plugin)**
+- Replaced manual JSON string concatenation with Gson/PayloadBuilder
+- Eliminated risks of incomplete escaping for special characters (e.g., XML content)
+
+### v1.8.45 (2026-03-26)
+
+**New Features (VulnShop Lab)**
+- Added logistics management module, support order shipping and tracking
+- Added shipping_handlers for logistics-related requests
+- Updated database structure, added logistics information table
+- Updated frontend interface, added logistics management page and styles
+
+**Fixes**
+- Fixed task_monitor.py related issues
+- Removed deprecated req.txt file
+
+### v1.8.44 (2026-03-26)
+
+**New Features (Burp Plugin)**
+- Added command execution configuration, support custom SQLMap command execution methods
+- Added command execution configuration panel with visual configuration interface
+- Added command execution help dialog with detailed configuration instructions
+- Added request title extraction, support extracting custom titles from requests
+- Added title rule management, support creating, editing, deleting title extraction rules
+- Added title rule test dialog, support real-time testing of rule effects
+- Added command preview dialog, support previewing generated SQLMap commands
+- Added direct execution configuration panel, support one-click scan execution
+
+**Refactoring (Burp Plugin)**
+- Removed deprecated clipboard configuration panel, replaced with more flexible command execution configuration
+- Refactored command executor to support configurable command execution
+- Refactored SQL command builder to enhance command building capabilities
+- Refactored title extractor to support multiple title source types and regex matching
+
+**Improvements (Burp Plugin)**
+- Optimized context menu integration, providing richer scan options
+- Improved configuration manager to support more configuration types
+- Optimized preset configuration database to support title rule storage
 
 ### v1.8.41 (2026-02-28)
 

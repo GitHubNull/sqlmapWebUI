@@ -212,7 +212,7 @@ import TaskManagementHelp from './components/TaskManagementHelp.vue'
 import AdvancedFeaturesHelp from './components/AdvancedFeaturesHelp.vue'
 
 const activeTab = ref<string | number>('0')
-const version = '1.8.40'
+const version = '1.8.49'
 
 function handleTabChange(value: string | number) {
   activeTab.value = value

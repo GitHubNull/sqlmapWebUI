@@ -338,6 +338,14 @@ public class DirectExecuteConfigPanel extends BaseConfigPanel {
             "<li>按优先级顺序匹配规则，数字越小优先级越高</li>" +
             "<li>默认规则 (URL路径) 不可删除，作为最终兜底</li>" +
             "<li>首个成功匹配的规则将被用于终端标题</li>" +
+            "<li>支持从 Host、URL路径、请求方法、Content-Type、自定义正则等提取标题</li>" +
+            "</ul>" +
+
+            "<h4>配置导入导出</h4>" +
+            "<ul>" +
+            "<li>在「常用配置」标签页可使用导入导出功能</li>" +
+            "<li>支持导出所有配置到 JSON 文件进行备份</li>" +
+            "<li>支持从 JSON 文件导入配置，方便团队共享</li>" +
             "</ul>" +
 
             "<div class='warning'>" +
@@ -346,6 +354,7 @@ public class DirectExecuteConfigPanel extends BaseConfigPanel {
             "<li>确保已安装Python并配置正确</li>" +
             "<li>确保SQLMap已下载到本地</li>" +
             "<li>临时文件在执行后会保留，可手动删除</li>" +
+            "<li>命令执行功能不经过后端服务器，直接在本地终端运行</li>" +
             "</ul>" +
             "</div>" +
 
@@ -354,6 +363,13 @@ public class DirectExecuteConfigPanel extends BaseConfigPanel {
             "<ul>" +
             "<li>Python测试：检查Python是否可用并显示版本</li>" +
             "<li>SQLMap测试：检查SQLMap脚本是否有效</li>" +
+            "</ul>" +
+
+            "<h3>右键菜单选项</h3>" +
+            "<ul>" +
+            "<li><b>Send to SQLMap WebUI</b>: 使用默认配置发送到后端服务器</li>" +
+            "<li><b>Send to SQLMap WebUI (选择配置)</b>: 选择特定配置后发送到后端</li>" +
+            "<li><b>执行SQLMap扫描</b>: 使用命令执行配置直接在终端运行</li>" +
             "</ul>" +
 
             "</body></html>";

@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.8.47-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.49-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -288,11 +288,26 @@ sqlmapWebUI/
 
 ## 📝 更新日志
 
+### v1.8.49 (2026-03-27)
+
+**文档**
+- 全面更新项目文档，同步最新功能特性
+- 更新 README 中英文版本版本号和变更日志
+- 更新使用指南文档，补充 Burp 插件命令执行配置说明
+- 更新前端 About 页面版本号
+- 更新 Burp 插件帮助文档内容
+
 ### v1.8.48 (2026-03-27)
 
 **修复 (CI/CD)**
 - 修复 GitHub Actions 构建 Burp Legacy 插件时 `maven-clean-plugin:3.2.0` 下载 403 Forbidden 错误
 - 在两个 Burp 插件 pom.xml 中显式声明 `maven-clean-plugin:3.4.0`
+
+**新功能 (Burp 插件)**
+- 新增命令执行配置功能，支持直接在终端执行 SQLMap 扫描
+- 新增终端窗口标题规则配置，支持自定义标题提取规则
+- 新增命令预览对话框，实时预览生成的 SQLMap 命令
+- 新增配置导入导出功能，方便备份和分享配置
 
 ### v1.8.47 (2026-03-26)
 

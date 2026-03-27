@@ -610,12 +610,43 @@ mvn clean package -DskipTests
 4. **Activity Log**:
    - View send history and results
 
+#### New Features in v1.8.44+
+
+- **Command Execution Configuration**: Support direct SQLMap scan execution in terminal without backend server
+- **Terminal Title Rules**: Support custom terminal window title extraction rules for easy identification of multiple scan windows
+- **Command Preview**: Real-time preview of generated SQLMap commands
+- **Configuration Import/Export**: Support backup and sharing of configurations
+
 #### New Features in v1.8.38+
 
 - **Auto-save to History**: Automatically saves to history configs after creating tasks
 - **Request Deduplication**: Automatically detects and skips duplicate requests
 - **Binary Content Detection**: Detects binary content and warns
 - **Chinese Encoding Handling**: Correctly handles Chinese characters
+
+#### Command Execution Configuration
+
+**v1.8.44+ Feature**
+
+Command execution configuration allows direct SQLMap scan execution in local terminal:
+
+1. Go to "Command Execution Configuration" tab
+2. Configure the following parameters:
+   - **Python Path**: Python interpreter path (optional, uses system default if empty)
+   - **SQLMap Path**: Full path to sqlmap.py script (required)
+   - **Terminal Type**: Auto-detect or manual selection (CMD/PowerShell/Terminal, etc.)
+   - **Keep Terminal Open**: Whether to keep terminal window after scan completes
+3. Configure title rules (optional):
+   - Add custom rules to extract terminal window title from requests
+   - Support extraction from Host, URL path, custom regex, etc.
+   - Match in priority order, first matched rule takes effect
+4. Click "Save Settings"
+
+**Usage**:
+1. Intercept or view requests in Burp
+2. Right-click and select "Execute SQLMap Scan"
+3. System automatically opens terminal and executes SQLMap command
+4. HTTP request is saved as temporary file, passed using `-r` parameter
 
 #### Scan Parameters
 
