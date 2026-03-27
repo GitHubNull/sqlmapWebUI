@@ -75,9 +75,13 @@ A modern SQLMap web interface that provides a convenient SQL injection testing p
 
 ### Extension Integration
 - **Burp Suite Plugin**: Supports both Legacy API and Montoya API versions
-  - Right-click menu for quick request sending
+  - Right-click menu to send requests to backend server
+  - Right-click menu to execute SQLMap scan directly (local terminal execution)
   - Configurable scan parameters (Level, Risk, DBMS, Technique)
   - Default configuration and saved presets management
+  - Command preview and copy to clipboard
+  - Terminal window title customization rules
+  - Configuration import/export functionality
   - Activity logging
 
 ### VulnShop Vulnerability Lab 🎯

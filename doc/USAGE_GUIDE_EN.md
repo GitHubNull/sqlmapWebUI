@@ -648,6 +648,24 @@ Command execution configuration allows direct SQLMap scan execution in local ter
 3. System automatically opens terminal and executes SQLMap command
 4. HTTP request is saved as temporary file, passed using `-r` parameter
 
+#### Command Preview and Copy
+
+**v1.8.44+ Feature**
+
+Before sending a request, you can preview and copy the SQLMap command:
+
+1. Right-click the request in Burp, select "Send to SQLMap WebUI (Select Config)..."
+2. In the configuration selection dialog, choose scan parameters
+3. Click "Preview Command" button:
+   - View the generated complete SQLMap command
+   - Click "Copy to Clipboard" button to copy the command
+   - Can paste directly into terminal for manual execution
+
+**Use Cases**:
+- Need to manually adjust command parameters before execution
+- Need to execute scan in other environments (e.g., remote server)
+- Want to learn and understand SQLMap command line usage
+
 #### Scan Parameters
 
 | Parameter | Description | Default |
