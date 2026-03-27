@@ -179,13 +179,17 @@ class Task(object):
                 else:
                     logger.debug(f"[{self.taskid}] No User-Agent header found to remove")
             
-            # 将请求头设置到SQLMap配置中
-            # SQLMap期望headers是一个换行符分隔的字符串
-            self.options.headers = "\n".join(self.headers)
+            # 注意：不再设置 self.options.headers
+            # 处理后的 headers 已存储在 self.headers 中，会由 _build_raw_http_request() 写入请求文件
+            # 如果同时通过 options.headers (--headers) 和请求文件 (-r) 传递 headers，
+            # sqlmap 会从两个来源接收 headers，导致：
+            # 1. Connection: keep-alive 绕过 parseRequestFile 的过滤被强制添加，耗尽代理连接池
+            # 2. Content-Length 被固定为原始值，与注入修改后的 body 长度不匹配
+            # 3. 其他被 parseRequestFile 故意跳过的 headers（如 Proxy-Connection）也会被加回
             
             if applied_rules:
                 logger.info(f"[{self.taskid}] Applied {len(applied_rules)} header rules: {', '.join(applied_rules)}")
-            logger.debug(f"[{self.taskid}] Set headers option for SQLMap: {self.options.headers}")
+            logger.debug(f"[{self.taskid}] Processed headers for request file: {self.headers}")
                 
             # 标记请求头规则已应用
             self._header_rules_applied = True
@@ -383,7 +387,7 @@ class Task(object):
         # 在SQLMap真正启动前应用Body字段规则
         self.apply_body_field_rules()
         
-        logger.debug(f"[{self.taskid}] Headers option for SQLMap: {getattr(self.options, 'headers', 'Not set')}")
+        logger.debug(f"[{self.taskid}] Headers in request file: {len(self.headers) if self.headers else 0} items")
         
         # 创建HTTP原始报文文件
         self._request_file_path = self._create_request_file()
@@ -398,11 +402,29 @@ class Task(object):
         
         logger.debug(f"[{self.taskid}] SQLMap config saved to {configFile}")
         logger.info(f"[{self.taskid}] Using request file mode (-r): {self._request_file_path}")
+        
+        # 打印配置文件内容用于调试代理连接问题
+        try:
+            with open(configFile, 'r', encoding='utf-8') as cf:
+                config_content = cf.read()
+            logger.info(f"[{self.taskid}] === SQLMap Config File Content ===\n{config_content}")
+        except Exception as e:
+            logger.warning(f"[{self.taskid}] Failed to read config file for debug: {e}")
+        
+        # 打印用户显式设置的选项（非默认值）
+        logger.info(f"[{self.taskid}] User set options: {self._user_set_options}")
+        logger.info(f"[{self.taskid}] proxy={self.options.get('proxy', 'NOT SET')}, "
+                     f"timeout={self.options.get('timeout', 'NOT SET')}, "
+                     f"threads={self.options.get('threads', 'NOT SET')}, "
+                     f"retries={self.options.get('retries', 'NOT SET')}, "
+                     f"keepAlive={self.options.get('keepAlive', 'NOT SET')}")
 
         if os.path.exists("third_lib/sqlmap/sqlmap.py"):
-            self.process = Popen([sys.executable or "python", "third_lib/sqlmap/sqlmap.py",
+            cmd = [sys.executable or "python", "third_lib/sqlmap/sqlmap.py",
                                   "--api",
-                                  "-c", configFile], shell=False,
+                                  "-c", configFile]
+            logger.info(f"[{self.taskid}] SQLMap launch command: {' '.join(cmd)}")
+            self.process = Popen(cmd, shell=False,
                                  close_fds=not IS_WIN)
         elif os.path.exists(os.path.join(os.getcwd(), "sqlmap.py")):
             self.process = Popen([sys.executable or "python", "sqlmap.py",
