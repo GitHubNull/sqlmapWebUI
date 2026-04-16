@@ -563,7 +563,9 @@ jobs:
           # 替换占位符
           sed -i "s/__VERSION__/${VERSION}/g" release_notes.md
           sed -i "s/__DATE__/$(date +'%Y-%m-%d')/g" release_notes.md
-          sed -i "s|__COMPARE_SECTION__|${COMPARE_SECTION}|g" release_notes.md
+          
+          # 使用 awk 替换 COMPARE_SECTION（避免内容中的特殊字符干扰 sed 分隔符）
+          awk -v section="$COMPARE_SECTION" '{gsub(/__COMPARE_SECTION__/, section)}1' release_notes.md > release_notes.tmp && mv release_notes.tmp release_notes.md
           
           # 替换 changelog 内容（使用 awk 处理多行）
           awk -v content="$CHANGELOG_CONTENT" '{gsub(/__CHANGELOG_CONTENT__/, content)}1' release_notes.md > release_notes.tmp && mv release_notes.tmp release_notes.md
