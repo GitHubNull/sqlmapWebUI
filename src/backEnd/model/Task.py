@@ -347,6 +347,11 @@ class Task(object):
         else:
             raw_request += CRLF + CRLF
         
+        # 防御性修复：去除尾部多余空行，避免SQLMap -r模式误将GET识别为POST
+        # (SQLMap在请求文件末尾存在多余空行时会错误推断存在body并切换为POST方法)
+        while raw_request.endswith(CRLF + CRLF):
+            raw_request = raw_request[:-len(CRLF)]
+        
         return raw_request
 
     def _create_request_file(self):

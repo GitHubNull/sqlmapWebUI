@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.8.51-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.52-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -291,6 +291,12 @@ sqlmapWebUI/
 请在使用前阅读 [免责声明](DISCLAIMER.md)。
 
 ## 📝 更新日志
+
+### v1.8.52 (2026-04-16)
+
+**修复 (Burp 插件 & 后端)**
+- 修复 Burp 插件和后端生成的 HTTP 请求文件尾部多余空行导致 SQLMap `-r` 模式误将 GET 识别为 POST 的问题
+- 在 Montoya API、Legacy API 插件以及后端 Task 引擎中增加尾部空行防御性清理逻辑
 
 ### v1.8.51 (2026-04-16)
 
