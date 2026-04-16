@@ -568,6 +568,9 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
     
     /**
      * 构建HTTP请求内容字符串
+     * 
+     * 防御性修复：去除尾部多余空行，避免SQLMap -r模式误将GET识别为POST
+     * (SQLMap在请求文件末尾存在多余空行时会错误推断存在body并切换为POST方法)
      */
     private String buildHttpRequestContent(HttpRequest request) {
         StringBuilder sb = new StringBuilder();
@@ -591,6 +594,15 @@ public class SqlmapContextMenuProvider implements ContextMenuItemsProvider {
             sb.append(body);
         }
         
-        return sb.toString();
+        // 去除尾部多余换行符，确保SQLMap -r模式正确识别请求方法
+        String result = sb.toString();
+        while (result.endsWith("\r\n\r\n")) {
+            result = result.substring(0, result.length() - 2);
+        }
+        while (result.endsWith("\n\n")) {
+            result = result.substring(0, result.length() - 1);
+        }
+        
+        return result;
     }
 }

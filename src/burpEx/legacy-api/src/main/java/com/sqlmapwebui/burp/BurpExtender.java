@@ -50,7 +50,7 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
     private SqlmapUITab uiTab;
     
     private static final String EXTENSION_NAME = "SQLMap WebUI";
-    private static final String EXTENSION_VERSION = "1.8.50";
+    private static final String EXTENSION_VERSION = "1.8.51";
     
     /**
      * 过滤结果类 - 存储过滤后的纯文本请求和过滤统计
@@ -585,6 +585,12 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
     /**
      * 从IHttpRequestResponse构建HTTP请求字符串
      */
+    /**
+     * 构建HTTP请求内容字符串
+     * 
+     * 防御性修复：去除尾部多余空行，避免SQLMap -r模式误将GET识别为POST
+     * (SQLMap在请求文件末尾存在多余空行时会错误推断存在body并切换为POST方法)
+     */
     private String buildHttpRequest(IHttpRequestResponse message) {
         StringBuilder request = new StringBuilder();
         
@@ -619,7 +625,16 @@ public class BurpExtender implements IBurpExtender, IContextMenuFactory, ITab {
             request.append(bodyStr);
         }
         
-        return request.toString();
+        // 去除尾部多余换行符，确保SQLMap -r模式正确识别请求方法
+        String result = request.toString();
+        while (result.endsWith("\r\n\r\n")) {
+            result = result.substring(0, result.length() - 2);
+        }
+        while (result.endsWith("\n\n")) {
+            result = result.substring(0, result.length() - 1);
+        }
+        
+        return result;
     }
     
     /**
