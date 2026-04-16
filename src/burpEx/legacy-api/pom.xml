@@ -113,7 +113,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.sqlmapwebui.burp.BurpExtender</mainClass>
+                            <mainClass>com.sqlmapwebui.burp.core.BurpExtender</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

@@ -1,4 +1,10 @@
 package com.sqlmapwebui.burp.util;
+import com.sqlmapwebui.burp.model.RegexSource;
+
+import com.sqlmapwebui.burp.model.TitleConfig;
+import com.sqlmapwebui.burp.model.TitleRule;
+import com.sqlmapwebui.burp.model.TitleSourceType;
+
 
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;

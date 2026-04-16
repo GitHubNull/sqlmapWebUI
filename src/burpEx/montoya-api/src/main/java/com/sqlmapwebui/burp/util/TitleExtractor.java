@@ -1,4 +1,9 @@
 package com.sqlmapwebui.burp.util;
+import com.sqlmapwebui.burp.model.TitleConfig;
+import com.sqlmapwebui.burp.model.TitleRule;
+import com.sqlmapwebui.burp.model.TitleSourceType;
+import com.sqlmapwebui.burp.model.RegexSource;
+
 
 import burp.api.montoya.http.message.requests.HttpRequest;
 import com.jayway.jsonpath.JsonPath;

@@ -1,6 +1,6 @@
 package com.sqlmapwebui.burp.util;
 
-import com.sqlmapwebui.burp.ConfigManager.TerminalType;
+import com.sqlmapwebui.burp.config.ConfigManager.TerminalType;
 
 import java.io.File;
 import java.io.IOException;

@@ -1,6 +1,6 @@
 package com.sqlmapwebui.burp.util;
 
-import com.sqlmapwebui.burp.ConfigManager.TerminalType;
+import com.sqlmapwebui.burp.config.ConfigManager.TerminalType;
 
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
