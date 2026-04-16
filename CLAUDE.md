@@ -9,6 +9,18 @@ SQLMap Web UI 是一个完整的 SQL 注入测试平台，包含：
 - **VulnShop 靶场**: 内置漏洞测试环境
 - **浏览器扩展**: Burp Suite 插件
 
+## 文档结构
+
+### 核心文档
+- `README.md` / `README_EN.md` - 项目概述和快速开始指南
+- `doc/CHANGELOG.md` - 中文版本变更日志（**所有版本更新记录均在此维护**）
+- `doc/CHANGELOG_EN.md` - 英文版本变更日志（**All version updates are maintained here**）
+- `doc/USAGE_GUIDE.md` / `doc/USAGE_GUIDE_EN.md` - 详细使用指南
+
+### 重要说明
+> **变更日志已独立为 `doc/CHANGELOG.md` 和 `doc/CHANGELOG_EN.md` 文档**，README 中不再重复收录详细变更日志。后续所有版本更新记录均应写入变更日志文档。
+
+
 ## 项目架构
 
 ### 整体结构

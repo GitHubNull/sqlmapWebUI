@@ -537,6 +537,21 @@ jobs:
           echo "DEBUG: First 10 lines:"
           head -10 release_notes.md
       
+      - name: Delete existing release if exists
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 检查并删除已存在的同名 release
+          TAG_NAME=${GITHUB_REF_NAME}
+          RELEASE_ID=$(gh release view "$TAG_NAME" --json id --jq '.id' 2>/dev/null || echo "")
+          if [ -n "$RELEASE_ID" ]; then
+            echo "Deleting existing release $RELEASE_ID for tag $TAG_NAME..."
+            gh release delete "$TAG_NAME" --yes
+            echo "Existing release deleted"
+          else
+            echo "No existing release found for tag $TAG_NAME"
+          fi
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:

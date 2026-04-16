@@ -9,6 +9,18 @@ SQLMap Web UI is a comprehensive SQL injection testing platform that includes:
 - **VulnShop Lab**: Built-in vulnerability testing environment
 - **Browser Extensions**: Burp Suite plugins
 
+## Documentation Structure
+
+### Core Documents
+- `README.md` / `README_EN.md` - Project overview and quick start guide
+- `doc/CHANGELOG.md` - Chinese version changelog (**all version updates maintained here**)
+- `doc/CHANGELOG_EN.md` - English version changelog (**all version updates maintained here**)
+- `doc/USAGE_GUIDE.md` / `doc/USAGE_GUIDE_EN.md` - Detailed user guides
+
+### Important Note
+> **Changelog has been separated into `doc/CHANGELOG.md` and `doc/CHANGELOG_EN.md` documents**. README no longer includes detailed changelog. All future version updates should be written to the changelog documents.
+
+
 ## Project Structure
 
 ```

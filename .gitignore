@@ -148,3 +148,6 @@ dmypy.json
 *.jpeg
 *.gif
 *.ico
+
+# tmp 目录
+tmp/
