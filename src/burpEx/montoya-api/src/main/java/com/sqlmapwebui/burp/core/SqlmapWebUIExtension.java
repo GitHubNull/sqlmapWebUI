@@ -22,7 +22,7 @@ import com.sqlmapwebui.burp.ui.tab.SqlmapUITab;
 public class SqlmapWebUIExtension implements BurpExtension {
     
     private static final String EXTENSION_NAME = "SQLMap WebUI";
-    private static final String EXTENSION_VERSION = "1.8.52";
+    private static final String EXTENSION_VERSION = "1.8.53";
     
     private MontoyaApi api;
     private ConfigManager configManager;

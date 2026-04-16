@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.8.52-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.53-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -291,6 +291,24 @@ Includes complete feature descriptions, operation steps, configuration guides, a
 Please read the [Disclaimer](DISCLAIMER.md) before use.
 
 ## 📝 Changelog
+
+### v1.8.53 (2026-04-16)
+
+**Refactoring (Burp Plugin)**
+- Reorganized Burp plugin architecture with layered structure:
+  - `api/` - API clients (ApiClient, SqlmapApiClient)
+  - `config/` - Configuration management (ScanConfig, PresetConfig, etc.)
+  - `core/` - Extension entry points (BurpExtender, SqlmapWebUIExtension)
+  - `model/` - Data models (TitleRule, RegexSource, etc.)
+  - `service/` - Business services (BinaryContentDetector, RequestDeduplicator)
+  - `ui/` - User interface
+    - `component/` - Reusable components
+    - `dialog/` - Dialog windows
+    - `panel/` - Configuration panels
+    - `tab/` - Main tabs
+  - `util/` - Utilities (CommandExecutor, SqlCommandBuilder, etc.)
+- Both Legacy API and Montoya API plugins follow the same structure
+- Pure code reorganization, no functional changes, improved maintainability
 
 ### v1.8.52 (2026-04-16)
 

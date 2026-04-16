@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Vue-3.x-green.svg" alt="Vue">
   <img src="https://img.shields.io/badge/FastAPI-0.100+-red.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.8.52-orange.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.53-orange.svg" alt="Version">
 </p>
 
 <p align="center">
@@ -291,6 +291,24 @@ sqlmapWebUI/
 请在使用前阅读 [免责声明](DISCLAIMER.md)。
 
 ## 📝 更新日志
+
+### v1.8.53 (2026-04-16)
+
+**重构 (Burp 插件)**
+- Burp 插件架构分层重构，将单一包拆分为清晰的分层结构：
+  - `api/` - API 客户端 (ApiClient, SqlmapApiClient)
+  - `config/` - 配置管理 (ScanConfig, PresetConfig 等)
+  - `core/` - 扩展入口点 (BurpExtender, SqlmapWebUIExtension)
+  - `model/` - 数据模型 (TitleRule, RegexSource 等)
+  - `service/` - 业务服务 (BinaryContentDetector, RequestDeduplicator)
+  - `ui/` - 用户界面
+    - `component/` - 可复用组件
+    - `dialog/` - 对话框窗口
+    - `panel/` - 配置面板
+    - `tab/` - 主标签页
+  - `util/` - 工具类 (CommandExecutor, SqlCommandBuilder 等)
+- Legacy API 和 Montoya API 插件均采用相同的分层结构
+- 纯代码重组织，无功能变更，提升可维护性
 
 ### v1.8.52 (2026-04-16)
 
