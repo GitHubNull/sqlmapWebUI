@@ -27,14 +27,39 @@ git log --oneline -10
 - 必须大于当前最新版本
 - 语义化：破坏性变更→主版本，新功能→次版本，修复→修订号
 
-### 2. 同步所有版本号（共 7 处）
+### 2. 更新 README 变更日志
 
-#### 2.1 后端版本（1 处）
+首先查看自上次发布以来的提交记录，确定变更内容：
+```bash
+# 查看自上次 tag 以来的提交
+git log $(git describe --tags --abbrev=0 2>/dev/null)..HEAD --oneline --no-merges
+```
+
+在 `README.md` 和 `README_EN.md` 的变更日志章节顶部插入新版本记录：
+
+```markdown
+### [v1.8.34] - 2026-02-27
+
+#### ✨ 新增
+- <新功能描述>
+
+#### 🐛 修复
+- <问题修复>
+
+#### 📝 其他
+- <其他变更>
+```
+
+> **注意**：中英文 README 的变更日志必须同步更新。
+
+### 3. 同步所有版本号（共 7 处）
+
+#### 3.1 后端版本（1 处）
 | 文件 | 位置 | 格式 |
 |------|------|------|
 | `src/backEnd/config.py` | 第 7 行 | `VERSION = "1.8.34"` |
 
-#### 2.2 Burp 插件版本（6 处）
+#### 3.2 Burp 插件版本（6 处）
 | 文件 | 位置 | 格式 |
 |------|------|------|
 | `src/burpEx/legacy-api/pom.xml` | 第 9 行 | `<version>1.8.34</version>` |
@@ -78,35 +103,16 @@ grep -rn "旧版本号" src/backEnd/config.py src/burpEx/
 - [ ] 7 处版本号已全部更新
 - [ ] 版本号格式正确（不含 `v` 前缀）
 
-**提交：**
+### 4. 一次性提交所有版本发布变更
+
+> **关键**：所有版本相关的修改（版本号 + 变更日志）必须在同一个 commit 中提交，不要拆分成多个 commit。
+
 ```bash
-git add src/backEnd/config.py src/burpEx/
-git commit -m "chore: bump version to 1.8.34"
+git add src/backEnd/config.py src/burpEx/ README.md README_EN.md
+git commit -m "chore: release v1.8.34"
 ```
 
-### 3. 更新 README 变更日志
-在 `README.md` 的变更日志章节顶部插入新版本记录：
-
-```markdown
-### [v1.8.34] - 2026-02-27
-
-#### ✨ 新增
-- <新功能描述>
-
-#### 🐛 修复
-- <问题修复>
-
-#### 📝 其他
-- <其他变更>
-```
-
-**提交：**
-```bash
-git add README.md
-git commit -m "docs: update changelog for v1.8.34"
-```
-
-### 4. 创建 Tag 并推送
+### 5. 创建 Tag 并推送
 
 > **重要**：本项目使用 `release-v版本号` 格式的 Tag 触发 GitHub Actions
 
@@ -126,7 +132,7 @@ git push origin master
 git push origin release-v1.8.34
 ```
 
-### 5. 验证发布
+### 6. 验证发布
 - [ ] GitHub Actions 工作流已触发（查看 Actions 标签页）
 - [ ] 等待构建完成（约 3-5 分钟）
 - [ ] GitHub Releases 页面出现新版本
