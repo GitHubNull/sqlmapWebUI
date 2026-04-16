@@ -9,6 +9,10 @@ VulnShop API处理器模块
 - order_handlers: 订单相关（创建、查询、取消）
 - cart_handlers: 购物车相关（添加、更新）
 - system_handlers: 系统相关（配置、重置、API信息、反馈）
+- secrets_handlers: 敏感信息相关（创建、查询、搜索）
+- shipping_handlers: 物流相关（XML SQL注入演示）
+- encrypted_handlers: 加密参数相关（Base64编码参数演示）
+- coupon_handlers: 优惠券相关（Base64加密参数演示）
 """
 
 from .user_handlers import UserHandlerMixin
@@ -16,6 +20,10 @@ from .product_handlers import ProductHandlerMixin
 from .order_handlers import OrderHandlerMixin
 from .cart_handlers import CartHandlerMixin
 from .system_handlers import SystemHandlerMixin
+from .secrets_handlers import SecretsHandlerMixin
+from .shipping_handlers import ShippingHandlerMixin
+from .encrypted_handlers import EncryptedHandlerMixin
+from .coupon_handlers import CouponHandlerMixin
 
 __all__ = [
     'UserHandlerMixin',
@@ -23,4 +31,8 @@ __all__ = [
     'OrderHandlerMixin',
     'CartHandlerMixin',
     'SystemHandlerMixin',
+    'SecretsHandlerMixin',
+    'ShippingHandlerMixin',
+    'EncryptedHandlerMixin',
+    'CouponHandlerMixin',
 ]

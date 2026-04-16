@@ -18,6 +18,7 @@
             <a href="#" class="nav-link active" data-page="home">首页</a>
             <a href="#" class="nav-link" data-page="products">商品中心</a>
             <a href="#" class="nav-link" data-page="orders">订单管理</a>
+            <a href="#" class="nav-link" data-page="coupons">优惠券</a>
             <a href="#" class="nav-link" data-page="profile">个人中心</a>
             <a href="#" class="nav-link" data-page="config">系统配置</a>
         </div>
@@ -66,6 +67,9 @@
                 <ul class="sidebar-menu">
                     <li><a href="#" id="resetDbLink"><span class="icon">🔄</span> 重置数据库</a></li>
                     <li><a href="#" id="viewLogsLink"><span class="icon">📊</span> 查看日志</a></li>
+                    <li><a href="#" id="memberCenterLink"><span class="icon">👤</span> 会员中心</a></li>
+                    <li><a href="#" id="couponCenterLink"><span class="icon">🎫</span> 优惠券中心</a></li>
+                    <li><a href="#" id="reviewCenterLink"><span class="icon">⭐</span> 评价中心</a></li>
                 </ul>
             </div>
         </aside>
@@ -371,6 +375,79 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </section>
+
+            <!-- ==================== 优惠券页面 ==================== -->
+            <section id="page-coupons" class="page">
+                <div class="page-header">
+                    <h2>🎫 优惠券中心</h2>
+                </div>
+                <div class="coupons-layout">
+                    <div class="panel" style="margin-bottom:25px;">
+                        <div class="panel-header">
+                            <span class="panel-title">优惠券查询</span>
+                            <span class="vuln-tag error">Error-based SQLi (Base64)</span>
+                        </div>
+                        <div class="panel-body">
+                            <div class="vuln-hint">
+                                <strong>💡 提示:</strong> 此接口使用Base64编码的data字段传输参数
+                                <code>接口: POST /api/coupon/query</code>
+                                <code>格式: {"req_id":"xxx","data":"base64编码的JSON"}</code>
+                            </div>
+                            <div class="coupon-query-form">
+                                <div class="form-group">
+                                    <label>优惠券代码</label>
+                                    <input type="text" id="couponCodeInput" placeholder="输入优惠券代码 (如: SAVE10)">
+                                </div>
+                                <div class="form-group">
+                                    <label>分类筛选（可选）</label>
+                                    <select id="couponCategorySelect">
+                                        <option value="">全部分类</option>
+                                        <option value="electronics">电子产品</option>
+                                        <option value="fashion">服装配饰</option>
+                                        <option value="books">图书音像</option>
+                                        <option value="home">家居家装</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary" id="queryCouponBtn">查询优惠券</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <span class="panel-title">可用优惠券</span>
+                        </div>
+                        <div class="panel-body" id="availableCouponsList">
+                            <div class="coupon-grid">
+                                <div class="coupon-card">
+                                    <div class="coupon-card-discount">10%</div>
+                                    <div class="coupon-card-info">
+                                        <div class="coupon-card-code">SAVE10</div>
+                                        <div class="coupon-card-desc">电子产品满100可用</div>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline" onclick="cart.copyText('SAVE10')">领取</button>
+                                </div>
+                                <div class="coupon-card">
+                                    <div class="coupon-card-discount">20%</div>
+                                    <div class="coupon-card-info">
+                                        <div class="coupon-card-code">NEWUSER20</div>
+                                        <div class="coupon-card-desc">新用户专享</div>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline" onclick="cart.copyText('NEWUSER20')">领取</button>
+                                </div>
+                                <div class="coupon-card">
+                                    <div class="coupon-card-discount">30%</div>
+                                    <div class="coupon-card-info">
+                                        <div class="coupon-card-code">VIP30</div>
+                                        <div class="coupon-card-desc">VIP会员专属</div>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline" onclick="cart.copyText('VIP30')">领取</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="couponQueryResult" class="result-area" style="margin-top:20px;"></div>
                 </div>
             </section>
 

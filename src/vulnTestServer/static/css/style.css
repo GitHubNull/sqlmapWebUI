@@ -1831,3 +1831,83 @@ html, body {
     font-size: 12px;
     font-weight: 500;
 }
+
+/* ==================== 优惠券卡片样式 ==================== */
+.coupon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+}
+
+.coupon-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 18px 20px;
+    background: linear-gradient(135deg, rgba(233, 69, 96, 0.08) 0%, rgba(233, 69, 96, 0.03) 100%);
+    border: 1px dashed var(--primary);
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+.coupon-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-style: solid;
+}
+
+.coupon-card-discount {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--primary);
+    min-width: 70px;
+    text-align: center;
+}
+
+.coupon-card-info {
+    flex: 1;
+}
+
+.coupon-card-code {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: 'Consolas', monospace;
+    margin-bottom: 4px;
+}
+
+.coupon-card-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+
+.coupon-card-limit {
+    font-size: 11px;
+    color: var(--success);
+}
+
+.coupon-query-form {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.coupon-query-form .form-group {
+    flex: 1;
+    min-width: 200px;
+    margin-bottom: 0;
+}
+
+/* ==================== 功能模块响应式 ==================== */
+@media (max-width: 768px) {
+    .coupon-query-form {
+        flex-direction: column;
+    }
+    
+    .coupon-card {
+        flex-direction: column;
+        text-align: center;
+    }
+}

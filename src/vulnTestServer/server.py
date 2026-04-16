@@ -47,6 +47,7 @@ from handlers.system_handlers import SystemHandlerMixin
 from handlers.secrets_handlers import SecretsHandlerMixin
 from handlers.shipping_handlers import ShippingHandlerMixin
 from handlers.encrypted_handlers import EncryptedHandlerMixin
+from handlers.coupon_handlers import CouponHandlerMixin
 
 
 class VulnShopHandler(
@@ -59,6 +60,7 @@ class VulnShopHandler(
     SecretsHandlerMixin,
     ShippingHandlerMixin,
     EncryptedHandlerMixin,
+    CouponHandlerMixin,
     BaseHTTPRequestHandler
 ):
     """
@@ -274,6 +276,18 @@ class VulnShopHandler(
             elif path == '/api/encrypted/debug/encode':
                 self.handle_encrypted_debug_encode(data)  # 调试：编码
 
+            # 优惠券模块接口（Base64 加密参数 SQL 注入演示）
+            elif path == '/api/coupon/query':
+                self.handle_coupon_query(data)  # 基于错误的注入
+            elif path == '/api/coupon/search':
+                self.handle_coupon_search(data)  # 布尔盲注
+            elif path == '/api/coupon/category':
+                self.handle_coupon_by_category(data)  # 时间盲注
+            elif path == '/api/coupon/debug/decode':
+                self.handle_coupon_debug_decode(data)  # 调试：解码
+            elif path == '/api/coupon/debug/encode':
+                self.handle_coupon_debug_encode(data)  # 调试：编码
+
             else:
                 self.send_error(404, 'Not Found')
         except WAFBlockedException as e:
@@ -354,6 +368,13 @@ def run_server():
 ║  • POST /api/encrypted/order/query   - 时间盲注 (content字段Base64编码)                ║
 ║  • POST /api/encrypted/debug/decode  - 调试：解码content字段                           ║
 ║  • POST /api/encrypted/debug/encode  - 调试：编码content字段                           ║
+║                                                                                       ║
+║  [优惠券接口 - Base64加密参数 SQL注入]                                                 ║
+║  • POST /api/coupon/query            - 基于错误的注入 (data字段Base64编码)             ║
+║  • POST /api/coupon/search           - 布尔盲注 (data字段Base64编码)                   ║
+║  • POST /api/coupon/category         - 时间盲注 (data字段Base64编码)                   ║
+║  • POST /api/coupon/debug/decode     - 调试：解码data字段                              ║
+║  • POST /api/coupon/debug/encode     - 调试：编码data字段                              ║
 ║                                                                                       ║
 ║  [安全接口 - 参数化查询保护]                                                           ║
 ║  • POST /api/user/register        - 安全 (session_id, captcha_token)                   ║

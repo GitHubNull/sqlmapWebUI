@@ -571,6 +571,8 @@ const ui = {
             this.loadConfig();
         } else if (pageName === 'home') {
             this.loadHotProducts();
+        } else if (pageName === 'coupons') {
+            // 优惠券页面初始化
         }
     },
     
@@ -1151,6 +1153,39 @@ function initEventListeners() {
             ui.showLogViewer();
         });
     }
+
+    // 侧边栏会员中心链接
+    const memberCenterLink = document.getElementById('memberCenterLink');
+    if (memberCenterLink) {
+        memberCenterLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (typeof memberCenter !== 'undefined') {
+                memberCenter.show();
+            }
+        });
+    }
+
+    // 侧边栏优惠券中心链接
+    const couponCenterLink = document.getElementById('couponCenterLink');
+    if (couponCenterLink) {
+        couponCenterLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (typeof couponCenter !== 'undefined') {
+                couponCenter.show();
+            }
+        });
+    }
+
+    // 侧边栏评价中心链接
+    const reviewCenterLink = document.getElementById('reviewCenterLink');
+    if (reviewCenterLink) {
+        reviewCenterLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (typeof reviewCenter !== 'undefined') {
+                reviewCenter.show();
+            }
+        });
+    }
     
     // 侧边栏漏洞接口菜单点击
     document.querySelectorAll('.sidebar-menu a[data-api]').forEach(link => {
@@ -1321,6 +1356,61 @@ function initEventListeners() {
 
     document.getElementById('sendShippingQuery')?.addEventListener('click', async () => {
         await shipping.sendQuery();
+    });
+
+    // 优惠券查询按钮
+    document.getElementById('queryCouponBtn')?.addEventListener('click', async () => {
+        const code = document.getElementById('couponCodeInput').value;
+        const category = document.getElementById('couponCategorySelect').value;
+        const resultEl = document.getElementById('couponQueryResult');
+        
+        if (!code) {
+            cart.showToast('请输入优惠券代码', 'warning');
+            return;
+        }
+        
+        resultEl.innerHTML = '<div style="text-align:center;padding:20px;color:#888;">查询中...</div>';
+        
+        try {
+            const result = await couponApi.queryCoupon(code, category);
+            const decodedData = couponApi.decodeResponse(result);
+            
+            if (result.success) {
+                let html = '<div class="result-success"><h4>✅ 查询成功</h4>';
+                if (decodedData.coupons && decodedData.coupons.length > 0) {
+                    html += '<div class="coupon-list">';
+                    decodedData.coupons.forEach(coupon => {
+                        const discountText = coupon.discount_type === 'percent' 
+                            ? coupon.discount_value + '% 折扣' 
+                            : '¥' + coupon.discount_value + ' 立减';
+                        html += `
+                            <div class="coupon-item" style="display:flex;align-items:center;gap:15px;padding:15px;background:rgba(233,69,96,0.1);border-radius:8px;margin:10px 0;">
+                                <div style="font-size:24px;font-weight:700;color:#e94560;">${discountText}</div>
+                                <div style="flex:1">
+                                    <div style="font-weight:600;">${coupon.coupon_code}</div>
+                                    <div style="font-size:12px;color:#888;">满¥${coupon.min_purchase}可用${coupon.max_discount ? ' | 最高减¥' + coupon.max_discount : ''}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                } else {
+                    html += '<p>' + (decodedData.message || '未找到匹配的优惠券') + '</p>';
+                }
+                html += '</div>';
+                resultEl.innerHTML = html;
+            } else {
+                let html = '<div class="result-error"><h4>❌ 查询失败</h4>';
+                html += '<p>' + (result.message || '未知错误') + '</p>';
+                if (result.debug && result.debug.sql_error) {
+                    html += '<details><summary>错误详情</summary><pre style="background:#2d1f1f;padding:10px;border-radius:4px;color:#ff6b6b;font-size:12px;">' + ui.escapeHtml(result.debug.sql_error) + '</pre></details>';
+                }
+                html += '</div>';
+                resultEl.innerHTML = html;
+            }
+        } catch (error) {
+            resultEl.innerHTML = '<div class="result-error"><p>请求失败: ' + error.message + '</p></div>';
+        }
     });
 }
 

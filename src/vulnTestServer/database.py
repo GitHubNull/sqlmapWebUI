@@ -150,6 +150,44 @@ def init_database():
             notes TEXT
         )
     ''')
+
+    # 创建优惠券表（用于 Base64 加密参数 SQL 注入演示）
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS coupons (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            coupon_code TEXT NOT NULL UNIQUE,
+            discount_type TEXT DEFAULT 'percent',
+            discount_value REAL NOT NULL,
+            min_purchase REAL DEFAULT 0,
+            max_discount REAL,
+            category TEXT,
+            status TEXT DEFAULT 'active',
+            valid_from TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            valid_until TIMESTAMP,
+            usage_limit INTEGER DEFAULT 100,
+            used_count INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # 创建用户评价表
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS reviews (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            product_id INTEGER NOT NULL,
+            order_id INTEGER,
+            rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5),
+            title TEXT,
+            content TEXT,
+            is_anonymous INTEGER DEFAULT 0,
+            helpful_count INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id),
+            FOREIGN KEY (product_id) REFERENCES products(id),
+            FOREIGN KEY (order_id) REFERENCES orders(id)
+        )
+    ''')
     
     # 插入测试用户
     test_users = [
@@ -242,6 +280,43 @@ def init_database():
                 INSERT INTO shipping_logs (tracking_number, carrier_code, status, location, weight, notes)
                 VALUES (?, ?, ?, ?, ?, ?)
             ''', shipping)
+        except:
+            pass
+
+    # 插入优惠券测试数据（用于 Base64 加密参数 SQL 注入演示）
+    test_coupons = [
+        ('SAVE10', 'percent', 10.0, 100.0, 50.0, 'electronics', 'active'),
+        ('NEWUSER20', 'percent', 20.0, 0, 100.0, None, 'active'),
+        ('FLASH50', 'fixed', 50.0, 200.0, 50.0, 'fashion', 'active'),
+        ('VIP30', 'percent', 30.0, 500.0, 200.0, None, 'active'),
+        ('BOOKS15', 'percent', 15.0, 50.0, 30.0, 'books', 'active'),
+        ('EXPIRED99', 'percent', 99.0, 0, 999.0, None, 'expired'),
+    ]
+
+    for coupon in test_coupons:
+        try:
+            cursor.execute('''
+                INSERT INTO coupons (coupon_code, discount_type, discount_value, min_purchase, max_discount, category, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', coupon)
+        except:
+            pass
+
+    # 插入评价测试数据
+    test_reviews = [
+        (2, 1, 1, 5, '非常满意', 'iPhone 15 Pro 手感超级好，性能强劲！', 0, 15),
+        (3, 2, 3, 4, '工作利器', 'MacBook Pro 屏幕素质极佳，适合设计工作', 0, 8),
+        (4, 5, 4, 5, '经典之作', 'Levi\'s 质量一如既往的好', 0, 23),
+        (2, 3, 2, 5, '降噪效果好', 'AirPods Pro 降噪效果超出预期', 0, 45),
+        (3, 6, 5, 4, '入门必读', 'Python书籍内容详实，适合初学者', 0, 12),
+    ]
+
+    for review in test_reviews:
+        try:
+            cursor.execute('''
+                INSERT INTO reviews (user_id, product_id, order_id, rating, title, content, is_anonymous, helpful_count)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', review)
         except:
             pass
 
