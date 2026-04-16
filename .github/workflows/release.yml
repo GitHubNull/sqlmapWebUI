@@ -353,21 +353,21 @@ jobs:
           echo "Release assets:"
           ls -la release-assets/
       
-      - name: Get previous tag
-        id: prev_tag
-        run: |
-          # 获取上一个 tag
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
-          echo "Previous tag: $PREV_TAG"
-      
-      - name: Generate Changelog
-        id: changelog
+      - name: Generate Release Notes
+        id: release_notes
         run: |
           VERSION=${{ steps.get_version.outputs.version }}
-          PREV_TAG=${{ steps.prev_tag.outputs.prev_tag }}
+          TAG_NAME=${GITHUB_REF_NAME}
+          REPO=${{ github.repository }}
+          TODAY=$(date +'%Y-%m-%d')
           
-          # 确定比较范围
+          # ========== 1. 获取上一个 tag ==========
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "DEBUG: PREV_TAG='${PREV_TAG}'"
+          echo "DEBUG: HEAD=$(git rev-parse HEAD)"
+          echo "DEBUG: All tags: $(git tag -l 'release-v*' | tr '\n' ' ')"
+          
+          # ========== 2. 生成 Changelog ==========
           if [ -z "$PREV_TAG" ]; then
             COMPARE_RANGE="HEAD"
             echo "No previous tag found, using all commits"
@@ -376,203 +376,166 @@ jobs:
             echo "Comparing: $COMPARE_RANGE"
           fi
           
-          # 初始化变更分类
           FEATURES=""
           FIXES=""
           IMPROVEMENTS=""
-          BREAKING=""
           DOCS=""
           REFACTOR=""
-          TESTS=""
           CHORE=""
           OTHER=""
           
-          # 解析 commit 消息并分类
           while IFS= read -r line; do
-            if [ -z "$line" ]; then
-              continue
-            fi
-            
-            # 提取 commit 信息 (格式: hash|subject)
+            [ -z "$line" ] && continue
             HASH=$(echo "$line" | cut -d'|' -f1 | cut -c1-7)
             MSG=$(echo "$line" | cut -d'|' -f2-)
-            
-            # 跳过合并提交
-            if echo "$MSG" | grep -qiE "^Merge"; then
-              continue
-            fi
-            
-            # 根据 Conventional Commits 格式分类
+            echo "$MSG" | grep -qiE "^Merge" && continue
             ENTRY="- $MSG (\`$HASH\`)"
-            
             if echo "$MSG" | grep -qiE "^feat(\(.+\))?[!:]|^feature[!:]"; then
-              FEATURES="$FEATURES\n$ENTRY"
+              FEATURES="${FEATURES}${ENTRY}
+          "
             elif echo "$MSG" | grep -qiE "^fix(\(.+\))?[!:]"; then
-              FIXES="$FIXES\n$ENTRY"
+              FIXES="${FIXES}${ENTRY}
+          "
             elif echo "$MSG" | grep -qiE "^perf(\(.+\))?[!:]|^improve(\(.+\))?[!:]|^optimize"; then
-              IMPROVEMENTS="$IMPROVEMENTS\n$ENTRY"
-            elif echo "$MSG" | grep -qiE "^breaking|^!:"; then
-              BREAKING="$BREAKING\n$ENTRY"
+              IMPROVEMENTS="${IMPROVEMENTS}${ENTRY}
+          "
             elif echo "$MSG" | grep -qiE "^docs?(\(.+\))?[!:]"; then
-              DOCS="$DOCS\n$ENTRY"
+              DOCS="${DOCS}${ENTRY}
+          "
             elif echo "$MSG" | grep -qiE "^refactor(\(.+\))?[!:]"; then
-              REFACTOR="$REFACTOR\n$ENTRY"
-            elif echo "$MSG" | grep -qiE "^test(s)?(\(.+\))?[!:]"; then
-              TESTS="$TESTS\n$ENTRY"
+              REFACTOR="${REFACTOR}${ENTRY}
+          "
             elif echo "$MSG" | grep -qiE "^chore(\(.+\))?[!:]|^build(\(.+\))?[!:]|^ci(\(.+\))?[!:]"; then
-              CHORE="$CHORE\n$ENTRY"
+              CHORE="${CHORE}${ENTRY}
+          "
             else
-              OTHER="$OTHER\n$ENTRY"
+              OTHER="${OTHER}${ENTRY}
+          "
             fi
-          done < <(git log $COMPARE_RANGE --pretty=format:"%H|%s" --no-merges 2>/dev/null || echo "")
-          
-          # 生成 Changelog 内容
-          CHANGELOG=""
-          
-          if [ -n "$BREAKING" ]; then
-            CHANGELOG="$CHANGELOG\n### ⚠️ 重大变更 (Breaking Changes)\n$BREAKING\n"
-          fi
-          
-          if [ -n "$FEATURES" ]; then
-            CHANGELOG="$CHANGELOG\n### ✨ 新功能 (Features)\n$FEATURES\n"
-          fi
-          
-          if [ -n "$FIXES" ]; then
-            CHANGELOG="$CHANGELOG\n### 🐛 问题修复 (Bug Fixes)\n$FIXES\n"
-          fi
-          
-          if [ -n "$IMPROVEMENTS" ]; then
-            CHANGELOG="$CHANGELOG\n### ⚡ 性能优化 (Performance)\n$IMPROVEMENTS\n"
-          fi
-          
-          if [ -n "$REFACTOR" ]; then
-            CHANGELOG="$CHANGELOG\n### ♻️ 代码重构 (Refactor)\n$REFACTOR\n"
-          fi
-          
-          if [ -n "$DOCS" ]; then
-            CHANGELOG="$CHANGELOG\n### 📝 文档更新 (Documentation)\n$DOCS\n"
-          fi
-          
-          if [ -n "$TESTS" ]; then
-            CHANGELOG="$CHANGELOG\n### 🧪 测试 (Tests)\n$TESTS\n"
-          fi
-          
-          if [ -n "$CHORE" ]; then
-            CHANGELOG="$CHANGELOG\n### 🔧 其他更新 (Chore)\n$CHORE\n"
-          fi
-          
-          if [ -n "$OTHER" ]; then
-            CHANGELOG="$CHANGELOG\n### 📋 其他变更 (Other Changes)\n$OTHER\n"
-          fi
-          
-          # 如果没有任何变更记录
-          if [ -z "$CHANGELOG" ]; then
-            CHANGELOG="\n*暂无详细变更记录*\n"
-          fi
-          
-          # 保存到文件供后续使用
-          echo -e "$CHANGELOG" > changelog_content.md
+          done < <(git log ${COMPARE_RANGE} --pretty=format:"%H|%s" --no-merges 2>/dev/null || echo "")
           
           # 统计信息
-          TOTAL_COMMITS=$(git rev-list --count $COMPARE_RANGE 2>/dev/null || echo "0")
-          CONTRIBUTORS=$(git log $COMPARE_RANGE --format='%aN' 2>/dev/null | sort -u | wc -l || echo "0")
-          echo "total_commits=$TOTAL_COMMITS" >> $GITHUB_OUTPUT
-          echo "contributors=$CONTRIBUTORS" >> $GITHUB_OUTPUT
-      
-      - name: Generate Release Notes
-        id: release_notes
-        run: |
-          VERSION=${{ steps.get_version.outputs.version }}
-          PREV_TAG=${{ steps.prev_tag.outputs.prev_tag }}
-          TOTAL_COMMITS=${{ steps.changelog.outputs.total_commits }}
-          CONTRIBUTORS=${{ steps.changelog.outputs.contributors }}
+          TOTAL_COMMITS=$(git rev-list --count ${COMPARE_RANGE} 2>/dev/null || echo "0")
+          CONTRIBUTORS=$(git log ${COMPARE_RANGE} --format='%aN' 2>/dev/null | sort -u | wc -l | tr -d ' ' || echo "0")
+          echo "DEBUG: TOTAL_COMMITS=${TOTAL_COMMITS}, CONTRIBUTORS=${CONTRIBUTORS}"
           
-          # 读取 changelog 内容
-          CHANGELOG_CONTENT=$(cat changelog_content.md)
+          # ========== 3. 直接写入 release notes 文件（不使用占位符替换）==========
+          {
+            echo "# SQLMap WebUI v${VERSION}"
+            echo ""
+            echo "## 📋 版本概述"
+            echo ""
+            echo "发布日期: ${TODAY}"
+            echo ""
+            if [ -n "$PREV_TAG" ]; then
+              echo "[📊 查看完整代码变更](https://github.com/${REPO}/compare/${PREV_TAG}...${TAG_NAME}) | 共 ${TOTAL_COMMITS} 个提交，${CONTRIBUTORS} 位贡献者"
+            else
+              echo "这是首次发布版本"
+            fi
+            echo ""
+            echo "## 🔄 更新内容"
+            echo ""
+            # 写入分类变更
+            HAS_CHANGES=false
+            if [ -n "$FEATURES" ]; then
+              echo "### ✨ 新功能 (Features)"
+              echo ""
+              echo "$FEATURES"
+              HAS_CHANGES=true
+            fi
+            if [ -n "$FIXES" ]; then
+              echo "### 🐛 问题修复 (Bug Fixes)"
+              echo ""
+              echo "$FIXES"
+              HAS_CHANGES=true
+            fi
+            if [ -n "$IMPROVEMENTS" ]; then
+              echo "### ⚡ 性能优化 (Performance)"
+              echo ""
+              echo "$IMPROVEMENTS"
+              HAS_CHANGES=true
+            fi
+            if [ -n "$REFACTOR" ]; then
+              echo "### ♻️ 代码重构 (Refactor)"
+              echo ""
+              echo "$REFACTOR"
+              HAS_CHANGES=true
+            fi
+            if [ -n "$DOCS" ]; then
+              echo "### 📝 文档更新 (Documentation)"
+              echo ""
+              echo "$DOCS"
+              HAS_CHANGES=true
+            fi
+            if [ -n "$CHORE" ]; then
+              echo "### 🔧 其他更新 (Chore)"
+              echo ""
+              echo "$CHORE"
+              HAS_CHANGES=true
+            fi
+            if [ -n "$OTHER" ]; then
+              echo "### 📋 其他变更 (Other Changes)"
+              echo ""
+              echo "$OTHER"
+              HAS_CHANGES=true
+            fi
+            if [ "$HAS_CHANGES" = false ]; then
+              echo "*暂无详细变更记录*"
+            fi
+            echo ""
+            echo "---"
+            echo ""
+            echo "## 📦 发布包说明"
+            echo ""
+            echo "### 后端应用 (sqlmapwebui-${VERSION}.zip)"
+            echo "完整的后端服务包，包含："
+            echo "- Python 后端 API 服务"
+            echo "- 前端静态资源（已集成）"
+            echo "- 启动脚本 (start.sh / start.bat)"
+            echo ""
+            echo '**使用方法：**'
+            echo '```bash'
+            echo '# Linux/Mac'
+            echo "unzip sqlmapwebui-${VERSION}.zip"
+            echo "cd sqlmapwebui-${VERSION}"
+            echo './start.sh'
+            echo ''
+            echo '# Windows'
+            echo '# 解压后运行 start.bat'
+            echo '```'
+            echo ""
+            echo "### Burp Suite 插件"
+            echo ""
+            echo "#### Montoya API 版本 (推荐)"
+            echo "- **文件**: sqlmap-webui-burp-montoya-${VERSION}.jar"
+            echo "- **适用**: Burp Suite 2023.1 及以上版本"
+            echo "- **Java 要求**: Java 17+"
+            echo ""
+            echo "#### Legacy API 版本"
+            echo "- **文件**: sqlmap-webui-burp-legacy-${VERSION}.jar"
+            echo "- **适用**: Burp Suite 老版本"
+            echo "- **Java 要求**: Java 11+"
+            echo ""
+            echo "### 漏洞测试靶场 (vulnTestServer-${VERSION}.zip)"
+            echo "用于测试的漏洞环境，包含多种 SQL 注入场景。"
+            echo ""
+            echo '**使用方法：**'
+            echo '```bash'
+            echo "unzip vulnTestServer-${VERSION}.zip"
+            echo "cd vulnTestServer-${VERSION}"
+            echo './start.sh  # 或 Windows 运行 start.bat'
+            echo '```'
+            echo ""
+            echo "## ⚠️ 安全提示"
+            echo "本工具仅用于授权的安全测试。请确保在使用前获得适当的授权。"
+            echo ""
+            echo "---"
+            echo "*此版本由 GitHub Actions 自动构建发布*"
+          } > release_notes.md
           
-          # 生成比较链接
-          if [ -n "$PREV_TAG" ]; then
-            COMPARE_URL="https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${GITHUB_REF_NAME}"
-            COMPARE_SECTION="[📊 查看完整代码变更](${COMPARE_URL}) | 共 ${TOTAL_COMMITS} 个提交，${CONTRIBUTORS} 位贡献者"
-          else
-            COMPARE_SECTION="这是首次发布版本"
-          fi
-          
-          cat > release_notes.md << 'RELEASE_EOF'
-          # SQLMap WebUI v__VERSION__
-          
-          ## 📋 版本概述
-          
-          发布日期: __DATE__
-          
-          __COMPARE_SECTION__
-          
-          ## 🔄 更新内容
-          
-          __CHANGELOG_CONTENT__
-          
-          ---
-          
-          ## 📦 发布包说明
-          
-          ### 后端应用 (sqlmapwebui-__VERSION__.zip)
-          完整的后端服务包，包含：
-          - Python 后端 API 服务
-          - 前端静态资源（已集成）
-          - 启动脚本 (start.sh / start.bat)
-          
-          **使用方法：**
-          ```bash
-          # Linux/Mac
-          unzip sqlmapwebui-__VERSION__.zip
-          cd sqlmapwebui-__VERSION__
-          ./start.sh
-          
-          # Windows
-          # 解压后运行 start.bat
-          ```
-          
-          ### Burp Suite 插件
-          
-          #### Montoya API 版本 (推荐)
-          - **文件**: sqlmap-webui-burp-montoya-__VERSION__.jar
-          - **适用**: Burp Suite 2023.1 及以上版本
-          - **Java 要求**: Java 17+
-          
-          #### Legacy API 版本
-          - **文件**: sqlmap-webui-burp-legacy-__VERSION__.jar
-          - **适用**: Burp Suite 老版本
-          - **Java 要求**: Java 11+
-          
-          ### 漏洞测试靶场 (vulnTestServer-__VERSION__.zip)
-          用于测试的漏洞环境，包含多种 SQL 注入场景。
-          
-          **使用方法：**
-          ```bash
-          unzip vulnTestServer-__VERSION__.zip
-          cd vulnTestServer-__VERSION__
-          ./start.sh  # 或 Windows 运行 start.bat
-          ```
-          
-          ## ⚠️ 安全提示
-          本工具仅用于授权的安全测试。请确保在使用前获得适当的授权。
-          
-          ---
-          *此版本由 GitHub Actions 自动构建发布*
-          RELEASE_EOF
-          
-          # 替换占位符
-          sed -i "s/__VERSION__/${VERSION}/g" release_notes.md
-          sed -i "s/__DATE__/$(date +'%Y-%m-%d')/g" release_notes.md
-          
-          # 使用 awk 替换 COMPARE_SECTION（避免内容中的特殊字符干扰 sed 分隔符）
-          awk -v section="$COMPARE_SECTION" '{gsub(/__COMPARE_SECTION__/, section)}1' release_notes.md > release_notes.tmp && mv release_notes.tmp release_notes.md
-          
-          # 替换 changelog 内容（使用 awk 处理多行）
-          awk -v content="$CHANGELOG_CONTENT" '{gsub(/__CHANGELOG_CONTENT__/, content)}1' release_notes.md > release_notes.tmp && mv release_notes.tmp release_notes.md
-          
-          # 移除每行前面的缩进空格
-          sed -i 's/^          //' release_notes.md
+          echo "DEBUG: release_notes.md generated successfully"
+          echo "DEBUG: First 10 lines:"
+          head -10 release_notes.md
       
       - name: Create Release
         uses: softprops/action-gh-release@v2
