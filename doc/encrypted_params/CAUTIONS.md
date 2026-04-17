@@ -82,7 +82,7 @@ python sqlmap.py -u URL --tamper=./base64_nested.py
 def tamper(payload, **kwargs):
     # 错误：可能导致编码错误
     data = json.dumps(inner)
-    
+
     # 正确：指定编码
     data = json.dumps(inner, ensure_ascii=False)
     encoded = base64.b64encode(data.encode('utf-8')).decode('utf-8')
@@ -94,7 +94,7 @@ def tamper(payload, **kwargs):
 # SQLMap payload 可能包含特殊字符
 def tamper(payload, **kwargs):
     # 需要正确处理引号、换行等字符
-    inner = {"name": payload.replace("'", "''")}
+    inner = {"coupon_code": payload.replace("'", "''")}
     # 或根据具体情况转义
 ```
 
@@ -140,12 +140,12 @@ python sqlmap.py -u URL --data='...' --tamper=script -p param --proxy=http://127
 ```python
 def tamper(payload, **kwargs):
     import sys
-    sys.stderr.write(f"[DEBUG] Original: {payload}\n")
-    
+    sys.stderr.write("[DEBUG] Original: %s\n" % payload)
+
     # 处理逻辑
     result = process(payload)
-    
-    sys.stderr.write(f"[DEBUG] Result: {result}\n")
+
+    sys.stderr.write("[DEBUG] Result: %s\n" % result)
     return result
 ```
 
@@ -156,17 +156,18 @@ def tamper(payload, **kwargs):
 import sys
 sys.path.insert(0, '/path/to/sqlmap')
 
-from tamper.base64_nested import tamper
+from tamper.tamper_script import tamper
 
 # 测试
-test_payload = "test' AND 1=1--"
+test_payload = "SAVE10' AND 1=1--"
 result = tamper(test_payload)
-print(f"Input: {test_payload}")
-print(f"Output: {result}")
+print("Input: %s" % test_payload)
+print("Output: %s" % result)
 
 # 验证输出
+import base64
 decoded = base64.b64decode(result)
-print(f"Decoded: {decoded}")
+print("Decoded: %s" % decoded)
 ```
 
 ### 4. Verbose 模式
@@ -312,7 +313,7 @@ def tamper(payload, **kwargs):
         return result
     except Exception as e:
         import sys
-        sys.stderr.write(f"[Tamper Error] {str(e)}\n")
+        sys.stderr.write("[Tamper Error] %s\n" % str(e))
         # 返回原始 payload，避免中断扫描
         return payload
 ```

@@ -8,6 +8,16 @@
 
 ---
 
+## v1.8.56 (2026-04-17)
+
+**Documentation**
+- Fixed docs and scripts in `doc/encrypted_params` directory, aligning all content to `process_script_demo.py` as the authoritative reference
+- `preprocess_script.py`: renamed outer field to `data`, aligned logic to coupon interface (direct Base64 encode/decode on field value)
+- `tamper_script.py`: renamed inner parameter to `coupon_code`, aligned endpoint to `/api/coupon/query`
+- `README.md` / `CAUTIONS.md` / `USAGE_SCENARIOS.md`: fully aligned field names, endpoints, and code examples
+
+---
+
 ## v1.8.55 (2026-04-16)
 
 **Fixes (CI/CD)**

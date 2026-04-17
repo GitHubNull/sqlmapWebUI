@@ -8,6 +8,16 @@
 
 ---
 
+## v1.8.56 (2026-04-17)
+
+**文档**
+- 修复 `doc/encrypted_params` 目录下的文档和代码，以 `process_script_demo.py` 为准确标准全面对齐
+- `preprocess_script.py`：外层字段名改为 `data`，逻辑对齐 coupon 接口（直接对字段值做 Base64 编码/解码）
+- `tamper_script.py`：内层参数名改为 `coupon_code`，接口路径对齐 `/api/coupon/query`
+- `README.md` / `CAUTIONS.md` / `USAGE_SCENARIOS.md`：字段名、接口、示例代码全面对齐
+
+---
+
 ## v1.8.55 (2026-04-16)
 
 **修复 (CI/CD)**

